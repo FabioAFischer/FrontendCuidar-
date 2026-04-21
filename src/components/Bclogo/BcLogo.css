@@ -1,0 +1,13 @@
+.bc-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.bc-logo-nome {
+  font-weight: 700;
+  color: #0d9e8a;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
