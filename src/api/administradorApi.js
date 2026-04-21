@@ -20,14 +20,18 @@ export async function cadastrarInstituicao(dados) {
   return response.json().catch(() => null);
 }
 
-export async function listarInstituicoes() {
-  const response = await fetch(`${API_BASE_URL}/instituicao/listar_todas`);
+export async function listarInstituicoes(page = 0, size = 100) {
+  const response = await fetch(
+    `${API_BASE_URL}/instituicao/listar_todas?page=${page}&size=${size}`
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao buscar instituições.");
   }
 
-  return response.json();
+  // O backend retorna objeto paginado — as instituições ficam em data.content
+  const data = await response.json();
+  return Array.isArray(data.content) ? data.content : [];
 }
 
 export async function buscarInstituicaoPorId(id) {
