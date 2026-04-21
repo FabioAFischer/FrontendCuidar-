@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
+import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
 import RolePlaceholder from "./pages/Shared/RolePlaceholder";
 import "./styles/global.css";
 import "./App.css";
@@ -86,14 +87,7 @@ export default function App() {
         );
 
       case "area-instituicao":
-        return (
-          <RolePlaceholder
-            titulo="Área da Instituição"
-            descricao="O acesso da instituição já está preparado no aplicativo e pode ser ligado ao dashboard correspondente assim que ele for implementado."
-            botao="Voltar para o login"
-            onLogout={() => navigateTo(ROUTES.login)}
-          />
-        );
+        return <InstituicaoProfileHome onLogout={() => navigateTo(ROUTES.login)} />;
 
       default:
         return (
