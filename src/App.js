@@ -3,6 +3,11 @@ import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
 import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
 import RolePlaceholder from "./pages/Shared/RolePlaceholder";
+import {
+  ADMIN_AUTH_CHANGED_EVENT,
+  isAdministradorAutenticado,
+  logoutAdministrador,
+} from "./api/administradorApi";
 import "./styles/global.css";
 import "./App.css";
 
@@ -16,7 +21,7 @@ const ROUTES = {
 function getRouteFromHash(hash) {
   switch (hash) {
     case ROUTES.administrador:
-      return "dashboard-admin";
+      return isAdministradorAutenticado() ? "dashboard-admin" : "login";
     case ROUTES.cuidador:
       return "area-cuidador";
     case ROUTES.instituicao:
@@ -37,17 +42,45 @@ export default function App() {
   useEffect(() => {
     if (!window.location.hash) {
       window.location.hash = ROUTES.login;
+    } else if (
+      window.location.hash === ROUTES.administrador &&
+      !isAdministradorAutenticado()
+    ) {
+      window.location.hash = ROUTES.login;
     }
 
     function handleHashChange() {
-      setTela(getRouteFromHash(window.location.hash));
+      const nextTela = getRouteFromHash(window.location.hash);
+
+      if (window.location.hash === ROUTES.administrador && nextTela === "login") {
+        window.location.hash = ROUTES.login;
+        return;
+      }
+
+      setTela(nextTela);
     }
 
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  useEffect(() => {
+    function handleAdminAuthChanged() {
+      if (window.location.hash === ROUTES.administrador && !isAdministradorAutenticado()) {
+        navigateTo(ROUTES.login);
+      }
+    }
+
+    window.addEventListener(ADMIN_AUTH_CHANGED_EVENT, handleAdminAuthChanged);
+    return () => window.removeEventListener(ADMIN_AUTH_CHANGED_EVENT, handleAdminAuthChanged);
+  }, []);
+
   function navigateTo(route) {
+    if (window.location.hash === route) {
+      setTela(getRouteFromHash(route));
+      return;
+    }
+
     window.location.hash = route;
   }
 
@@ -74,7 +107,14 @@ export default function App() {
         return <LoginPage onLogin={handleLogin} />;
 
       case "dashboard-admin":
-        return <AdminDashboard onLogout={() => navigateTo(ROUTES.login)} />;
+        return (
+          <AdminDashboard
+            onLogout={() => {
+              logoutAdministrador();
+              navigateTo(ROUTES.login);
+            }}
+          />
+        );
 
       case "area-cuidador":
         return (

@@ -2,6 +2,7 @@ import { useState } from "react";
 import BcButton from "../../components/Bcbutton/BcButton";
 import BcInput from "../../components/Bcinput/BcInput";
 import BcLogo from "../../components/Bclogo/BcLogo";
+import { loginAdministrador } from "../../api/administradorApi";
 import "./LoginPage.css";
 
 const profileDescriptions = {
@@ -17,6 +18,7 @@ export default function LoginPage({ onLogin }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState("");
 
   function validateForm() {
     if (!email.trim()) {
@@ -33,7 +35,7 @@ export default function LoginPage({ onLogin }) {
     return true;
   }
 
-  function handleProfileLogin(profile) {
+  async function handleProfileLogin(profile) {
     if (!validateForm()) {
       return;
     }
@@ -43,6 +45,28 @@ export default function LoginPage({ onLogin }) {
       instituicao: "Instituição",
       administrador: "Administrador",
     }[profile];
+
+    setFeedback("");
+
+    if (profile === "administrador") {
+      setLoadingProfile(profile);
+
+      try {
+        const auth = await loginAdministrador({ email, senha: password });
+
+        setFeedback(`Login de ${profileName.toLowerCase()} realizado com sucesso.`);
+
+        if (onLogin) {
+          onLogin(profile, { auth, rememberMe });
+        }
+      } catch (err) {
+        setError(err.message || "Não foi possível realizar o login de administrador.");
+      } finally {
+        setLoadingProfile("");
+      }
+
+      return;
+    }
 
     setFeedback(
       rememberMe
@@ -184,10 +208,11 @@ export default function LoginPage({ onLogin }) {
                   key={profile}
                   type="button"
                   className="login-profile-button"
+                  disabled={Boolean(loadingProfile)}
                   onClick={() => handleProfileLogin(profile)}
                 >
                   <span className="login-profile-button__title">
-                    Entrar como
+                    {loadingProfile === profile ? "Entrando como" : "Entrar como"}
                     {" "}
                     {{
                       cuidador: "Cuidador",
@@ -202,7 +227,12 @@ export default function LoginPage({ onLogin }) {
               ))}
             </div>
 
-            <BcButton type="button" onClick={() => handleProfileLogin("administrador")}>
+            <BcButton
+              type="button"
+              loading={loadingProfile === "administrador"}
+              disabled={Boolean(loadingProfile)}
+              onClick={() => handleProfileLogin("administrador")}
+            >
               Acessar com o perfil principal
             </BcButton>
           </form>

@@ -279,7 +279,15 @@ export default function Admindashboard({ onLogout }) {
   function recarregarLista() {
     listarInstituicoes()
       .then(data => setInstituicoes(Array.isArray(data) ? data : []))
-      .catch(console.error);
+      .catch(err => {
+        if (err.message.includes("Sessão de administrador expirada")) {
+          alert(err.message);
+          onLogout?.();
+          return;
+        }
+
+        console.error(err);
+      });
   }
 
   // Carrega a lista ao montar a tela
