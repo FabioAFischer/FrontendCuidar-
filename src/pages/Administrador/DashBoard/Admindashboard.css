@@ -5,69 +5,6 @@
 }
 
 /* ── Header ── */
-.adm-header {
-  background: #fff;
-  border-bottom: 1px solid #e8e8e8;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.adm-header__inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 14px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.adm-header__logo {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.adm-header__titulo {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  border-left: 1.5px solid #e0e0e0;
-  padding-left: 14px;
-}
-
-.adm-header__nome {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.2;
-}
-
-.adm-header__sub {
-  font-size: 12px;
-  color: #888;
-}
-
-.adm-sair {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: none;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #555;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-  font-family: inherit;
-}
-.adm-sair:hover {
-  border-color: #0d9e8a;
-  color: #0d9e8a;
-}
-
 /* ── Main ── */
 .adm-main {
   max-width: 1100px;
@@ -362,7 +299,6 @@
 
 /* ── Responsivo ── */
 @media (max-width: 640px) {
-  .adm-header__inner { padding: 12px 16px; }
   .adm-main { padding: 16px 16px 40px; }
   .adm-toolbar { flex-direction: column; align-items: stretch; }
   .adm-busca-wrap { max-width: 100%; }
