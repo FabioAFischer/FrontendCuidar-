@@ -4,6 +4,7 @@ import BcButton from "../../../components/Bcbutton/BcButton";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
+import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeOlhoAberto, IconeOlhoFechado, IconeSucesso } from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
 import "./Admindashboard.css";
@@ -308,22 +309,13 @@ export default function Admindashboard({ onLogout }) {
   return (
     <div className="adm-page">
 
-      {/* Header */}
-      <header className="adm-header">
-        <div className="adm-header__inner">
-          <div className="adm-header__logo">
-            <BcLogo size="sm" />
-            <div className="adm-header__titulo">
-              <span className="adm-header__nome">Painel Administrativo</span>
-              <span className="adm-header__sub">Gestão de Instituições</span>
-            </div>
-          </div>
-          <button className="adm-sair" onClick={onLogout}>
-            <IconeSair /> Sair
-          </button>
-        </div>
-      </header>
-
+      <BcTopbar
+        title="Painel Administrativo"
+        subtitle="Gestão de Instituições"
+        actionLabel="Sair"
+        actionIcon={<IconeSair />}
+        onAction={onLogout}
+      />
       {/* Conteúdo */}
       <main className="adm-main">
         <div className="adm-toolbar">
