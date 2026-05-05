@@ -11,7 +11,7 @@ const profileDescriptions = {
 };
 
 export default function LoginPage({ onLogin }) {
-  const [email, setEmail] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -19,8 +19,8 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
 
   function validateForm() {
-    if (!email.trim()) {
-      setError("Informe o seu email.");
+    if (!cpfCnpj.trim()) {
+      setError("Informe seu CPF ou CNPJ.");
       return false;
     }
 
@@ -51,7 +51,7 @@ export default function LoginPage({ onLogin }) {
     );
 
     if (onLogin) {
-      onLogin(profile, { email, password, rememberMe });
+      onLogin(profile, { cpfCnpj, password, rememberMe });
     }
   }
 
@@ -110,7 +110,7 @@ export default function LoginPage({ onLogin }) {
           <div className="login-card__header">
             <span className="login-card__tag">Login</span>
             <h2>Bem-vindo de volta</h2>
-            <p>Use seu email e senha para acessar a plataforma.</p>
+            <p>Use seu CPF ou CNPJ e senha para acessar a plataforma.</p>
           </div>
 
           <form
@@ -119,14 +119,14 @@ export default function LoginPage({ onLogin }) {
             noValidate
           >
             <BcInput
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="voce@exemplo.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-              error={error && !email.trim() ? error : ""}
+              label="CPF ou CNPJ"
+              name="cpfCnpj"
+              type="text"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              value={cpfCnpj}
+              onChange={(event) => setCpfCnpj(event.target.value)}
+              autoComplete="off"
+              error={error && !cpfCnpj.trim() ? error : ""}
             />
 
             <BcInput
@@ -166,7 +166,7 @@ export default function LoginPage({ onLogin }) {
               </a>
             </div>
 
-            {error && email.trim() && password.trim() ? (
+            {error && cpfCnpj.trim() && password.trim() ? (
               <div className="login-form__message login-form__message--error" role="alert">
                 {error}
               </div>
