@@ -203,12 +203,7 @@ export default function LoginPage({ onLogin }) {
             </div>
           </form>
 
-          <div className="login-card__footer">
-            <span>Não tem uma conta?</span>
-            <a href="#cadastro" className="login-form__link" onClick={handleSignup}>
-              Cadastrar-se
-            </a>
-          </div>
+          
         </div>
       </section>
     </main>
