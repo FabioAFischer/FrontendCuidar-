@@ -201,10 +201,6 @@ export default function LoginPage({ onLogin }) {
                 </button>
               ))}
             </div>
-
-            <BcButton type="button" onClick={() => handleProfileLogin("administrador")}>
-              Acessar com o perfil principal
-            </BcButton>
           </form>
 
           <div className="login-card__footer">
