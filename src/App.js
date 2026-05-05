@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getAuthToken, logout } from "./api/authApi";
 import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
 import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
@@ -12,6 +13,16 @@ const ROUTES = {
   cuidador: "#/cuidador",
   instituicao: "#/instituicao",
 };
+
+const ROUTE_PROFILE = {
+  "dashboard-admin": "ADMINISTRADOR",
+  "area-cuidador": "CUIDADOR",
+  "area-instituicao": "INSTITUICAO",
+};
+
+function getStoredProfile() {
+  return localStorage.getItem("perfil") || sessionStorage.getItem("perfil");
+}
 
 function getRouteFromHash(hash) {
   switch (hash) {
@@ -51,6 +62,11 @@ export default function App() {
     window.location.hash = route;
   }
 
+  function handleLogout() {
+    logout();
+    navigateTo(ROUTES.login);
+  }
+
   function handleLogin(role) {
     if (role === "administrador") {
       navigateTo(ROUTES.administrador);
@@ -64,35 +80,50 @@ export default function App() {
 
     if (role === "instituicao") {
       navigateTo(ROUTES.instituicao);
-      return;
     }
   }
 
+  function hasAccess(route) {
+    const requiredProfile = ROUTE_PROFILE[route];
+
+    if (!requiredProfile) {
+      return true;
+    }
+
+    return Boolean(getAuthToken()) && getStoredProfile() === requiredProfile;
+  }
+
   function renderTela() {
+    if (!hasAccess(tela)) {
+      logout();
+      navigateTo(ROUTES.login);
+      return <LoginPage onLogin={handleLogin} />;
+    }
+
     switch (tela) {
       case "login":
         return <LoginPage onLogin={handleLogin} />;
 
       case "dashboard-admin":
-        return <AdminDashboard onLogout={() => navigateTo(ROUTES.login)} />;
+        return <AdminDashboard onLogout={handleLogout} />;
 
       case "area-cuidador":
         return (
           <RolePlaceholder
-            titulo="Área do Cuidador"
-            descricao="A autenticação do cuidador já está conectada ao fluxo de login e pronta para receber a próxima tela."
+            titulo="Area do Cuidador"
+            descricao="A autenticacao do cuidador ja esta conectada ao fluxo de login e pronta para receber a proxima tela."
             botao="Voltar para o login"
-            onLogout={() => navigateTo(ROUTES.login)}
+            onLogout={handleLogout}
           />
         );
 
       case "area-instituicao":
-        return <InstituicaoProfileHome onLogout={() => navigateTo(ROUTES.login)} />;
+        return <InstituicaoProfileHome onLogout={handleLogout} />;
 
       default:
         return (
           <div className="app-fallback">
-            Tela não encontrada.
+            Tela nao encontrada.
           </div>
         );
     }
