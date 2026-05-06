@@ -1,5 +1,6 @@
 import { useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
+import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
 import "./BcListagem.css";
 
 const IconeBusca = () => (
@@ -160,32 +161,17 @@ export default function BcListagem({
         )}
       </div>
 
-      {itemParaExcluir ? (
-        <div className="bc-listagem-confirmOverlay" onClick={() => setItemParaExcluir(null)}>
-          <div className="bc-listagem-confirm" onClick={(evento) => evento.stopPropagation()}>
-            <div className="bc-listagem-confirmIcone"><IconeLixeira /></div>
-            <h3>{tituloConfirmacao}</h3>
-            <p>{mensagemConfirmacao}</p>
-            <div className="bc-listagem-confirmAcoes">
-              <button
-                className="bc-listagem-confirmCancelar"
-                type="button"
-                onClick={() => setItemParaExcluir(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="bc-listagem-confirmConfirmar"
-                type="button"
-                onClick={confirmarExclusao}
-                disabled={excluindo}
-              >
-                {excluindo ? textoCarregandoExcluir : textoConfirmar}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <BcConfirmacao
+        aberto={Boolean(itemParaExcluir)}
+        titulo={tituloConfirmacao}
+        mensagem={mensagemConfirmacao}
+        textoConfirmar={textoConfirmar}
+        textoCarregando={textoCarregandoExcluir}
+        carregando={excluindo}
+        icone={<IconeLixeira />}
+        onCancelar={() => setItemParaExcluir(null)}
+        onConfirmar={confirmarExclusao}
+      />
     </>
   );
 }
