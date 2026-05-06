@@ -64,13 +64,17 @@ function formatarCEP(v) {
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
 
-function validar(form) {
+function validar(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
   if (form.cnpj.replace(/\D/g, "").length < 14)  return "CNPJ inválido.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
   if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
   if (!form.numero.trim())                        return "Informe o número.";
   if (form.cep.replace(/\D/g, "").length < 8)    return "CEP inválido.";
+  if (exigirSenha && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(form.senha)) {
+    return "A senha deve ter no minimo 8 caracteres, com maiuscula, minuscula, numero e caractere especial.";
+  }
+  if (exigirSenha && form.senha !== form.confirmarSenha) return "As senhas nao coincidem.";
   return null;
 }
 
@@ -100,13 +104,14 @@ function ModalCadastro({ onFechar, onSucesso }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
-    const err = validar(form);
+    const err = validar(form, true);
     if (err) { setErro(err); return; }
     setLoading(true);
     try {
       await cadastrarInstituicao({
         nome:   form.nome,
         cnpj:   form.cnpj.replace(/\D/g, ""),
+        senha:  form.senha,
         bairro: form.bairro,
         uf:     form.uf,
         numero: form.numero,

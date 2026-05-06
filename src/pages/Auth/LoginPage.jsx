@@ -1,13 +1,19 @@
 import { useState } from "react";
-import BcButton from "../../components/Bcbutton/BcButton";
 import BcInput from "../../components/Bcinput/BcInput";
 import BcLogo from "../../components/Bclogo/BcLogo";
+import { login as loginUsuario } from "../../api/authApi";
 import "./LoginPage.css";
 
 const profileDescriptions = {
-  cuidador: "Acesse sua rotina, oportunidades e informações de atendimento.",
+  cuidador: "Acesse sua rotina, oportunidades e informacoes de atendimento.",
   instituicao: "Gerencie equipes, cadastros e demandas institucionais.",
-  administrador: "Controle cadastros, indicadores e configurações da plataforma.",
+  administrador: "Controle cadastros, indicadores e configuracoes da plataforma.",
+};
+
+const profileNames = {
+  cuidador: "Cuidador",
+  instituicao: "Instituicao",
+  administrador: "Administrador",
 };
 
 export default function LoginPage({ onLogin }) {
@@ -17,6 +23,7 @@ export default function LoginPage({ onLogin }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState("");
 
   function validateForm() {
     if (!cpfCnpj.trim()) {
@@ -33,50 +40,53 @@ export default function LoginPage({ onLogin }) {
     return true;
   }
 
-  function handleProfileLogin(profile) {
+  async function handleProfileLogin(profile) {
     if (!validateForm()) {
       return;
     }
 
-    const profileName = {
-      cuidador: "Cuidador",
-      instituicao: "Instituição",
-      administrador: "Administrador",
-    }[profile];
+    const profileName = profileNames[profile];
 
-    setFeedback(
-      rememberMe
-        ? `Login de ${profileName.toLowerCase()} preparado com opção de lembrar acesso.`
-        : `Login de ${profileName.toLowerCase()} preparado para futura integração com o backend.`
-    );
+    setError("");
+    setFeedback("");
+    setLoadingProfile(profile);
 
-    if (onLogin) {
-      onLogin(profile, { cpfCnpj, password, rememberMe });
+    try {
+      const data = await loginUsuario({
+        identificador: cpfCnpj,
+        senha: password,
+        perfil: profile,
+        rememberMe,
+      });
+
+      setFeedback(`Login de ${profileName.toLowerCase()} realizado com sucesso.`);
+
+      if (onLogin) {
+        onLogin(profile, data);
+      }
+    } catch (err) {
+      setError(err.message || "Nao foi possivel fazer login.");
+    } finally {
+      setLoadingProfile("");
     }
   }
 
   function handleForgotPassword(event) {
     event.preventDefault();
     setError("");
-    setFeedback("Fluxo de recuperação de senha pronto para ser conectado ao backend ou à navegação futura.");
-  }
-
-  function handleSignup(event) {
-    event.preventDefault();
-    setError("");
-    setFeedback("Link de cadastro preparado. Você pode conectá-lo a uma próxima tela quando o fluxo estiver disponível.");
+    setFeedback("Fluxo de recuperacao de senha pronto para ser conectado ao backend ou a navegacao futura.");
   }
 
   return (
     <main className="login-page">
       <section className="login-page__hero">
         <div className="login-page__hero-content">
-          <div className="login-page__eyebrow">Plataforma de cuidado e gestão</div>
+          <div className="login-page__eyebrow">Plataforma de cuidado e gestao</div>
           <BcLogo size="lg" />
           <h1>Acesso seguro para quem cuida, organiza e acompanha.</h1>
           <p>
-            Entre com sua conta para acessar rotinas assistenciais, gestão
-            institucional e painéis administrativos em um só ambiente.
+            Entre com sua conta para acessar rotinas assistenciais, gestao
+            institucional e paineis administrativos em um so ambiente.
           </p>
 
           <div className="login-page__highlights" aria-label="Diferenciais da plataforma">
@@ -90,22 +100,22 @@ export default function LoginPage({ onLogin }) {
             <article className="login-highlight">
               <span className="login-highlight__icon" aria-hidden="true">[]</span>
               <div>
-                <strong>Gestão institucional</strong>
-                <p>Organização de cadastros, equipes e processos de forma clara.</p>
+                <strong>Gestao institucional</strong>
+                <p>Organizacao de cadastros, equipes e processos de forma clara.</p>
               </div>
             </article>
             <article className="login-highlight">
               <span className="login-highlight__icon" aria-hidden="true">OK</span>
               <div>
                 <strong>Acesso por perfil</strong>
-                <p>Fluxo preparado para cuidador, instituição e administrador.</p>
+                <p>Fluxo preparado para cuidador, instituicao e administrador.</p>
               </div>
             </article>
           </div>
         </div>
       </section>
 
-      <section className="login-page__panel" aria-label="Formulário de login">
+      <section className="login-page__panel" aria-label="Formulario de login">
         <div className="login-card">
           <div className="login-card__header">
             <span className="login-card__tag">Login</span>
@@ -184,16 +194,12 @@ export default function LoginPage({ onLogin }) {
                   key={profile}
                   type="button"
                   className="login-profile-button"
+                  disabled={Boolean(loadingProfile)}
                   onClick={() => handleProfileLogin(profile)}
                 >
                   <span className="login-profile-button__title">
-                    Entrar como
-                    {" "}
-                    {{
-                      cuidador: "Cuidador",
-                      instituicao: "Instituição",
-                      administrador: "Administrador",
-                    }[profile]}
+                    {loadingProfile === profile ? "Entrando como" : "Entrar como"}{" "}
+                    {profileNames[profile]}
                   </span>
                   <span className="login-profile-button__description">
                     {description}
@@ -202,8 +208,6 @@ export default function LoginPage({ onLogin }) {
               ))}
             </div>
           </form>
-
-          
         </div>
       </section>
     </main>
