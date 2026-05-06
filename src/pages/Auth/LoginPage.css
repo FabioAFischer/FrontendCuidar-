@@ -132,7 +132,7 @@
   padding: 32px;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 2px solid #c9ebe4;
   box-shadow: 0 24px 60px rgba(18, 49, 49, 0.12);
 }
 
@@ -245,7 +245,7 @@
 .login-profile-button {
   width: 100%;
   padding: 16px 18px;
-  border: 1px solid #d7e6e3;
+  border: 2px solid #c9ebe4;
   border-radius: 18px;
   background: #fff;
   text-align: left;
