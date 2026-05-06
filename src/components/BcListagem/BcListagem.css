@@ -73,6 +73,9 @@
 }
 
 .bc-listagem-titulo svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
   color: #0d9e8a;
 }
 
@@ -110,6 +113,11 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 14px;
+}
+
+.bc-listagem-vazioIcone svg {
+  width: 24px;
+  height: 24px;
 }
 
 .bc-listagem-vazio p {
