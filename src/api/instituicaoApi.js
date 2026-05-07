@@ -199,4 +199,3 @@ export async function deletarIdoso(id) {
     fallback: "Erro ao deletar idoso.",
   });
 }
-a
