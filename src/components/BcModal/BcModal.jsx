@@ -12,7 +12,7 @@ export default function BcModal({ aberto, onFechar, children }) {
   if (!aberto) return null;
 
   return (
-    <div className="bcmodal-overlay" onClick={onFechar}>
+    <div className="bcmodal-overlay" onClick={(e) => e.stopPropagation()}>
       <div
         className="bcmodal-content"
         onClick={e => e.stopPropagation()}
