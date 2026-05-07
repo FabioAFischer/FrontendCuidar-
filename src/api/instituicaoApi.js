@@ -23,10 +23,29 @@ async function getErrorMessage(response, fallback) {
   return erro.message || fallback;
 }
 
+async function requestApi(path, { method = "GET", dados, fallback } = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    body: dados ? JSON.stringify(dados) : undefined,
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, fallback));
+  }
+
+  return response.json().catch(() => null);
+}
+
+function conteudoPaginado(data) {
+  return Array.isArray(data?.content) ? data.content : [];
+}
+
 function normalizarCuidador(dados) {
   return {
     nome: dados.nome,
     cpf: somenteNumeros(dados.cpf),
+    email: dados.email,
     login: dados.login,
     senha: dados.senha,
     instituicaoId: dados.instituicaoId || getInstituicaoId(),
@@ -58,113 +77,65 @@ function normalizarContato(dados) {
 }
 
 export async function listarCuidadores(page = 0, size = 100) {
-  const response = await fetch(
-    `${API_BASE_URL}/cuidador/listar_todos?page=${page}&size=${size}`,
-    { headers: getAuthHeaders() }
-  );
+  const data = await requestApi(`/cuidador/listar_todos?page=${page}&size=${size}`, {
+    fallback: "Erro ao buscar cuidadores.",
+  });
 
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao buscar cuidadores."));
-  }
-
-  const data = await response.json();
-  return Array.isArray(data.content) ? data.content : [];
+  return conteudoPaginado(data);
 }
 
 export async function cadastrarCuidador(dados) {
-  const response = await fetch(`${API_BASE_URL}/cuidador/cadastrar`, {
+  return requestApi("/cuidador/cadastrar", {
     method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarCuidador(dados)),
+    dados: normalizarCuidador(dados),
+    fallback: "Erro ao cadastrar cuidador.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao cadastrar cuidador."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function atualizarCuidador(id, dados) {
-  const response = await fetch(`${API_BASE_URL}/cuidador/atualizar/${id}`, {
+  return requestApi(`/cuidador/atualizar/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarCuidador(dados)),
+    dados: normalizarCuidador(dados),
+    fallback: "Erro ao atualizar cuidador.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao atualizar cuidador."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function deletarCuidador(id) {
-  const response = await fetch(`${API_BASE_URL}/cuidador/deletar/${id}`, {
+  return requestApi(`/cuidador/deletar/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    fallback: "Erro ao deletar cuidador.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao deletar cuidador."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function listarIdosos(page = 0, size = 100) {
-  const response = await fetch(
-    `${API_BASE_URL}/idoso/listar_todos?page=${page}&size=${size}`,
-    { headers: getAuthHeaders() }
-  );
+  const data = await requestApi(`/idoso/listar_todos?page=${page}&size=${size}`, {
+    fallback: "Erro ao buscar idosos.",
+  });
 
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao buscar idosos."));
-  }
-
-  const data = await response.json();
-  return Array.isArray(data.content) ? data.content : [];
+  return conteudoPaginado(data);
 }
 
 export async function cadastrarContato(dados) {
-  const response = await fetch(`${API_BASE_URL}/contato/cadastrar`, {
+  return requestApi("/contato/cadastrar", {
     method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarContato(dados)),
+    dados: normalizarContato(dados),
+    fallback: "Erro ao cadastrar contato.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao cadastrar contato."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function atualizarContato(id, dados) {
-  const response = await fetch(`${API_BASE_URL}/contato/atualizar/${id}`, {
+  return requestApi(`/contato/atualizar/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarContato(dados)),
+    dados: normalizarContato(dados),
+    fallback: "Erro ao atualizar contato.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao atualizar contato."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function deletarContato(id) {
-  const response = await fetch(`${API_BASE_URL}/contato/deletar/${id}`, {
+  return requestApi(`/contato/deletar/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    fallback: "Erro ao deletar contato.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao deletar contato."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 async function salvarContatoDoIdoso(dados) {
@@ -173,6 +144,14 @@ async function salvarContatoDoIdoso(dados) {
   }
 
   return cadastrarContato(dados);
+}
+
+async function salvarIdoso(dados) {
+  return requestApi("/idoso/cadastrar", {
+    method: "POST",
+    dados: normalizarIdoso(dados),
+    fallback: "Erro ao cadastrar idoso.",
+  });
 }
 
 async function cadastrarIdosoComContato(dados) {
@@ -192,37 +171,17 @@ async function cadastrarIdosoComContato(dados) {
   }
 }
 
-async function salvarIdoso(dados) {
-  const response = await fetch(`${API_BASE_URL}/idoso/cadastrar`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarIdoso(dados)),
-  });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao cadastrar idoso."));
-  }
-
-  return response.json().catch(() => null);
-}
-
 export async function atualizarIdoso(id, dados) {
   const contato = await salvarContatoDoIdoso(dados);
 
-  const response = await fetch(`${API_BASE_URL}/idoso/atualizar/${id}`, {
+  return requestApi(`/idoso/atualizar/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarIdoso({
+    dados: normalizarIdoso({
       ...dados,
       contatoId: contato?.id || dados.contatoId,
-    })),
+    }),
+    fallback: "Erro ao atualizar idoso.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao atualizar idoso."));
-  }
-
-  return response.json().catch(() => null);
 }
 
 export async function cadastrarIdoso(dados) {
@@ -230,14 +189,8 @@ export async function cadastrarIdoso(dados) {
 }
 
 export async function deletarIdoso(id) {
-  const response = await fetch(`${API_BASE_URL}/idoso/deletar/${id}`, {
+  return requestApi(`/idoso/deletar/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    fallback: "Erro ao deletar idoso.",
   });
-
-  if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao deletar idoso."));
-  }
-
-  return response.json().catch(() => null);
 }
