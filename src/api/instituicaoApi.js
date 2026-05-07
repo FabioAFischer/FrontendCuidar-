@@ -43,10 +43,17 @@ function normalizarIdoso(dados) {
     cpf: somenteNumeros(dados.cpf),
     observacoes: dados.observacoes,
     instituicaoId: dados.instituicaoId || getInstituicaoId(),
-    contato: dados.contato || {
-      ddd: somenteNumeros(dados.ddd),
-      telefone: somenteNumeros(dados.telefone),
-    },
+    contatoId: dados.contatoId,
+  };
+}
+
+function normalizarContato(dados) {
+  return {
+    id: dados.contatoId || dados.contato?.id,
+    ddd: somenteNumeros(dados.contato?.ddd || dados.ddd),
+    telefone: somenteNumeros(dados.contato?.telefone || dados.telefone),
+    cuidadorId: dados.cuidadorId,
+    idosos: dados.idosos || [],
   };
 }
 
@@ -119,7 +126,73 @@ export async function listarIdosos(page = 0, size = 100) {
   return Array.isArray(data.content) ? data.content : [];
 }
 
-export async function cadastrarIdoso(dados) {
+export async function cadastrarContato(dados) {
+  const response = await fetch(`${API_BASE_URL}/contato/cadastrar`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(normalizarContato(dados)),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Erro ao cadastrar contato."));
+  }
+
+  return response.json().catch(() => null);
+}
+
+export async function atualizarContato(id, dados) {
+  const response = await fetch(`${API_BASE_URL}/contato/atualizar/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(normalizarContato(dados)),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Erro ao atualizar contato."));
+  }
+
+  return response.json().catch(() => null);
+}
+
+export async function deletarContato(id) {
+  const response = await fetch(`${API_BASE_URL}/contato/deletar/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Erro ao deletar contato."));
+  }
+
+  return response.json().catch(() => null);
+}
+
+async function salvarContatoDoIdoso(dados) {
+  if (dados.contatoId) {
+    return atualizarContato(dados.contatoId, dados);
+  }
+
+  return cadastrarContato(dados);
+}
+
+async function cadastrarIdosoComContato(dados) {
+  const contato = await cadastrarContato(dados);
+
+  try {
+    return await salvarIdoso({
+      ...dados,
+      contatoId: contato?.id,
+    });
+  } catch (erro) {
+    if (contato?.id) {
+      await deletarContato(contato.id).catch(() => null);
+    }
+
+    throw erro;
+  }
+}
+
+async function salvarIdoso(dados) {
   const response = await fetch(`${API_BASE_URL}/idoso/cadastrar`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -134,10 +207,15 @@ export async function cadastrarIdoso(dados) {
 }
 
 export async function atualizarIdoso(id, dados) {
+  const contato = await salvarContatoDoIdoso(dados);
+
   const response = await fetch(`${API_BASE_URL}/idoso/atualizar/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
-    body: JSON.stringify(normalizarIdoso(dados)),
+    body: JSON.stringify(normalizarIdoso({
+      ...dados,
+      contatoId: contato?.id || dados.contatoId,
+    })),
   });
 
   if (!response.ok) {
@@ -145,6 +223,10 @@ export async function atualizarIdoso(id, dados) {
   }
 
   return response.json().catch(() => null);
+}
+
+export async function cadastrarIdoso(dados) {
+  return cadastrarIdosoComContato(dados);
 }
 
 export async function deletarIdoso(id) {
