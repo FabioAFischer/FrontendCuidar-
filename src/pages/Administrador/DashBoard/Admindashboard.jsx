@@ -67,6 +67,7 @@ function formatarCEP(v) {
 function validar(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
   if (form.cnpj.replace(/\D/g, "").length < 14)  return "CNPJ inválido.";
+  if (!form.email.trim())                         return "Informe o email.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
   if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
   if (!form.numero.trim())                        return "Informe o número.";
@@ -79,7 +80,7 @@ function validar(form, exigirSenha = false) {
 }
 
 const FORM_INICIAL = {
-  nome: "", cnpj: "", bairro: "", uf: "", numero: "", cep: "",
+  nome: "", cnpj: "", email: "", bairro: "", uf: "", numero: "", cep: "",
   senha: "", confirmarSenha: "",
 };
 
@@ -111,6 +112,7 @@ function ModalCadastro({ onFechar, onSucesso }) {
       await cadastrarInstituicao({
         nome:   form.nome,
         cnpj:   form.cnpj.replace(/\D/g, ""),
+        email:  form.email,
         senha:  form.senha,
         bairro: form.bairro,
         uf:     form.uf,
@@ -148,6 +150,7 @@ function ModalCadastro({ onFechar, onSucesso }) {
       <form className="mc-form" onSubmit={handleSubmit} noValidate>
         <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
         <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
+        <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
         <BcInput label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={handleChange} />
         <div className="mc-row">
           <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={handleChange} maxLength={2} />
@@ -198,6 +201,7 @@ function ModalEditar({ instituicao, onFechar, onSucesso }) {
   const [form, setForm] = useState({
     nome:   instituicao.nome   || "",
     cnpj:   formatarCNPJ(String(instituicao.cnpj || "")),
+    email:  instituicao.email  || "",
     bairro: instituicao.bairro || "",
     uf:     instituicao.uf     || "",
     numero: String(instituicao.numero || ""),
@@ -226,6 +230,7 @@ function ModalEditar({ instituicao, onFechar, onSucesso }) {
       await atualizarInstituicao(instituicao.id, {
         nome:   form.nome,
         cnpj:   form.cnpj.replace(/\D/g, ""),
+        email:  form.email,
         bairro: form.bairro,
         uf:     form.uf,
         numero: form.numero,
@@ -260,6 +265,7 @@ function ModalEditar({ instituicao, onFechar, onSucesso }) {
       <form className="mc-form" onSubmit={handleSubmit} noValidate>
         <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
         <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
+        <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
         <BcInput label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={handleChange} />
         <div className="mc-row">
           <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={handleChange} maxLength={2} />
@@ -295,7 +301,8 @@ export default function Admindashboard({ onLogout }) {
 
   const filtradas = instituicoes.filter(i =>
     i.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    String(i.cnpj).includes(busca)
+    String(i.cnpj).includes(busca) ||
+    String(i.email || "").toLowerCase().includes(busca.toLowerCase())
   );
 
   async function handleDeletar(id) {
@@ -328,7 +335,7 @@ export default function Admindashboard({ onLogout }) {
             <span className="adm-busca-icone"><IconeBusca /></span>
             <input
               className="adm-busca" type="text"
-              placeholder="Buscar por nome ou CNPJ..."
+              placeholder="Buscar por nome, CNPJ ou email..."
               value={busca} onChange={e => setBusca(e.target.value)}
             />
           </div>
@@ -358,6 +365,7 @@ export default function Admindashboard({ onLogout }) {
                   <tr>
                     <th>Nome</th>
                     <th>CNPJ</th>
+                    <th>Email</th>
                     <th>Endereço</th>
                     <th>CEP</th>
                     <th className="adm-th-acoes">Ações</th>
@@ -368,6 +376,7 @@ export default function Admindashboard({ onLogout }) {
                     <tr key={inst.id}>
                       <td className="adm-td-nome">{inst.nome}</td>
                       <td className="adm-td-muted">{inst.cnpj}</td>
+                      <td className="adm-td-muted">{inst.email}</td>
                       <td className="adm-td-muted">{inst.bairro}, {inst.numero} — {inst.uf}</td>
                       <td className="adm-td-muted">{inst.cep}</td>
                       <td>
