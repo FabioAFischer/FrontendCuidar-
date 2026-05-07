@@ -67,13 +67,18 @@ function normalizarIdoso(dados) {
 }
 
 function normalizarContato(dados) {
-  return {
+  const contato = {
     id: dados.contatoId || dados.contato?.id,
     ddd: somenteNumeros(dados.contato?.ddd || dados.ddd),
     telefone: somenteNumeros(dados.contato?.telefone || dados.telefone),
     cuidadorId: dados.cuidadorId,
-    idosos: dados.idosos || [],
   };
+
+  if (dados.idosos) {
+    contato.idosos = dados.idosos;
+  }
+
+  return contato;
 }
 
 export async function listarCuidadores(page = 0, size = 100) {
@@ -194,3 +199,4 @@ export async function deletarIdoso(id) {
     fallback: "Erro ao deletar idoso.",
   });
 }
+a
