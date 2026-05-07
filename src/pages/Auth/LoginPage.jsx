@@ -136,6 +136,7 @@ export default function LoginPage({ onLogin }) {
               value={cpfCnpj}
               onChange={(event) => setCpfCnpj(event.target.value)}
               autoComplete="off"
+              maxLength={14}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
 
