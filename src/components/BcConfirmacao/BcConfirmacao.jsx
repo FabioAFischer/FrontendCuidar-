@@ -24,7 +24,7 @@ export default function BcConfirmacao({
   if (!aberto) return null;
 
   return (
-    <div className="bc-confirmacao-overlay" onClick={onCancelar}>
+    <div className="bc-confirmacao-overlay" onClick={(evento) => evento.stopPropagation()}>
       <div className="bc-confirmacao" onClick={(evento) => evento.stopPropagation()}>
         <div className="bc-confirmacao__icone">{icone}</div>
         <h3>{titulo}</h3>
