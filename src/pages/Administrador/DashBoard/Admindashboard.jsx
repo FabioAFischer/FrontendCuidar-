@@ -7,6 +7,7 @@ import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswor
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeOlhoAberto, IconeOlhoFechado, IconeSucesso } from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
+import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
 /* ── Ícones ── */
@@ -66,7 +67,7 @@ function formatarCEP(v) {
 
 function validar(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
-  if (form.cnpj.replace(/\D/g, "").length < 14)  return "CNPJ inválido.";
+  if (!cnpjValido(form.cnpj))                    return "CNPJ inválido.";
   if (!form.email.trim())                         return "Informe o email.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
   if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
