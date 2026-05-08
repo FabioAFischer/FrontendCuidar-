@@ -1,6 +1,7 @@
 import { useState } from "react";
 import BcInput from "../../components/Bcinput/BcInput";
 import BcLogo from "../../components/Bclogo/BcLogo";
+import BcToast from "../../components/BcToast/BcToast";
 import { login as loginUsuario } from "../../api/authApi";
 import "./LoginPage.css";
 
@@ -21,9 +22,27 @@ export default function LoginPage({ onLogin }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
   const [loadingProfile, setLoadingProfile] = useState("");
+  const [toast, setToast] = useState({
+    aberto: false,
+    tipo: "info",
+    titulo: "",
+    mensagem: "",
+  });
+
+  function mostrarToast(tipo, titulo, mensagem) {
+    setToast({
+      aberto: true,
+      tipo,
+      titulo,
+      mensagem,
+    });
+  }
+
+  function fecharToast() {
+    setToast((atual) => ({ ...atual, aberto: false }));
+  }
 
   function validateForm() {
     if (!cpfCnpj.trim()) {
@@ -41,6 +60,10 @@ export default function LoginPage({ onLogin }) {
   }
 
   async function handleProfileLogin(profile) {
+    if (loadingProfile) {
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -48,7 +71,7 @@ export default function LoginPage({ onLogin }) {
     const profileName = profileNames[profile];
 
     setError("");
-    setFeedback("");
+    fecharToast();
     setLoadingProfile(profile);
 
     try {
@@ -59,13 +82,19 @@ export default function LoginPage({ onLogin }) {
         rememberMe,
       });
 
-      setFeedback(`Login de ${profileName.toLowerCase()} realizado com sucesso.`);
+      mostrarToast(
+        "sucesso",
+        "Login realizado",
+        `Login de ${profileName.toLowerCase()} realizado com sucesso.`
+      );
 
       if (onLogin) {
         onLogin(profile, data);
       }
     } catch (err) {
-      setError(err.message || "Nao foi possivel fazer login.");
+      const mensagem = err.message || "Nao foi possivel fazer login.";
+      setError("");
+      mostrarToast("erro", "Falha no login", mensagem);
     } finally {
       setLoadingProfile("");
     }
@@ -74,11 +103,23 @@ export default function LoginPage({ onLogin }) {
   function handleForgotPassword(event) {
     event.preventDefault();
     setError("");
-    setFeedback("Fluxo de recuperacao de senha pronto para ser conectado ao backend ou a navegacao futura.");
+    mostrarToast(
+      "info",
+      "Recuperacao de senha",
+      "Fluxo de recuperacao de senha pronto para ser conectado ao backend ou a navegacao futura."
+    );
   }
 
   return (
     <main className="login-page">
+      <BcToast
+        aberto={toast.aberto}
+        tipo={toast.tipo}
+        titulo={toast.titulo}
+        mensagem={toast.mensagem}
+        onFechar={fecharToast}
+      />
+
       <section className="login-page__hero">
         <div className="login-page__hero-content">
           <div className="login-page__eyebrow">Plataforma de cuidado e gestao</div>
@@ -177,18 +218,6 @@ export default function LoginPage({ onLogin }) {
               </a>
             </div>
 
-            {error && cpfCnpj.trim() && password.trim() ? (
-              <div className="login-form__message login-form__message--error" role="alert">
-                {error}
-              </div>
-            ) : null}
-
-            {feedback ? (
-              <div className="login-form__message login-form__message--info" role="status">
-                {feedback}
-              </div>
-            ) : null}
-
             <div className="login-form__profiles">
               {Object.entries(profileDescriptions).map(([profile, description]) => (
                 <button
@@ -199,6 +228,9 @@ export default function LoginPage({ onLogin }) {
                   onClick={() => handleProfileLogin(profile)}
                 >
                   <span className="login-profile-button__title">
+                    {loadingProfile === profile ? (
+                      <span className="login-profile-button__spinner" aria-hidden="true" />
+                    ) : null}
                     {loadingProfile === profile ? "Entrando como" : "Entrar como"}{" "}
                     {profileNames[profile]}
                   </span>

@@ -5,6 +5,7 @@ import BcEmptySection from "../../../components/BcEmptySection/BcEmptySection";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
+import BcToast from "../../../components/BcToast/BcToast";
 import { atualizarIdoso as atualizarIdosoApi, cadastrarIdoso, deletarIdoso, listarIdosos } from "../../../api/instituicaoApi";
 import {
   IconeCuidadores,
@@ -26,6 +27,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
   const [erroCuidador, setErroCuidador] = useState("");
   const [erroIdoso, setErroIdoso] = useState("");
+  const [toast, setToast] = useState({
+    aberto: false,
+    tipo: "info",
+    titulo: "",
+    mensagem: "",
+  });
   const [formCuidador, setFormCuidador] = useState({
     nome: "",
     cpf: "",
@@ -51,10 +58,24 @@ export default function InstituicaoProfileHome({ onLogout }) {
       setIdosos(lista);
     } catch (erro) {
       setErroIdoso(erro.message);
+      mostrarToast("erro", "Erro ao carregar idosos", erro.message);
     } finally {
       setCarregandoIdosos(false);
     }
   }, []);
+
+  function mostrarToast(tipo, titulo, mensagem) {
+    setToast({
+      aberto: true,
+      tipo,
+      titulo,
+      mensagem,
+    });
+  }
+
+  function fecharToast() {
+    setToast((atual) => ({ ...atual, aberto: false }));
+  }
 
   useEffect(() => {
     carregarIdosos();
@@ -198,17 +219,20 @@ export default function InstituicaoProfileHome({ onLogout }) {
         setIdosos((anteriores) =>
           anteriores.map((idoso) => idoso.id === idosoAtualizado?.id ? idosoAtualizado : idoso)
         );
+        mostrarToast("sucesso", "Idoso atualizado", `Os dados de ${formIdoso.nome} foram salvos.`);
       } else {
         const idosoCadastrado = await cadastrarIdoso(formIdoso);
         if (idosoCadastrado) {
           setIdosos((anteriores) => [idosoCadastrado, ...anteriores]);
         }
+        mostrarToast("sucesso", "Idoso cadastrado", `${formIdoso.nome} foi cadastrado com sucesso.`);
       }
 
       fecharModalIdoso();
       await carregarIdosos();
     } catch (erro) {
       setErroIdoso(erro.message);
+      mostrarToast("erro", idosoEmEdicao ? "Erro ao atualizar idoso" : "Erro ao cadastrar idoso", erro.message);
     } finally {
       setSalvandoIdoso(false);
     }
@@ -220,8 +244,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
       setErroIdoso("");
       await deletarIdoso(idoso.id);
       await carregarIdosos();
+      mostrarToast("sucesso", "Idoso desativado", `${idoso.nome} foi removido da listagem.`);
     } catch (erro) {
       setErroIdoso(erro.message);
+      mostrarToast("erro", "Erro ao desativar idoso", erro.message);
     } finally {
       setExcluindoIdoso(false);
     }
@@ -229,6 +255,14 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   return (
     <div className="instituicao-home">
+      <BcToast
+        aberto={toast.aberto}
+        tipo={toast.tipo}
+        titulo={toast.titulo}
+        mensagem={toast.mensagem}
+        onFechar={fecharToast}
+      />
+
       <BcTopbar
         title="Painel da Instituição"
         subtitle="Gestão de Cuidadores e Idosos"
