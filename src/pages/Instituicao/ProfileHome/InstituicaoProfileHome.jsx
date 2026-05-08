@@ -12,6 +12,7 @@ import {
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
+import { cpfValido } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 export default function InstituicaoProfileHome({ onLogout }) {
@@ -23,6 +24,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [salvandoIdoso, setSalvandoIdoso] = useState(false);
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
+  const [erroCuidador, setErroCuidador] = useState("");
   const [erroIdoso, setErroIdoso] = useState("");
   const [formCuidador, setFormCuidador] = useState({
     nome: "",
@@ -137,17 +139,45 @@ export default function InstituicaoProfileHome({ onLogout }) {
     limparFormIdoso();
   }
 
+  function abrirCadastroCuidador() {
+    setErroCuidador("");
+    setModalCuidadorAberto(true);
+  }
+
+  function fecharModalCuidador() {
+    setErroCuidador("");
+    setModalCuidadorAberto(false);
+  }
+
   function validarIdoso() {
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
-    if (formIdoso.cpf.replace(/\D/g, "").length < 11) return "CPF invalido.";
+    if (!cpfValido(formIdoso.cpf)) return "CPF invalido.";
     if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
     if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
     return null;
   }
 
+  function validarCuidador() {
+    if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
+    if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
+    if (!formCuidador.login.trim()) return "Informe o login do cuidador.";
+    if (!formCuidador.senha.trim()) return "Informe a senha do cuidador.";
+    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
+    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
+    return null;
+  }
+
   function handleCadastrarCuidador(evento) {
     evento.preventDefault();
-    setModalCuidadorAberto(false);
+    const erroValidacao = validarCuidador();
+
+    if (erroValidacao) {
+      setErroCuidador(erroValidacao);
+      return;
+    }
+
+    setErroCuidador("");
+    fecharModalCuidador();
   }
 
   async function handleCadastrarIdoso(evento) {
@@ -216,7 +246,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             buttonLabel="Cadastrar Cuidador"
             emptyIcon={<IconeCuidadoresVazio />}
             emptyText="Nenhum cuidador cadastrado"
-            onAction={() => setModalCuidadorAberto(true)}
+            onAction={abrirCadastroCuidador}
           />
 
           <div className="instituicao-home__listagem">
@@ -268,13 +298,15 @@ export default function InstituicaoProfileHome({ onLogout }) {
         </div>
       </main>
 
-      <BcModal aberto={modalCuidadorAberto} onFechar={() => setModalCuidadorAberto(false)}>
+      <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
         <section className="instituicao-modal">
           <div className="instituicao-modal__header">
             <h2>Novo Cuidador</h2>
           </div>
 
           <form className="instituicao-modal__form" onSubmit={handleCadastrarCuidador}>
+            {erroCuidador ? <div className="instituicao-modal__error" role="alert">{erroCuidador}</div> : null}
+
             <BcInput
               label="Nome *"
               name="nome"
