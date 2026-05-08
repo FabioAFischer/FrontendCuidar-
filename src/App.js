@@ -107,6 +107,11 @@ export default function App() {
   }
 
   function renderTela() {
+    if (tela === "login" && getAuthToken()) {
+      navigateTo(getRouteByProfile(getStoredProfile()));
+      return null;
+    }
+
     if (!hasAccess(tela)) {
       logout();
       navigateTo(ROUTES.login);
