@@ -24,6 +24,19 @@ function getStoredProfile() {
   return localStorage.getItem("perfil") || sessionStorage.getItem("perfil");
 }
 
+function getRouteByProfile(profile) {
+  switch (profile) {
+    case "ADMINISTRADOR":
+      return ROUTES.administrador;
+    case "CUIDADOR":
+      return ROUTES.cuidador;
+    case "INSTITUICAO":
+      return ROUTES.instituicao;
+    default:
+      return ROUTES.login;
+  }
+}
+
 function getRouteFromHash(hash) {
   switch (hash) {
     case ROUTES.administrador:
