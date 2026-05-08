@@ -218,12 +218,6 @@ export default function LoginPage({ onLogin }) {
               </a>
             </div>
 
-            {error && cpfCnpj.trim() && password.trim() ? (
-              <div className="login-form__message login-form__message--error" role="alert">
-                {error}
-              </div>
-            ) : null}
-
             <div className="login-form__profiles">
               {Object.entries(profileDescriptions).map(([profile, description]) => (
                 <button

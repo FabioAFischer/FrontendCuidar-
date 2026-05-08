@@ -5,7 +5,8 @@ import BcModal from "../../../components/BcModal/BcModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
-import { IconeOlhoAberto, IconeOlhoFechado, IconeSucesso } from "../../../components/icons/Icons";
+import BcToast from "../../../components/BcToast/BcToast";
+import { IconeOlhoAberto, IconeOlhoFechado } from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
 import "./Admindashboard.css";
 
@@ -85,13 +86,12 @@ const FORM_INICIAL = {
 };
 
 /* ── Modal de Cadastro ── */
-function ModalCadastro({ onFechar, onSucesso }) {
+function ModalCadastro({ onFechar, onSucesso, onToast }) {
   const [form, setForm]                   = useState(FORM_INICIAL);
   const [showSenha, setShowSenha]         = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
   const [loading, setLoading]             = useState(false);
   const [erro, setErro]                   = useState("");
-  const [sucesso, setSucesso]             = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -119,26 +119,17 @@ function ModalCadastro({ onFechar, onSucesso }) {
         numero: form.numero,
         cep:    form.cep.replace(/\D/g, ""),
       });
-      setSucesso(true);
+      onToast?.("sucesso", "Instituicao cadastrada", `A instituicao ${form.nome} foi cadastrada com sucesso.`);
+      onSucesso();
     } catch (err) {
       setErro(err.message);
+      onToast?.("erro", "Erro ao cadastrar", err.message);
     } finally {
       setLoading(false);
     }
   }
 
   const senhasCoincidem = form.confirmarSenha.length > 0 && form.senha === form.confirmarSenha;
-
-  if (sucesso) {
-    return (
-      <div className="mc-sucesso">
-        <div className="mc-sucesso__icone"><IconeSucesso /></div>
-        <h2>Cadastro realizado!</h2>
-        <p>A instituição <strong>{form.nome}</strong> foi cadastrada com sucesso.</p>
-        <BcButton onClick={onSucesso}>Concluir</BcButton>
-      </div>
-    );
-  }
 
   return (
     <div className="mc-wrap">
@@ -197,7 +188,7 @@ function ModalCadastro({ onFechar, onSucesso }) {
 }
 
 /* ── Modal de Edição ── */
-function ModalEditar({ instituicao, onFechar, onSucesso }) {
+function ModalEditar({ instituicao, onFechar, onSucesso, onToast }) {
   const [form, setForm] = useState({
     nome:   instituicao.nome   || "",
     cnpj:   formatarCNPJ(String(instituicao.cnpj || "")),
@@ -209,7 +200,6 @@ function ModalEditar({ instituicao, onFechar, onSucesso }) {
   });
   const [loading, setLoading] = useState(false);
   const [erro, setErro]       = useState("");
-  const [sucesso, setSucesso] = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -236,23 +226,14 @@ function ModalEditar({ instituicao, onFechar, onSucesso }) {
         numero: form.numero,
         cep:    form.cep.replace(/\D/g, ""),
       });
-      setSucesso(true);
+      onToast?.("sucesso", "Instituicao atualizada", `Os dados de ${form.nome} foram salvos.`);
+      onSucesso();
     } catch (err) {
       setErro(err.message);
+      onToast?.("erro", "Erro ao atualizar", err.message);
     } finally {
       setLoading(false);
     }
-  }
-
-  if (sucesso) {
-    return (
-      <div className="mc-sucesso">
-        <div className="mc-sucesso__icone"><IconeSucesso /></div>
-        <h2>Atualizado com sucesso!</h2>
-        <p>Os dados de <strong>{form.nome}</strong> foram salvos.</p>
-        <BcButton onClick={onSucesso}>Concluir</BcButton>
-      </div>
-    );
   }
 
   return (
@@ -287,11 +268,30 @@ export default function Admindashboard({ onLogout }) {
   const [modalEditar, setModalEditar]       = useState(null); // guarda a instituição a editar
   const [confirmDelete, setConfirmDelete]   = useState(null);
   const [deletando, setDeletando]           = useState(false);
+  const [toast, setToast] = useState({
+    aberto: false,
+    tipo: "info",
+    titulo: "",
+    mensagem: "",
+  });
+
+  function mostrarToast(tipo, titulo, mensagem) {
+    setToast({
+      aberto: true,
+      tipo,
+      titulo,
+      mensagem,
+    });
+  }
+
+  function fecharToast() {
+    setToast((atual) => ({ ...atual, aberto: false }));
+  }
 
   function recarregarLista() {
     listarInstituicoes()
       .then(data => setInstituicoes(Array.isArray(data) ? data : []))
-      .catch(console.error);
+      .catch(err => mostrarToast("erro", "Erro ao carregar instituicoes", err.message));
   }
 
   // Carrega a lista ao montar a tela
@@ -311,8 +311,9 @@ export default function Admindashboard({ onLogout }) {
       await deletarInstituicao(id);
       setConfirmDelete(null);
       recarregarLista();
+      mostrarToast("sucesso", "Instituicao excluida", "A instituicao foi removida da listagem.");
     } catch (err) {
-      alert(err.message);
+      mostrarToast("erro", "Erro ao excluir", err.message);
     } finally {
       setDeletando(false);
     }
@@ -320,6 +321,13 @@ export default function Admindashboard({ onLogout }) {
 
   return (
     <div className="adm-page">
+      <BcToast
+        aberto={toast.aberto}
+        tipo={toast.tipo}
+        titulo={toast.titulo}
+        mensagem={toast.mensagem}
+        onFechar={fecharToast}
+      />
 
       <BcTopbar
         title="Painel Administrativo"
@@ -411,6 +419,7 @@ export default function Admindashboard({ onLogout }) {
         <ModalCadastro
           onFechar={() => setModalCadastro(false)}
           onSucesso={() => { setModalCadastro(false); recarregarLista(); }}
+          onToast={mostrarToast}
         />
       </BcModal>
 
@@ -421,6 +430,7 @@ export default function Admindashboard({ onLogout }) {
             instituicao={modalEditar}
             onFechar={() => setModalEditar(null)}
             onSucesso={() => { setModalEditar(null); recarregarLista(); }}
+            onToast={mostrarToast}
           />
         )}
       </BcModal>
