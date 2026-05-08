@@ -278,6 +278,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             <BcInput
               label="Nome *"
               name="nome"
+              placeholder="Insira um nome"
               value={formCuidador.nome}
               onChange={atualizarCuidador}
             />
@@ -339,6 +340,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             <BcInput
               label="Nome *"
               name="nome"
+              placeholder="Insira um nome"
               value={formIdoso.nome}
               onChange={atualizarIdoso}
             />
