@@ -5,6 +5,7 @@ import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcToast from "../../components/BcToast/BcToast";
 import { login as loginUsuario } from "../../api/authApi";
+import { formatarCpfCnpj } from "../../utils/validacaoDocumento";
 import "./LoginPage.css";
 
 /* ── Ícones ── */
@@ -102,8 +103,9 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
               type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
               value={cpfCnpj}
-              onChange={e => setCpfCnpj(e.target.value)}
+              onChange={e => setCpfCnpj(formatarCpfCnpj(e.target.value))}
               autoComplete="off"
+              maxLength={18}
               error={erro}
             />
             <BcButton type="submit" loading={loading}>
@@ -243,9 +245,9 @@ export default function LoginPage({ onLogin }) {
               type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
               value={cpfCnpj}
-              onChange={e => setCpfCnpj(e.target.value)}
+              onChange={e => setCpfCnpj(formatarCpfCnpj(e.target.value))}
               autoComplete="off"
-              maxLength={14}
+              maxLength={18}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
 
