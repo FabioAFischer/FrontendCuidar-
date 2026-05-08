@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./env";
+import { somenteNumeros } from "../utils/validacaoDocumento";
 
 const PERFIL_BACKEND = {
   administrador: "ADMINISTRADOR",
@@ -12,12 +13,13 @@ function getStorage(rememberMe) {
 
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
+  const identificadorNormalizado = somenteNumeros(identificador);
 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      identificador,
+      identificador: identificadorNormalizado,
       senha,
       perfil: perfilBackend,
     }),

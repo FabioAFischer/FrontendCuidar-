@@ -2,6 +2,30 @@ export function somenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
 }
 
+export function formatarCPF(valor = "") {
+  const numeros = somenteNumeros(valor).slice(0, 11);
+
+  return numeros
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+export function formatarCNPJ(valor = "") {
+  const numeros = somenteNumeros(valor).slice(0, 14);
+
+  return numeros
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
+export function formatarCpfCnpj(valor = "") {
+  const numeros = somenteNumeros(valor);
+  return numeros.length > 11 ? formatarCNPJ(numeros) : formatarCPF(numeros);
+}
+
 export function documentoRepetido(documento = "") {
   const numeros = somenteNumeros(documento);
   return numeros.length > 0 && /^(\d)\1+$/.test(numeros);
