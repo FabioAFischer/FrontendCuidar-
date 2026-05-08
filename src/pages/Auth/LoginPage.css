@@ -259,12 +259,35 @@
   box-shadow: 0 12px 24px rgba(13, 158, 138, 0.08);
 }
 
+.login-profile-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.login-profile-button:disabled:hover {
+  transform: none;
+  border-color: #c9ebe4;
+  box-shadow: none;
+}
+
 .login-profile-button__title {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 6px;
   color: #173838;
   font-size: 1rem;
   font-weight: 700;
+}
+
+.login-profile-button__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(13, 158, 138, 0.22);
+  border-top-color: #0d9e8a;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  animation: login-profile-spinner 700ms linear infinite;
 }
 
 .login-profile-button__description {
@@ -272,6 +295,12 @@
   color: #5d7474;
   font-size: 0.91rem;
   line-height: 1.5;
+}
+
+@keyframes login-profile-spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .login-card__footer {
