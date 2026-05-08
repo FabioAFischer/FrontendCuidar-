@@ -93,7 +93,7 @@ export default function LoginPage({ onLogin }) {
       }
     } catch (err) {
       const mensagem = err.message || "Nao foi possivel fazer login.";
-      setError(mensagem);
+      setError("");
       mostrarToast("erro", "Falha no login", mensagem);
     } finally {
       setLoadingProfile("");
