@@ -485,7 +485,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       </main>
 
       <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
-        <section className="instituicao-modal">
+        <section className="instituicao-modal instituicao-modal--cuidador">
           <div className="instituicao-modal__header">
             <h2>{cuidadorEmEdicao ? "Editar Cuidador" : "Novo Cuidador"}</h2>
           </div>
