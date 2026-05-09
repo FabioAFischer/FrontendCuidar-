@@ -18,12 +18,28 @@
   max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
   animation: bcmodal-slide-up 0.22s ease;
 }
 
 /* esconde scrollbar mas mantém scroll */
-.bcmodal-content::-webkit-scrollbar { display: none; }
-.bcmodal-content { -ms-overflow-style: none; scrollbar-width: none; }
+.bcmodal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bcmodal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bcmodal-content::-webkit-scrollbar-thumb {
+  background: #b8c0cc;
+  border-radius: 999px;
+}
+
+.bcmodal-content::-webkit-scrollbar-thumb:hover {
+  background: #8f9aaa;
+}
 
 .bcmodal-fechar {
   position: absolute;
