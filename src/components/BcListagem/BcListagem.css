@@ -126,7 +126,28 @@
 }
 
 .bc-listagem-tabelaWrap {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 460px;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.bc-listagem-tabelaWrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.bc-listagem-tabelaWrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bc-listagem-tabelaWrap::-webkit-scrollbar-thumb {
+  background: #b8c0cc;
+  border-radius: 999px;
+}
+
+.bc-listagem-tabelaWrap::-webkit-scrollbar-thumb:hover {
+  background: #8f9aaa;
 }
 
 .bc-listagem-tabela {
@@ -140,6 +161,10 @@
 }
 
 .bc-listagem-tabela th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fafafa;
   padding: 11px 20px;
   text-align: left;
   font-size: 11px;
@@ -217,6 +242,60 @@
   background: #fef2f2;
 }
 
+.bc-listagem-paginacao {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bc-listagem-paginacaoInfo {
+  font-size: 13px;
+  color: #777;
+}
+
+.bc-listagem-paginacaoAcoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bc-listagem-btnPagina {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e8e8e8;
+  background: #fff;
+  color: #555;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.bc-listagem-btnPagina:hover:not(:disabled) {
+  border-color: #0d9e8a;
+  background: #e6f7f5;
+  color: #0d9e8a;
+}
+
+.bc-listagem-btnPagina:disabled {
+  cursor: not-allowed;
+  color: #bbb;
+  background: #f7f7f7;
+}
+
 @media (max-width: 640px) {
   .bc-listagem-toolbar {
     flex-direction: column;
@@ -225,5 +304,18 @@
 
   .bc-listagem-buscaWrap {
     max-width: 100%;
+  }
+
+  .bc-listagem-paginacao {
+    align-items: stretch;
+  }
+
+  .bc-listagem-paginacaoAcoes {
+    width: 100%;
+  }
+
+  .bc-listagem-btnPagina {
+    flex: 1;
+    justify-content: center;
   }
 }
