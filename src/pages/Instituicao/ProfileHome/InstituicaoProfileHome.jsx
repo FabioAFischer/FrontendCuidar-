@@ -14,19 +14,22 @@ import {
   deletarIdoso,
   listarCuidadores,
   listarIdosos,
+  reativarCuidador,
 } from "../../../api/instituicaoApi";
 import {
   IconeCuidadores,
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
-import { cpfValido } from "../../../utils/validacaoDocumento";
+import { cpfValido, somenteNumeros } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 export default function InstituicaoProfileHome({ onLogout }) {
   const [modalCuidadorAberto, setModalCuidadorAberto] = useState(false);
   const [modalIdosoAberto, setModalIdosoAberto] = useState(false);
   const [cuidadorEmEdicao, setCuidadorEmEdicao] = useState(null);
+  const [cuidadorParaReativar, setCuidadorParaReativar] = useState(null);
+  const [cuidadoresInativos, setCuidadoresInativos] = useState([]);
   const [idosoEmEdicao, setIdosoEmEdicao] = useState(null);
   const [cuidadores, setCuidadores] = useState([]);
   const [idosos, setIdosos] = useState([]);
@@ -110,6 +113,13 @@ export default function InstituicaoProfileHome({ onLogout }) {
     carregarIdosos();
   }, [carregarCuidadores, carregarIdosos]);
 
+  useEffect(() => {
+    const instituicaoId = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
+    const chave = `cuidadoresInativos:${instituicaoId || "atual"}`;
+    const salvos = JSON.parse(localStorage.getItem(chave) || "[]");
+    setCuidadoresInativos(Array.isArray(salvos) ? salvos : []);
+  }, []);
+
   const cuidadoresFiltrados = cuidadores.filter((cuidador) =>
     String(cuidador.nome || "").toLowerCase().includes(buscaCuidador.toLowerCase()) ||
     String(cuidador.cpf || "").includes(buscaCuidador.replace(/\D/g, "")) ||
@@ -142,6 +152,31 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (name === "ddd") novoValor = value.replace(/\D/g, "").slice(0, 2);
     if (name === "telefone") novoValor = formatarTelefone(value);
 
+    if (name === "cpf") {
+      const cpfDigitado = somenteNumeros(novoValor);
+      const cuidadorEncontrado = cuidadoresInativos.find((cuidador) =>
+        somenteNumeros(cuidador.cpf) === cpfDigitado
+      );
+
+      if (cpfDigitado.length === 11 && cuidadorEncontrado) {
+        setCuidadorParaReativar(cuidadorEncontrado);
+        setErroCuidador("");
+        setFormCuidador((anterior) => ({
+          ...anterior,
+          cpf: novoValor,
+          nome: cuidadorEncontrado.nome || "",
+          email: cuidadorEncontrado.email || "",
+          senha: "",
+          ddd: cuidadorEncontrado.contato?.ddd ? String(cuidadorEncontrado.contato.ddd) : "",
+          telefone: cuidadorEncontrado.contato?.telefone ? formatarTelefone(String(cuidadorEncontrado.contato.telefone)) : "",
+          contatoId: cuidadorEncontrado.contatoId || cuidadorEncontrado.contato?.id || null,
+        }));
+        return;
+      }
+
+      setCuidadorParaReativar(null);
+    }
+
     setFormCuidador((anterior) => ({ ...anterior, [name]: novoValor }));
   }
 
@@ -166,6 +201,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       telefone: "",
       contatoId: null,
     });
+    setCuidadorParaReativar(null);
   }
 
   function limparFormIdoso() {
@@ -252,10 +288,37 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
-    if (!cuidadorEmEdicao && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
+    if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
     if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
     return null;
+  }
+
+  function removerCuidadorInativo(cpf) {
+    const instituicaoId = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
+    const chave = `cuidadoresInativos:${instituicaoId || "atual"}`;
+
+    setCuidadoresInativos((anteriores) => {
+      const atualizados = anteriores.filter((cuidador) =>
+        somenteNumeros(cuidador.cpf) !== somenteNumeros(cpf)
+      );
+      localStorage.setItem(chave, JSON.stringify(atualizados));
+      return atualizados;
+    });
+  }
+
+  function guardarCuidadorInativo(cuidadorInativo) {
+    const instituicaoId = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
+    const chave = `cuidadoresInativos:${instituicaoId || "atual"}`;
+
+    setCuidadoresInativos((anteriores) => {
+      const semDuplicado = anteriores.filter((cuidador) =>
+        somenteNumeros(cuidador.cpf) !== somenteNumeros(cuidadorInativo.cpf)
+      );
+      const atualizados = [cuidadorInativo, ...semDuplicado];
+      localStorage.setItem(chave, JSON.stringify(atualizados));
+      return atualizados;
+    });
   }
 
   async function handleCadastrarCuidador(evento) {
@@ -280,6 +343,13 @@ export default function InstituicaoProfileHome({ onLogout }) {
           anteriores.map((cuidador) => cuidador.id === cuidadorAtualizado?.id ? cuidadorAtualizado : cuidador)
         );
         mostrarToast("sucesso", "Cuidador atualizado", `Os dados de ${formCuidador.nome} foram salvos.`);
+      } else if (cuidadorParaReativar) {
+        const cuidadorReativado = await reativarCuidador(cuidadorParaReativar.id, formCuidador);
+        if (cuidadorReativado) {
+          setCuidadores((anteriores) => [cuidadorReativado, ...anteriores]);
+        }
+        removerCuidadorInativo(formCuidador.cpf);
+        mostrarToast("sucesso", "Cuidador reativado", `${formCuidador.nome} foi reativado com sucesso.`);
       } else {
         const cuidadorCadastrado = await cadastrarCuidador(formCuidador);
         console.log("[cuidador] cadastro concluido", cuidadorCadastrado);
@@ -294,7 +364,15 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } catch (erro) {
       console.error("[cuidador] erro ao cadastrar", erro);
       setErroCuidador(erro.message);
-      mostrarToast("erro", cuidadorEmEdicao ? "Erro ao atualizar cuidador" : "Erro ao cadastrar cuidador", erro.message);
+      mostrarToast(
+        "erro",
+        cuidadorEmEdicao
+          ? "Erro ao atualizar cuidador"
+          : cuidadorParaReativar
+            ? "Erro ao reativar cuidador"
+            : "Erro ao cadastrar cuidador",
+        erro.message
+      );
     } finally {
       setSalvandoCuidador(false);
     }
@@ -305,6 +383,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       setExcluindoCuidador(true);
       setErroCuidador("");
       await deletarCuidador(cuidador.id);
+      guardarCuidadorInativo(cuidador);
       await carregarCuidadores();
       mostrarToast("sucesso", "Cuidador desativado", `${cuidador.nome} foi removido da listagem.`);
     } catch (erro) {
@@ -487,7 +566,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
         <section className="instituicao-modal instituicao-modal--cuidador">
           <div className="instituicao-modal__header">
-            <h2>{cuidadorEmEdicao ? "Editar Cuidador" : "Novo Cuidador"}</h2>
+            <h2>{cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}</h2>
           </div>
 
           <form className="instituicao-modal__form" onSubmit={handleCadastrarCuidador}>
@@ -517,10 +596,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onChange={atualizarCuidador}
             />
             <BcInput
-              label={cuidadorEmEdicao ? "Senha" : "Senha *"}
+              label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
               name="senha"
               type="password"
-              placeholder={cuidadorEmEdicao ? "Preencha apenas se quiser alterar" : ""}
+              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
               value={formCuidador.senha}
               onChange={atualizarCuidador}
             />
@@ -545,7 +624,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             </div>
 
             <BcButton type="submit" loading={salvandoCuidador}>
-              {cuidadorEmEdicao ? "Salvar alteracoes" : "Cadastrar"}
+              {cuidadorEmEdicao ? "Salvar alteracoes" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
             </BcButton>
           </form>
         </section>

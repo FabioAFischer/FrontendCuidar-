@@ -130,6 +130,14 @@ export async function atualizarCuidador(id, dados) {
   });
 }
 
+export async function reativarCuidador(id, dados) {
+  return requestApi(`/cuidador/reativar/${id}`, {
+    method: "PUT",
+    dados: normalizarCuidador(dados),
+    fallback: "Erro ao reativar cuidador.",
+  });
+}
+
 export async function deletarCuidador(id) {
   return requestApi(`/cuidador/deletar/${id}`, {
     method: "DELETE",
