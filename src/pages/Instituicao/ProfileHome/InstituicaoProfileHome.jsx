@@ -44,7 +44,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
     cpf: "",
     nome: "",
     email: "",
-    login: "",
     senha: "",
     ddd: "",
     telefone: "",
@@ -134,7 +133,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
       cpf: "",
       nome: "",
       email: "",
-      login: "",
       senha: "",
       ddd: "",
       telefone: "",
@@ -208,7 +206,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
-    if (!formCuidador.login.trim()) return "Informe o login do cuidador.";
     if (!formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
     if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
@@ -399,12 +396,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
               type="email"
               placeholder="nome@email.com"
               value={formCuidador.email}
-              onChange={atualizarCuidador}
-            />
-            <BcInput
-              label="Login *"
-              name="login"
-              value={formCuidador.login}
               onChange={atualizarCuidador}
             />
             <BcInput

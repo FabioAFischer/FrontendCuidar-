@@ -46,7 +46,6 @@ function normalizarCuidador(dados) {
     nome: dados.nome?.trim(),
     cpf: somenteNumeros(dados.cpf),
     email: dados.email?.trim(),
-    login: dados.login?.trim(),
     senha: dados.senha,
     instituicaoId: dados.instituicaoId || getInstituicaoId(),
     contato: dados.contato || {
