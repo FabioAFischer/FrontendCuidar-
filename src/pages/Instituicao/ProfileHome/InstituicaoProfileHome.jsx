@@ -6,7 +6,13 @@ import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast from "../../../components/BcToast/BcToast";
-import { atualizarIdoso as atualizarIdosoApi, cadastrarIdoso, deletarIdoso, listarIdosos } from "../../../api/instituicaoApi";
+import {
+  atualizarIdoso as atualizarIdosoApi,
+  cadastrarCuidador,
+  cadastrarIdoso,
+  deletarIdoso,
+  listarIdosos,
+} from "../../../api/instituicaoApi";
 import {
   IconeCuidadores,
   IconeCuidadoresVazio,
@@ -23,6 +29,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [idosos, setIdosos] = useState([]);
   const [buscaIdoso, setBuscaIdoso] = useState("");
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
+  const [salvandoCuidador, setSalvandoCuidador] = useState(false);
   const [salvandoIdoso, setSalvandoIdoso] = useState(false);
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
   const [erroCuidador, setErroCuidador] = useState("");
@@ -34,8 +41,9 @@ export default function InstituicaoProfileHome({ onLogout }) {
     mensagem: "",
   });
   const [formCuidador, setFormCuidador] = useState({
-    nome: "",
     cpf: "",
+    nome: "",
+    email: "",
     login: "",
     senha: "",
     ddd: "",
@@ -121,6 +129,18 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setFormIdoso((anterior) => ({ ...anterior, [name]: novoValor }));
   }
 
+  function limparFormCuidador() {
+    setFormCuidador({
+      cpf: "",
+      nome: "",
+      email: "",
+      login: "",
+      senha: "",
+      ddd: "",
+      telefone: "",
+    });
+  }
+
   function limparFormIdoso() {
     setFormIdoso({
       nome: "",
@@ -162,12 +182,18 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   function abrirCadastroCuidador() {
     setErroCuidador("");
+    limparFormCuidador();
     setModalCuidadorAberto(true);
   }
 
   function fecharModalCuidador() {
     setErroCuidador("");
     setModalCuidadorAberto(false);
+    limparFormCuidador();
+  }
+
+  function emailValido(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
   function validarIdoso() {
@@ -179,8 +205,9 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }
 
   function validarCuidador() {
-    if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
+    if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
+    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
     if (!formCuidador.login.trim()) return "Informe o login do cuidador.";
     if (!formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
@@ -188,7 +215,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     return null;
   }
 
-  function handleCadastrarCuidador(evento) {
+  async function handleCadastrarCuidador(evento) {
     evento.preventDefault();
     const erroValidacao = validarCuidador();
 
@@ -197,8 +224,18 @@ export default function InstituicaoProfileHome({ onLogout }) {
       return;
     }
 
-    setErroCuidador("");
-    fecharModalCuidador();
+    try {
+      setSalvandoCuidador(true);
+      setErroCuidador("");
+      await cadastrarCuidador(formCuidador);
+      mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
+      fecharModalCuidador();
+    } catch (erro) {
+      setErroCuidador(erro.message);
+      mostrarToast("erro", "Erro ao cadastrar cuidador", erro.message);
+    } finally {
+      setSalvandoCuidador(false);
+    }
   }
 
   async function handleCadastrarIdoso(evento) {
@@ -342,6 +379,14 @@ export default function InstituicaoProfileHome({ onLogout }) {
             {erroCuidador ? <div className="instituicao-modal__error" role="alert">{erroCuidador}</div> : null}
 
             <BcInput
+              label="CPF *"
+              name="cpf"
+              placeholder="000.000.000-00"
+              value={formCuidador.cpf}
+              onChange={atualizarCuidador}
+              maxLength={14}
+            />
+            <BcInput
               label="Nome *"
               name="nome"
               placeholder="Insira um nome"
@@ -349,12 +394,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onChange={atualizarCuidador}
             />
             <BcInput
-              label="CPF *"
-              name="cpf"
-              placeholder="000.000.000-00"
-              value={formCuidador.cpf}
+              label="E-mail *"
+              name="email"
+              type="email"
+              placeholder="nome@email.com"
+              value={formCuidador.email}
               onChange={atualizarCuidador}
-              maxLength={14}
             />
             <BcInput
               label="Login *"
@@ -389,7 +434,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               />
             </div>
 
-            <BcButton type="submit">Cadastrar</BcButton>
+            <BcButton type="submit" loading={salvandoCuidador}>Cadastrar</BcButton>
           </form>
         </section>
       </BcModal>

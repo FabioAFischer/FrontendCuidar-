@@ -43,10 +43,10 @@ function conteudoPaginado(data) {
 
 function normalizarCuidador(dados) {
   return {
-    nome: dados.nome,
+    nome: dados.nome?.trim(),
     cpf: somenteNumeros(dados.cpf),
-    email: dados.email,
-    login: dados.login,
+    email: dados.email?.trim(),
+    login: dados.login?.trim(),
     senha: dados.senha,
     instituicaoId: dados.instituicaoId || getInstituicaoId(),
     contato: dados.contato || {
