@@ -14,6 +14,7 @@ import {
   deletarIdoso,
   listarCuidadores,
   listarIdosos,
+  reativarCuidador,
 } from "../../../api/instituicaoApi";
 import {
   IconeCuidadores,
@@ -342,22 +343,20 @@ export default function InstituicaoProfileHome({ onLogout }) {
           anteriores.map((cuidador) => cuidador.id === cuidadorAtualizado?.id ? cuidadorAtualizado : cuidador)
         );
         mostrarToast("sucesso", "Cuidador atualizado", `Os dados de ${formCuidador.nome} foram salvos.`);
+      } else if (cuidadorParaReativar) {
+        const cuidadorReativado = await reativarCuidador(cuidadorParaReativar.id, formCuidador);
+        if (cuidadorReativado) {
+          setCuidadores((anteriores) => [cuidadorReativado, ...anteriores]);
+        }
+        removerCuidadorInativo(formCuidador.cpf);
+        mostrarToast("sucesso", "Cuidador reativado", `${formCuidador.nome} foi reativado com sucesso.`);
       } else {
         const cuidadorCadastrado = await cadastrarCuidador(formCuidador);
         console.log("[cuidador] cadastro concluido", cuidadorCadastrado);
         if (cuidadorCadastrado) {
           setCuidadores((anteriores) => [cuidadorCadastrado, ...anteriores]);
         }
-        if (cuidadorParaReativar) {
-          removerCuidadorInativo(formCuidador.cpf);
-        }
-        mostrarToast(
-          "sucesso",
-          cuidadorParaReativar ? "Cuidador reativado" : "Cuidador cadastrado",
-          cuidadorParaReativar
-            ? `${formCuidador.nome} foi reativado com sucesso.`
-            : `${formCuidador.nome} foi cadastrado com sucesso.`
-        );
+        mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
       }
 
       fecharModalCuidador();
@@ -365,7 +364,15 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } catch (erro) {
       console.error("[cuidador] erro ao cadastrar", erro);
       setErroCuidador(erro.message);
-      mostrarToast("erro", cuidadorEmEdicao ? "Erro ao atualizar cuidador" : "Erro ao cadastrar cuidador", erro.message);
+      mostrarToast(
+        "erro",
+        cuidadorEmEdicao
+          ? "Erro ao atualizar cuidador"
+          : cuidadorParaReativar
+            ? "Erro ao reativar cuidador"
+            : "Erro ao cadastrar cuidador",
+        erro.message
+      );
     } finally {
       setSalvandoCuidador(false);
     }
