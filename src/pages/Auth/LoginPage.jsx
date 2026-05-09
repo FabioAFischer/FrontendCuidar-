@@ -4,7 +4,7 @@ import BcLogo from "../../components/Bclogo/BcLogo";
 import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcToast from "../../components/BcToast/BcToast";
-import { login as loginUsuario } from "../../api/authApi";
+import { login as loginUsuario, verificar2fa } from "../../api/authApi";
 import { formatarCpfCnpj } from "../../utils/validacaoDocumento";
 import "./LoginPage.css";
 
@@ -130,6 +130,15 @@ export default function LoginPage({ onLogin }) {
   const [error, setError]                   = useState("");
   const [loadingProfile, setLoadingProfile] = useState("");
   const [modalRecuperar, setModalRecuperar] = useState(false);
+  const [doisFatores, setDoisFatores] = useState({
+    aberto: false,
+    perfil: "",
+    emailMascarado: "",
+    email: "",
+    codigo: "",
+    loading: false,
+    erro: "",
+  });
   const [toast, setToast] = useState({
     aberto: false, tipo: "info", titulo: "", mensagem: "",
   });
@@ -165,6 +174,20 @@ export default function LoginPage({ onLogin }) {
         rememberMe,
       });
 
+      if (data.requer2fa) {
+        setDoisFatores({
+          aberto: true,
+          perfil: profile,
+          emailMascarado: data.email || "",
+          email: "",
+          codigo: "",
+          loading: false,
+          erro: "",
+        });
+        mostrarToast("info", "Verificacao enviada", "Informe o codigo enviado para o e-mail cadastrado.");
+        return;
+      }
+
       mostrarToast(
         "sucesso",
         "Login realizado",
@@ -176,6 +199,58 @@ export default function LoginPage({ onLogin }) {
       mostrarToast("erro", "Falha no login", err.message || "Nao foi possivel fazer login.");
     } finally {
       setLoadingProfile("");
+    }
+  }
+
+  function fecharDoisFatores() {
+    setDoisFatores({
+      aberto: false,
+      perfil: "",
+      emailMascarado: "",
+      email: "",
+      codigo: "",
+      loading: false,
+      erro: "",
+    });
+  }
+
+  async function handleVerificar2fa(evento) {
+    evento.preventDefault();
+
+    if (!doisFatores.email.trim()) {
+      setDoisFatores((atual) => ({ ...atual, erro: "Informe o e-mail cadastrado." }));
+      return;
+    }
+
+    if (!doisFatores.codigo.trim()) {
+      setDoisFatores((atual) => ({ ...atual, erro: "Informe o codigo recebido." }));
+      return;
+    }
+
+    setDoisFatores((atual) => ({ ...atual, loading: true, erro: "" }));
+
+    try {
+      const data = await verificar2fa({
+        email: doisFatores.email,
+        codigo: doisFatores.codigo,
+        rememberMe,
+      });
+      const perfil = doisFatores.perfil;
+
+      fecharDoisFatores();
+      mostrarToast(
+        "sucesso",
+        "Login realizado",
+        `Login de ${profileNames[perfil].toLowerCase()} realizado com sucesso.`
+      );
+
+      if (onLogin) onLogin(perfil, data);
+    } catch (err) {
+      setDoisFatores((atual) => ({
+        ...atual,
+        loading: false,
+        erro: err.message || "Nao foi possivel verificar o codigo.",
+      }));
     }
   }
 
@@ -193,6 +268,54 @@ export default function LoginPage({ onLogin }) {
         aberto={modalRecuperar}
         onFechar={() => setModalRecuperar(false)}
       />
+
+      <BcModal aberto={doisFatores.aberto} onFechar={fecharDoisFatores}>
+        <div className="mrs-wrap">
+          <div className="mrs-header">
+            <div className="mrs-header__icone"><IconeEmail /></div>
+            <h2>Verificacao em duas etapas</h2>
+            <p>
+              Digite o e-mail cadastrado e o codigo enviado
+              {doisFatores.emailMascarado ? ` para ${doisFatores.emailMascarado}` : ""}.
+            </p>
+          </div>
+          <form className="mrs-form" onSubmit={handleVerificar2fa} noValidate>
+            {doisFatores.erro ? (
+              <div className="login-form__message login-form__message--error" role="alert">
+                {doisFatores.erro}
+              </div>
+            ) : null}
+            <BcInput
+              label="E-mail"
+              name="email2fa"
+              type="email"
+              placeholder="email@exemplo.com"
+              value={doisFatores.email}
+              onChange={e => setDoisFatores((atual) => ({ ...atual, email: e.target.value }))}
+              autoComplete="email"
+            />
+            <BcInput
+              label="Codigo"
+              name="codigo2fa"
+              type="text"
+              placeholder="000000"
+              value={doisFatores.codigo}
+              onChange={e => setDoisFatores((atual) => ({
+                ...atual,
+                codigo: e.target.value.replace(/\D/g, "").slice(0, 6),
+              }))}
+              autoComplete="one-time-code"
+              maxLength={6}
+            />
+            <BcButton type="submit" loading={doisFatores.loading}>
+              Verificar codigo
+            </BcButton>
+            <BcButton variant="ghost" onClick={fecharDoisFatores}>
+              Cancelar
+            </BcButton>
+          </form>
+        </div>
+      </BcModal>
 
       <section className="login-page__hero">
         <div className="login-page__hero-content">

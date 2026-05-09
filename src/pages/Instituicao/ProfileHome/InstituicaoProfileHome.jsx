@@ -214,9 +214,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   async function handleCadastrarCuidador(evento) {
     evento.preventDefault();
+    console.log("[cuidador] submit recebido", formCuidador);
+
     const erroValidacao = validarCuidador();
 
     if (erroValidacao) {
+      console.log("[cuidador] validacao bloqueou cadastro", erroValidacao);
       setErroCuidador(erroValidacao);
       return;
     }
@@ -224,10 +227,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
     try {
       setSalvandoCuidador(true);
       setErroCuidador("");
-      await cadastrarCuidador(formCuidador);
+      const cuidadorCadastrado = await cadastrarCuidador(formCuidador);
+      console.log("[cuidador] cadastro concluido", cuidadorCadastrado);
       mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
       fecharModalCuidador();
     } catch (erro) {
+      console.error("[cuidador] erro ao cadastrar", erro);
       setErroCuidador(erro.message);
       mostrarToast("erro", "Erro ao cadastrar cuidador", erro.message);
     } finally {

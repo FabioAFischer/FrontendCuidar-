@@ -11,6 +11,15 @@ function getStorage(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
 
+function salvarSessao(data, rememberMe) {
+  const storage = getStorage(rememberMe);
+  storage.setItem("token", data.token);
+  storage.setItem("tokenTipo", data.tipo || "Bearer");
+  storage.setItem("perfil", data.perfil);
+  storage.setItem("usuarioId", String(data.id));
+  storage.setItem("usuarioNome", data.nome);
+}
+
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
@@ -31,13 +40,35 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
     throw new Error(data.message || "Erro ao fazer login.");
   }
 
-  const storage = getStorage(rememberMe);
-  storage.setItem("token", data.token);
-  storage.setItem("tokenTipo", data.tipo || "Bearer");
-  storage.setItem("perfil", data.perfil);
-  storage.setItem("usuarioId", String(data.id));
-  storage.setItem("usuarioNome", data.nome);
+  if (data.requer2fa) {
+    return {
+      ...data,
+      perfil: perfilBackend,
+    };
+  }
 
+  salvarSessao(data, rememberMe);
+
+  return data;
+}
+
+export async function verificar2fa({ email, codigo, rememberMe = true }) {
+  const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      codigo,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Erro ao verificar codigo.");
+  }
+
+  salvarSessao(data, rememberMe);
   return data;
 }
 
