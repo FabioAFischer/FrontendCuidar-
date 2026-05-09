@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
 import "./BcListagem.css";
@@ -33,6 +33,18 @@ const IconeMais = () => (
   </svg>
 );
 
+const IconeSetaEsquerda = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="m15 18-6-6 6-6" />
+  </svg>
+);
+
+const IconeSetaDireita = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+);
+
 export default function BcListagem({
   titulo,
   iconeTitulo,
@@ -55,9 +67,25 @@ export default function BcListagem({
   textoConfirmar = "Sim, excluir",
   textoCarregandoExcluir = "Excluindo...",
   excluindo = false,
+  itensPorPagina = 10,
 }) {
   const [itemParaExcluir, setItemParaExcluir] = useState(null);
+  const [paginaAtual, setPaginaAtual] = useState(1);
   const temAcoes = Boolean(onEditar || onExcluir);
+  const totalPaginas = Math.max(1, Math.ceil(itens.length / itensPorPagina));
+
+  const itensPaginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    return itens.slice(inicio, inicio + itensPorPagina);
+  }, [itens, itensPorPagina, paginaAtual]);
+
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, itensPorPagina]);
+
+  useEffect(() => {
+    setPaginaAtual((pagina) => Math.min(pagina, totalPaginas));
+  }, [totalPaginas]);
 
   async function confirmarExclusao() {
     if (!itemParaExcluir || !onExcluir) return;
@@ -120,7 +148,7 @@ export default function BcListagem({
                 </tr>
               </thead>
               <tbody>
-                {itens.map((item) => (
+                {itensPaginados.map((item) => (
                   <tr key={chaveLinha(item)}>
                     {colunas.map((coluna) => (
                       <td key={coluna.chave} className={coluna.className || ""}>
@@ -157,6 +185,35 @@ export default function BcListagem({
                 ))}
               </tbody>
             </table>
+            {itens.length > itensPorPagina ? (
+              <div className="bc-listagem-paginacao">
+                <span className="bc-listagem-paginacaoInfo">
+                  Pagina {paginaAtual} de {totalPaginas}
+                </span>
+                <div className="bc-listagem-paginacaoAcoes">
+                  <button
+                    className="bc-listagem-btnPagina"
+                    type="button"
+                    onClick={() => setPaginaAtual((pagina) => Math.max(1, pagina - 1))}
+                    disabled={paginaAtual === 1}
+                    aria-label="Pagina anterior"
+                  >
+                    <IconeSetaEsquerda />
+                    Anterior
+                  </button>
+                  <button
+                    className="bc-listagem-btnPagina"
+                    type="button"
+                    onClick={() => setPaginaAtual((pagina) => Math.min(totalPaginas, pagina + 1))}
+                    disabled={paginaAtual === totalPaginas}
+                    aria-label="Proxima pagina"
+                  >
+                    Proxima
+                    <IconeSetaDireita />
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>
