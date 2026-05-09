@@ -7,6 +7,10 @@
   max-width: 760px;
 }
 
+.bcmodal-content:has(.instituicao-modal--cuidador) {
+  max-width: 440px;
+}
+
 .instituicao-home__content {
   max-width: 1640px;
   margin: 0 auto;
