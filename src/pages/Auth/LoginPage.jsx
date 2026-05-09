@@ -5,7 +5,7 @@ import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcPasswordStrength from "../../components/BcPasswordStrength/BcPasswordStrength";
 import BcToast from "../../components/BcToast/BcToast";
-import { login as loginUsuario } from "../../api/authApi";
+import { login as loginUsuario, verificar2fa } from "../../api/authApi";
 import {
   enviarIdentificador,
   verificarCodigo,
@@ -34,6 +34,13 @@ const IconeCadeado = () => (
     <rect x="3" y="11" width="18" height="11" rx="2" />
     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     <circle cx="12" cy="16" r="1" fill="currentColor" />
+  </svg>
+);
+const IconeSeguranca = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="m9 12 2 2 4-4" />
   </svg>
 );
 const IconeSucesso = () => (
@@ -83,56 +90,112 @@ const profileNames = {
 };
 
 /* ══════════════════════════════════════════
-   Modal Recuperar Senha — 3 passos
+   Modal 2FA
    ══════════════════════════════════════════ */
-
-const PASSOS = ["identificador", "codigo", "nova-senha"];
-
-function ModalRecuperarSenha({ aberto, onFechar }) {
-  const [passo, setPasso]                   = useState("identificador");
-  const [loading, setLoading]               = useState(false);
-  const [erro, setErro]                     = useState("");
-  // passo 1
-  const [identificador, setIdentificador]   = useState("");
-  const [emailMascarado, setEmailMascarado] = useState("");
-  // passo 2
-  const [emailCompleto, setEmailCompleto]   = useState("");
-  const [codigo, setCodigo]                 = useState("");
-  const [emailVerificado, setEmailVerificado] = useState("");
-  // passo 3
-  const [novaSenha, setNovaSenha]           = useState("");
-  const [confirmar, setConfirmar]           = useState("");
-  const [showNova, setShowNova]             = useState(false);
-  const [showConfirmar, setShowConfirmar]   = useState(false);
-
-  function resetar() {
-    setPasso("identificador");
-    setLoading(false);
-    setErro("");
-    setIdentificador("");
-    setEmailMascarado("");
-    setEmailCompleto("");
-    setCodigo("");
-    setEmailVerificado("");
-    setNovaSenha("");
-    setConfirmar("");
-    setShowNova(false);
-    setShowConfirmar(false);
-  }
+function Modal2FA({ aberto, emailMascarado, rememberMe, perfil, onSucesso, onFechar }) {
+  const [emailCompleto, setEmailCompleto] = useState("");
+  const [codigo, setCodigo]               = useState("");
+  const [loading, setLoading]             = useState(false);
+  const [erro, setErro]                   = useState("");
 
   function handleFechar() {
-    resetar();
+    setEmailCompleto("");
+    setCodigo("");
+    setErro("");
     onFechar();
   }
 
-  /* Passo 1 — enviar identificador */
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro("");
+
+    if (!emailCompleto.trim()) { setErro("Informe seu email completo."); return; }
+    if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
+
+    setLoading(true);
+    try {
+      const data = await verificar2fa({ email: emailCompleto, codigo, rememberMe });
+      onSucesso(data, perfil);
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <BcModal aberto={aberto} onFechar={handleFechar}>
+      <div className="mrs-wrap">
+        <div className="mrs-header">
+          <div className="mrs-header__icone"><IconeSeguranca /></div>
+          <h2>Verificação em duas etapas</h2>
+          <p>
+            Enviamos um código para{" "}
+            <strong className="mrs-email-destaque">{emailMascarado}</strong>.
+            Confirme seu email e insira o código recebido.
+          </p>
+        </div>
+        <form className="mrs-form" onSubmit={handleSubmit} noValidate>
+          <BcInput
+            label="Seu email completo"
+            name="twofa-email"
+            type="email"
+            placeholder="seuemail@exemplo.com"
+            value={emailCompleto}
+            onChange={e => { setEmailCompleto(e.target.value); setErro(""); }}
+            autoComplete="email"
+          />
+          <BcInput
+            label="Código de verificação"
+            name="twofa-codigo"
+            type="text"
+            placeholder="000000"
+            value={codigo}
+            onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
+            autoComplete="one-time-code"
+            maxLength={6}
+            error={erro}
+          />
+          <BcButton type="submit" loading={loading}>Confirmar acesso</BcButton>
+          <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
+        </form>
+      </div>
+    </BcModal>
+  );
+}
+
+/* ══════════════════════════════════════════
+   Modal Recuperar Senha — 3 passos
+   ══════════════════════════════════════════ */
+const PASSOS = ["identificador", "codigo", "nova-senha"];
+
+function ModalRecuperarSenha({ aberto, onFechar }) {
+  const [passo, setPasso]                     = useState("identificador");
+  const [loading, setLoading]                 = useState(false);
+  const [erro, setErro]                       = useState("");
+  const [identificador, setIdentificador]     = useState("");
+  const [emailMascarado, setEmailMascarado]   = useState("");
+  const [emailCompleto, setEmailCompleto]     = useState("");
+  const [codigo, setCodigo]                   = useState("");
+  const [emailVerificado, setEmailVerificado] = useState("");
+  const [novaSenha, setNovaSenha]             = useState("");
+  const [confirmar, setConfirmar]             = useState("");
+  const [showNova, setShowNova]               = useState(false);
+  const [showConfirmar, setShowConfirmar]     = useState(false);
+
+  function resetar() {
+    setPasso("identificador"); setLoading(false); setErro("");
+    setIdentificador(""); setEmailMascarado(""); setEmailCompleto("");
+    setCodigo(""); setEmailVerificado(""); setNovaSenha("");
+    setConfirmar(""); setShowNova(false); setShowConfirmar(false);
+  }
+
+  function handleFechar() { resetar(); onFechar(); }
+
   async function handleEnviarIdentificador(e) {
     e.preventDefault();
     setErro("");
-    if (!identificador.trim()) {
-      setErro("Informe seu CPF ou CNPJ cadastrado.");
-      return;
-    }
+    if (!identificador.trim()) { setErro("Informe seu CPF ou CNPJ cadastrado."); return; }
     setLoading(true);
     try {
       const data = await enviarIdentificador(identificador);
@@ -145,18 +208,11 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
     }
   }
 
-  /* Passo 2 — verificar código */
   async function handleVerificarCodigo(e) {
     e.preventDefault();
     setErro("");
-    if (!emailCompleto.trim()) {
-      setErro("Informe seu email completo.");
-      return;
-    }
-    if (codigo.trim().length !== 6) {
-      setErro("O código deve ter 6 dígitos.");
-      return;
-    }
+    if (!emailCompleto.trim()) { setErro("Informe seu email completo."); return; }
+    if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
     setLoading(true);
     try {
       const data = await verificarCodigo(emailCompleto, codigo);
@@ -169,7 +225,6 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
     }
   }
 
-  /* Passo 3 — definir nova senha */
   async function handleDefinirSenha(e) {
     e.preventDefault();
     setErro("");
@@ -205,15 +260,12 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
   return (
     <BcModal aberto={aberto} onFechar={handleFechar}>
       <div className="mrs-wrap">
-
-        {/* Indicador de passos */}
         <div className="mrs-passos">
           {PASSOS.map((_, i) => (
             <div key={i} className={`mrs-passo-dot ${i <= passoAtual ? "mrs-passo-dot--ativo" : ""}`} />
           ))}
         </div>
 
-        {/* ── Passo 1: Identificador ── */}
         {passo === "identificador" && (
           <>
             <div className="mrs-header">
@@ -223,14 +275,11 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
             </div>
             <form className="mrs-form" onSubmit={handleEnviarIdentificador} noValidate>
               <BcInput
-                label="CPF ou CNPJ"
-                name="mrs-identificador"
-                type="text"
+                label="CPF ou CNPJ" name="mrs-identificador" type="text"
                 placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 value={identificador}
                 onChange={e => { setIdentificador(e.target.value); setErro(""); }}
-                autoComplete="off"
-                error={erro}
+                autoComplete="off" error={erro}
               />
               <BcButton type="submit" loading={loading}>Enviar código</BcButton>
               <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
@@ -238,7 +287,6 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
           </>
         )}
 
-        {/* ── Passo 2: Email completo + Código ── */}
         {passo === "codigo" && (
           <>
             <div className="mrs-header">
@@ -252,24 +300,17 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
             </div>
             <form className="mrs-form" onSubmit={handleVerificarCodigo} noValidate>
               <BcInput
-                label="Seu email completo"
-                name="mrs-email-completo"
-                type="email"
+                label="Seu email completo" name="mrs-email-completo" type="email"
                 placeholder="seuemail@exemplo.com"
                 value={emailCompleto}
                 onChange={e => { setEmailCompleto(e.target.value); setErro(""); }}
                 autoComplete="email"
               />
               <BcInput
-                label="Código de verificação"
-                name="mrs-codigo"
-                type="text"
-                placeholder="000000"
-                value={codigo}
+                label="Código de verificação" name="mrs-codigo" type="text"
+                placeholder="000000" value={codigo}
                 onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
-                autoComplete="one-time-code"
-                maxLength={6}
-                error={erro}
+                autoComplete="one-time-code" maxLength={6} error={erro}
               />
               <BcButton type="submit" loading={loading}>Verificar código</BcButton>
               <BcButton variant="ghost" onClick={() => { setPasso("identificador"); setErro(""); setCodigo(""); setEmailCompleto(""); }}>
@@ -279,7 +320,6 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
           </>
         )}
 
-        {/* ── Passo 3: Nova senha ── */}
         {passo === "nova-senha" && (
           <>
             <div className="mrs-header">
@@ -289,10 +329,8 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
             </div>
             <form className="mrs-form" onSubmit={handleDefinirSenha} noValidate>
               <BcInput
-                label="Nova senha"
-                name="mrs-nova-senha"
-                type={showNova ? "text" : "password"}
-                placeholder="Crie uma senha forte"
+                label="Nova senha" name="mrs-nova-senha"
+                type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
                 value={novaSenha}
                 onChange={e => { setNovaSenha(e.target.value); setErro(""); }}
                 autoComplete="new-password"
@@ -304,10 +342,8 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
                 hint={<BcPasswordStrength password={novaSenha} />}
               />
               <BcInput
-                label="Confirmar nova senha"
-                name="mrs-confirmar"
-                type={showConfirmar ? "text" : "password"}
-                placeholder="Repita a senha"
+                label="Confirmar nova senha" name="mrs-confirmar"
+                type={showConfirmar ? "text" : "password"} placeholder="Repita a senha"
                 value={confirmar}
                 onChange={e => { setConfirmar(e.target.value); setErro(""); }}
                 autoComplete="new-password"
@@ -329,7 +365,6 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
             </form>
           </>
         )}
-
       </div>
     </BcModal>
   );
@@ -346,6 +381,13 @@ export default function LoginPage({ onLogin }) {
   const [error, setError]                   = useState("");
   const [loadingProfile, setLoadingProfile] = useState("");
   const [modalRecuperar, setModalRecuperar] = useState(false);
+
+  // estado 2FA
+  const [modal2FA, setModal2FA]             = useState(false);
+  const [twoFaEmail, setTwoFaEmail]         = useState("");
+  const [twoFaPerfil, setTwoFaPerfil]       = useState("");
+  const [twoFaRemember, setTwoFaRemember]   = useState(true);
+
   const [toast, setToast] = useState({
     aberto: false, tipo: "info", titulo: "", mensagem: "",
   });
@@ -378,6 +420,17 @@ export default function LoginPage({ onLogin }) {
         perfil: profile,
         rememberMe,
       });
+
+      // Backend pediu 2FA — abre modal
+      if (data.requer2fa) {
+        setTwoFaEmail(data.email);
+        setTwoFaPerfil(profile);
+        setTwoFaRemember(rememberMe);
+        setModal2FA(true);
+        return;
+      }
+
+      // Login direto (sem 2FA)
       mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
       if (onLogin) onLogin(profile, data);
     } catch (err) {
@@ -385,6 +438,12 @@ export default function LoginPage({ onLogin }) {
     } finally {
       setLoadingProfile("");
     }
+  }
+
+  function handle2FASucesso(data, profile) {
+    setModal2FA(false);
+    mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
+    if (onLogin) onLogin(profile, data);
   }
 
   return (
@@ -395,6 +454,15 @@ export default function LoginPage({ onLogin }) {
         titulo={toast.titulo}
         mensagem={toast.mensagem}
         onFechar={fecharToast}
+      />
+
+      <Modal2FA
+        aberto={modal2FA}
+        emailMascarado={twoFaEmail}
+        rememberMe={twoFaRemember}
+        perfil={twoFaPerfil}
+        onSucesso={handle2FASucesso}
+        onFechar={() => setModal2FA(false)}
       />
 
       <ModalRecuperarSenha
@@ -447,51 +515,34 @@ export default function LoginPage({ onLogin }) {
 
           <form className="login-form" onSubmit={e => e.preventDefault()} noValidate>
             <BcInput
-              label="CPF ou CNPJ"
-              name="cpfCnpj"
-              type="text"
+              label="CPF ou CNPJ" name="cpfCnpj" type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              value={cpfCnpj}
-              onChange={e => setCpfCnpj(e.target.value)}
-              autoComplete="off"
-              maxLength={14}
+              value={cpfCnpj} onChange={e => setCpfCnpj(e.target.value)}
+              autoComplete="off" maxLength={14}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
             <BcInput
-              label="Senha"
-              name="password"
+              label="Senha" name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Digite sua senha"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              value={password} onChange={e => setPassword(e.target.value)}
               autoComplete="current-password"
               error={error && !password.trim() ? error : ""}
               suffix={
-                <button
-                  type="button"
-                  className="login-form__password-toggle"
+                <button type="button" className="login-form__password-toggle"
                   onClick={() => setShowPassword(c => !c)}
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                  aria-pressed={showPassword}
-                >
+                  aria-pressed={showPassword}>
                   {showPassword ? "Ocultar" : "Mostrar"}
                 </button>
               }
             />
             <div className="login-form__row">
               <label className="login-form__checkbox">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={e => setRememberMe(e.target.checked)}
-                />
+                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
                 <span>Lembrar de mim</span>
               </label>
-              <button
-                type="button"
-                className="login-form__link"
-                onClick={() => setModalRecuperar(true)}
-              >
+              <button type="button" className="login-form__link" onClick={() => setModalRecuperar(true)}>
                 Esqueceu a senha?
               </button>
             </div>
@@ -499,9 +550,7 @@ export default function LoginPage({ onLogin }) {
             <div className="login-form__profiles">
               {Object.entries(profileDescriptions).map(([profile, description]) => (
                 <button
-                  key={profile}
-                  type="button"
-                  className="login-profile-button"
+                  key={profile} type="button" className="login-profile-button"
                   disabled={Boolean(loadingProfile)}
                   onClick={() => handleProfileLogin(profile)}
                 >
