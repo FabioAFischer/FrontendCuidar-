@@ -1,5 +1,5 @@
-import { getAuthHeaders, isMockAuthSession } from "./authApi";
-import { API_BASE_URL, MOCK_2FA_ENABLED } from "./env";
+import { getAuthHeaders } from "./authApi";
+import { API_BASE_URL } from "./env";
 
 function somenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
@@ -103,15 +103,6 @@ export async function listarCuidadores(page = 0, size = 100) {
 }
 
 export async function cadastrarCuidador(dados) {
-  if (MOCK_2FA_ENABLED && isMockAuthSession()) {
-    const cuidadorMockado = {
-      id: Date.now(),
-      ...normalizarCuidador(dados),
-    };
-    console.log("[cuidador] cadastro mockado", cuidadorMockado);
-    return cuidadorMockado;
-  }
-
   console.log("[cuidador] payload normalizado", normalizarCuidador(dados));
 
   return requestApi("/cuidador/cadastrar", {

@@ -1,4 +1,4 @@
-import { API_BASE_URL, MOCK_2FA_ENABLED, MOCK_2FA_USER } from "./env";
+import { API_BASE_URL } from "./env";
 import { somenteNumeros } from "../utils/validacaoDocumento";
 
 const PERFIL_BACKEND = {
@@ -18,16 +18,6 @@ function salvarSessao(data, rememberMe) {
   storage.setItem("perfil", data.perfil);
   storage.setItem("usuarioId", String(data.id));
   storage.setItem("usuarioNome", data.nome);
-}
-
-function montarSessaoMock2fa(data, perfilBackend) {
-  return {
-    ...MOCK_2FA_USER,
-    perfil: perfilBackend,
-    emailMascarado: data.email,
-    autenticado: true,
-    mock2fa: true,
-  };
 }
 
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
@@ -51,12 +41,6 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
   }
 
   if (data.requer2fa) {
-    if (MOCK_2FA_ENABLED) {
-      const sessaoMock = montarSessaoMock2fa(data, perfilBackend);
-      salvarSessao(sessaoMock, rememberMe);
-      return sessaoMock;
-    }
-
     return {
       ...data,
       perfil: perfilBackend,
@@ -101,10 +85,6 @@ export function getAuthHeaders() {
         Authorization: `Bearer ${token}`,
       }
     : { "Content-Type": "application/json" };
-}
-
-export function isMockAuthSession() {
-  return getAuthToken() === MOCK_2FA_USER.token;
 }
 
 export function logout() {
