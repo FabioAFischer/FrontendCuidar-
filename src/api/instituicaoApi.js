@@ -1,5 +1,5 @@
-import { getAuthHeaders } from "./authApi";
-import { API_BASE_URL } from "./env";
+import { getAuthHeaders, isMockAuthSession } from "./authApi";
+import { API_BASE_URL, MOCK_2FA_ENABLED } from "./env";
 
 function somenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
@@ -24,10 +24,24 @@ async function getErrorMessage(response, fallback) {
 }
 
 async function requestApi(path, { method = "GET", dados, fallback } = {}) {
+  console.log("[api] request", {
+    method,
+    path,
+    dados,
+    headers: getAuthHeaders(),
+  });
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: getAuthHeaders(),
     body: dados ? JSON.stringify(dados) : undefined,
+  });
+
+  console.log("[api] response", {
+    method,
+    path,
+    status: response.status,
+    ok: response.ok,
   });
 
   if (!response.ok) {
@@ -89,6 +103,17 @@ export async function listarCuidadores(page = 0, size = 100) {
 }
 
 export async function cadastrarCuidador(dados) {
+  if (MOCK_2FA_ENABLED && isMockAuthSession()) {
+    const cuidadorMockado = {
+      id: Date.now(),
+      ...normalizarCuidador(dados),
+    };
+    console.log("[cuidador] cadastro mockado", cuidadorMockado);
+    return cuidadorMockado;
+  }
+
+  console.log("[cuidador] payload normalizado", normalizarCuidador(dados));
+
   return requestApi("/cuidador/cadastrar", {
     method: "POST",
     dados: normalizarCuidador(dados),
