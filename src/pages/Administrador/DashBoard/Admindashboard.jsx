@@ -23,12 +23,10 @@ const IconeEditar = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
-const IconeLixeira = () => (
+const IconeInativar = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-    <path d="M10 11v6M14 11v6" />
-    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 8.5 7 7" />
   </svg>
 );
 const IconeSair = () => (
@@ -312,9 +310,9 @@ export default function Admindashboard({ onLogout }) {
       await deletarInstituicao(id);
       setConfirmDelete(null);
       recarregarLista();
-      mostrarToast("sucesso", "Instituicao excluida", "A instituicao foi removida da listagem.");
+      mostrarToast("sucesso", "Instituicao inativada", "A instituicao foi inativada na listagem.");
     } catch (err) {
-      mostrarToast("erro", "Erro ao excluir", err.message);
+      mostrarToast("erro", "Erro ao inativar", err.message);
     } finally {
       setDeletando(false);
     }
@@ -393,16 +391,20 @@ export default function Admindashboard({ onLogout }) {
                           <button
                             className="adm-btn-icone adm-btn-editar"
                             title="Editar"
+                            aria-label={`Editar ${inst.nome}`}
+                            type="button"
                             onClick={() => setModalEditar(inst)}
                           >
                             <IconeEditar />
                           </button>
                           <button
-                            className="adm-btn-icone adm-btn-deletar"
-                            title="Excluir"
+                            className="adm-btn-icone adm-btn-inativar"
+                            title="Inativar"
+                            aria-label={`Inativar ${inst.nome}`}
+                            type="button"
                             onClick={() => setConfirmDelete(inst.id)}
                           >
-                            <IconeLixeira />
+                            <IconeInativar />
                           </button>
                         </div>
                       </td>
@@ -440,9 +442,9 @@ export default function Admindashboard({ onLogout }) {
       {confirmDelete && (
         <div className="adm-confirm-overlay" onClick={() => setConfirmDelete(null)}>
           <div className="adm-confirm" onClick={e => e.stopPropagation()}>
-            <div className="adm-confirm__icone"><IconeLixeira /></div>
-            <h3>Excluir instituição?</h3>
-            <p>Esta ação não pode ser desfeita.</p>
+            <div className="adm-confirm__icone adm-confirm__icone--inativar"><IconeInativar /></div>
+            <h3>Inativar instituição?</h3>
+            <p>A instituição deixará de aparecer como ativa na listagem.</p>
             <div className="adm-confirm__acoes">
               <button className="adm-confirm__cancelar" onClick={() => setConfirmDelete(null)}>
                 Cancelar
@@ -452,7 +454,7 @@ export default function Admindashboard({ onLogout }) {
                 onClick={() => handleDeletar(confirmDelete)}
                 disabled={deletando}
               >
-                {deletando ? "Excluindo..." : "Sim, excluir"}
+                {deletando ? "Inativando..." : "Sim, inativar"}
               </button>
             </div>
           </div>

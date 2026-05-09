@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcInput from "../../../components/Bcinput/BcInput";
-import BcEmptySection from "../../../components/BcEmptySection/BcEmptySection";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast from "../../../components/BcToast/BcToast";
 import {
+  atualizarCuidador as atualizarCuidadorApi,
   atualizarIdoso as atualizarIdosoApi,
   cadastrarCuidador,
   cadastrarIdoso,
+  deletarCuidador,
   deletarIdoso,
+  listarCuidadores,
   listarIdosos,
 } from "../../../api/instituicaoApi";
 import {
   IconeCuidadores,
-  IconeCuidadoresVazio,
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
@@ -25,12 +26,17 @@ import "./InstituicaoProfileHome.css";
 export default function InstituicaoProfileHome({ onLogout }) {
   const [modalCuidadorAberto, setModalCuidadorAberto] = useState(false);
   const [modalIdosoAberto, setModalIdosoAberto] = useState(false);
+  const [cuidadorEmEdicao, setCuidadorEmEdicao] = useState(null);
   const [idosoEmEdicao, setIdosoEmEdicao] = useState(null);
+  const [cuidadores, setCuidadores] = useState([]);
   const [idosos, setIdosos] = useState([]);
+  const [buscaCuidador, setBuscaCuidador] = useState("");
   const [buscaIdoso, setBuscaIdoso] = useState("");
+  const [carregandoCuidadores, setCarregandoCuidadores] = useState(true);
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [salvandoCuidador, setSalvandoCuidador] = useState(false);
   const [salvandoIdoso, setSalvandoIdoso] = useState(false);
+  const [excluindoCuidador, setExcluindoCuidador] = useState(false);
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
   const [erroCuidador, setErroCuidador] = useState("");
   const [erroIdoso, setErroIdoso] = useState("");
@@ -47,6 +53,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     senha: "",
     ddd: "",
     telefone: "",
+    contatoId: null,
   });
   const [formIdoso, setFormIdoso] = useState({
     nome: "",
@@ -56,6 +63,20 @@ export default function InstituicaoProfileHome({ onLogout }) {
     telefone: "",
     contatoId: null,
   });
+
+  const carregarCuidadores = useCallback(async () => {
+    try {
+      setCarregandoCuidadores(true);
+      setErroCuidador("");
+      const lista = await listarCuidadores();
+      setCuidadores(lista);
+    } catch (erro) {
+      setErroCuidador(erro.message);
+      mostrarToast("erro", "Erro ao carregar cuidadores", erro.message);
+    } finally {
+      setCarregandoCuidadores(false);
+    }
+  }, []);
 
   const carregarIdosos = useCallback(async () => {
     try {
@@ -85,8 +106,15 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }
 
   useEffect(() => {
+    carregarCuidadores();
     carregarIdosos();
-  }, [carregarIdosos]);
+  }, [carregarCuidadores, carregarIdosos]);
+
+  const cuidadoresFiltrados = cuidadores.filter((cuidador) =>
+    String(cuidador.nome || "").toLowerCase().includes(buscaCuidador.toLowerCase()) ||
+    String(cuidador.cpf || "").includes(buscaCuidador.replace(/\D/g, "")) ||
+    String(cuidador.email || "").toLowerCase().includes(buscaCuidador.toLowerCase())
+  );
 
   const idososFiltrados = idosos.filter((idoso) =>
     String(idoso.nome || "").toLowerCase().includes(buscaIdoso.toLowerCase()) ||
@@ -136,6 +164,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       senha: "",
       ddd: "",
       telefone: "",
+      contatoId: null,
     });
   }
 
@@ -148,6 +177,21 @@ export default function InstituicaoProfileHome({ onLogout }) {
       telefone: "",
       contatoId: null,
     });
+  }
+
+  function abrirEdicaoCuidador(cuidador) {
+    setErroCuidador("");
+    setCuidadorEmEdicao(cuidador);
+    setFormCuidador({
+      cpf: formatarCPF(String(cuidador.cpf || "")),
+      nome: cuidador.nome || "",
+      email: cuidador.email || "",
+      senha: "",
+      ddd: cuidador.contato?.ddd ? String(cuidador.contato.ddd) : "",
+      telefone: cuidador.contato?.telefone ? formatarTelefone(String(cuidador.contato.telefone)) : "",
+      contatoId: cuidador.contatoId || cuidador.contato?.id || null,
+    });
+    setModalCuidadorAberto(true);
   }
 
   function abrirCadastroIdoso() {
@@ -180,6 +224,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   function abrirCadastroCuidador() {
     setErroCuidador("");
+    setCuidadorEmEdicao(null);
     limparFormCuidador();
     setModalCuidadorAberto(true);
   }
@@ -187,6 +232,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function fecharModalCuidador() {
     setErroCuidador("");
     setModalCuidadorAberto(false);
+    setCuidadorEmEdicao(null);
     limparFormCuidador();
   }
 
@@ -206,7 +252,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
-    if (!formCuidador.senha.trim()) return "Informe a senha do cuidador.";
+    if (!cuidadorEmEdicao && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
     if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
     return null;
@@ -227,16 +273,45 @@ export default function InstituicaoProfileHome({ onLogout }) {
     try {
       setSalvandoCuidador(true);
       setErroCuidador("");
-      const cuidadorCadastrado = await cadastrarCuidador(formCuidador);
-      console.log("[cuidador] cadastro concluido", cuidadorCadastrado);
-      mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
+
+      if (cuidadorEmEdicao) {
+        const cuidadorAtualizado = await atualizarCuidadorApi(cuidadorEmEdicao.id, formCuidador);
+        setCuidadores((anteriores) =>
+          anteriores.map((cuidador) => cuidador.id === cuidadorAtualizado?.id ? cuidadorAtualizado : cuidador)
+        );
+        mostrarToast("sucesso", "Cuidador atualizado", `Os dados de ${formCuidador.nome} foram salvos.`);
+      } else {
+        const cuidadorCadastrado = await cadastrarCuidador(formCuidador);
+        console.log("[cuidador] cadastro concluido", cuidadorCadastrado);
+        if (cuidadorCadastrado) {
+          setCuidadores((anteriores) => [cuidadorCadastrado, ...anteriores]);
+        }
+        mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
+      }
+
       fecharModalCuidador();
+      await carregarCuidadores();
     } catch (erro) {
       console.error("[cuidador] erro ao cadastrar", erro);
       setErroCuidador(erro.message);
-      mostrarToast("erro", "Erro ao cadastrar cuidador", erro.message);
+      mostrarToast("erro", cuidadorEmEdicao ? "Erro ao atualizar cuidador" : "Erro ao cadastrar cuidador", erro.message);
     } finally {
       setSalvandoCuidador(false);
+    }
+  }
+
+  async function handleExcluirCuidador(cuidador) {
+    try {
+      setExcluindoCuidador(true);
+      setErroCuidador("");
+      await deletarCuidador(cuidador.id);
+      await carregarCuidadores();
+      mostrarToast("sucesso", "Cuidador desativado", `${cuidador.nome} foi removido da listagem.`);
+    } catch (erro) {
+      setErroCuidador(erro.message);
+      mostrarToast("erro", "Erro ao desativar cuidador", erro.message);
+    } finally {
+      setExcluindoCuidador(false);
     }
   }
 
@@ -312,15 +387,53 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
       <main className="instituicao-home__content">
         <div className="instituicao-home__grid">
-          <BcEmptySection
-            title="Cuidadores"
-            count={0}
-            icon={<IconeCuidadores />}
-            buttonLabel="Cadastrar Cuidador"
-            emptyIcon={<IconeCuidadoresVazio />}
-            emptyText="Nenhum cuidador cadastrado"
-            onAction={abrirCadastroCuidador}
-          />
+          <div className="instituicao-home__listagem">
+            <BcListagem
+              titulo="Cuidadores Cadastrados"
+              iconeTitulo={<IconeCuidadores />}
+              itens={cuidadoresFiltrados}
+              colunas={[
+                { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
+                {
+                  chave: "cpf",
+                  titulo: "CPF",
+                  className: "bc-listagem-tdMuted",
+                  render: (cuidador) => formatarCPF(String(cuidador.cpf || "")),
+                },
+                {
+                  chave: "email",
+                  titulo: "E-mail",
+                  className: "bc-listagem-tdMuted",
+                  render: (cuidador) => cuidador.email || "-",
+                },
+                {
+                  chave: "contato",
+                  titulo: "Contato",
+                  className: "bc-listagem-tdMuted bc-listagem-tdContato",
+                  render: (cuidador) => cuidador.contato
+                    ? `(${cuidador.contato.ddd}) ${formatarTelefone(String(cuidador.contato.telefone || ""))}`
+                    : "-",
+                },
+              ]}
+              busca={buscaCuidador}
+              placeholderBusca="Buscar por nome, CPF ou e-mail..."
+              onBuscaChange={setBuscaCuidador}
+              textoBotao="Cadastrar Cuidador"
+              onBotaoClick={abrirCadastroCuidador}
+              textoVazio={buscaCuidador ? "Nenhum cuidador encontrado." : "Nenhum cuidador cadastrado ainda."}
+              carregando={carregandoCuidadores}
+              textoCarregando="Carregando cuidadores..."
+              erro={modalCuidadorAberto ? "" : erroCuidador}
+              onEditar={abrirEdicaoCuidador}
+              onExcluir={handleExcluirCuidador}
+              tituloConfirmacao="Desativar cuidador?"
+              mensagemConfirmacao="O cuidador sera removido da listagem, mas podera ser reativado ao cadastrar o mesmo CPF."
+              textoConfirmar="Sim, desativar"
+              textoCarregandoExcluir="Desativando..."
+              excluindo={excluindoCuidador}
+              itensPorPagina={10}
+            />
+          </div>
 
           <div className="instituicao-home__listagem">
             <BcListagem
@@ -338,7 +451,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
                 {
                   chave: "contato",
                   titulo: "Contato",
-                  className: "bc-listagem-tdMuted",
+                  className: "bc-listagem-tdMuted bc-listagem-tdContato",
                   render: (idoso) => idoso.contato
                     ? `(${idoso.contato.ddd}) ${formatarTelefone(String(idoso.contato.telefone || ""))}`
                     : "-",
@@ -374,7 +487,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
         <section className="instituicao-modal">
           <div className="instituicao-modal__header">
-            <h2>Novo Cuidador</h2>
+            <h2>{cuidadorEmEdicao ? "Editar Cuidador" : "Novo Cuidador"}</h2>
           </div>
 
           <form className="instituicao-modal__form" onSubmit={handleCadastrarCuidador}>
@@ -404,9 +517,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onChange={atualizarCuidador}
             />
             <BcInput
-              label="Senha *"
+              label={cuidadorEmEdicao ? "Senha" : "Senha *"}
               name="senha"
               type="password"
+              placeholder={cuidadorEmEdicao ? "Preencha apenas se quiser alterar" : ""}
               value={formCuidador.senha}
               onChange={atualizarCuidador}
             />
@@ -430,7 +544,9 @@ export default function InstituicaoProfileHome({ onLogout }) {
               />
             </div>
 
-            <BcButton type="submit" loading={salvandoCuidador}>Cadastrar</BcButton>
+            <BcButton type="submit" loading={salvandoCuidador}>
+              {cuidadorEmEdicao ? "Salvar alteracoes" : "Cadastrar"}
+            </BcButton>
           </form>
         </section>
       </BcModal>

@@ -56,17 +56,23 @@ function conteudoPaginado(data) {
 }
 
 function normalizarCuidador(dados) {
-  return {
+  const cuidador = {
     nome: dados.nome?.trim(),
     cpf: somenteNumeros(dados.cpf),
     email: dados.email?.trim(),
-    senha: dados.senha,
     instituicaoId: dados.instituicaoId || getInstituicaoId(),
     contato: dados.contato || {
+      id: dados.contatoId || dados.contato?.id,
       ddd: somenteNumeros(dados.ddd),
       telefone: somenteNumeros(dados.telefone),
     },
   };
+
+  if (dados.senha?.trim()) {
+    cuidador.senha = dados.senha;
+  }
+
+  return cuidador;
 }
 
 function normalizarIdoso(dados) {
@@ -99,7 +105,11 @@ export async function listarCuidadores(page = 0, size = 100) {
     fallback: "Erro ao buscar cuidadores.",
   });
 
-  return conteudoPaginado(data);
+  const instituicaoId = getInstituicaoId();
+
+  return conteudoPaginado(data).filter((cuidador) =>
+    Number(cuidador.instituicaoId) === instituicaoId
+  );
 }
 
 export async function cadastrarCuidador(dados) {

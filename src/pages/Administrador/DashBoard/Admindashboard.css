@@ -196,8 +196,8 @@
   background: #e6f7f5;
 }
 
-.adm-btn-deletar { color: #aaa; }
-.adm-btn-deletar:hover {
+.adm-btn-inativar { color: #aaa; }
+.adm-btn-inativar:hover {
   border-color: #e05252;
   color: #e05252;
   background: #fef2f2;
@@ -236,6 +236,11 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
+}
+
+.adm-confirm__icone--inativar {
+  background: #fef2f2;
+  color: #e05252;
 }
 
 .adm-confirm h3 {
