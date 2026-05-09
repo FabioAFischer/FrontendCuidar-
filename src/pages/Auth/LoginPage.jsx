@@ -3,9 +3,14 @@ import BcInput from "../../components/Bcinput/BcInput";
 import BcLogo from "../../components/Bclogo/BcLogo";
 import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
+import BcPasswordStrength from "../../components/BcPasswordStrength/BcPasswordStrength";
 import BcToast from "../../components/BcToast/BcToast";
-import { login as loginUsuario, verificar2fa } from "../../api/authApi";
-import { formatarCpfCnpj } from "../../utils/validacaoDocumento";
+import { login as loginUsuario } from "../../api/authApi";
+import {
+  enviarIdentificador,
+  verificarCodigo,
+  definirNovaSenha,
+} from "../../api/recuperarSenhaApi";
 import "./LoginPage.css";
 
 /* ── Ícones ── */
@@ -16,7 +21,21 @@ const IconeEmail = () => (
     <path d="m2 7 8.586 5.657a2 2 0 0 0 2.828 0L22 7" />
   </svg>
 );
-
+const IconeCodigo = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <rect x="5" y="2" width="14" height="20" rx="2" />
+    <path d="M12 18h.01M8 6h8M8 10h8M8 14h4" />
+  </svg>
+);
+const IconeCadeado = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    <circle cx="12" cy="16" r="1" fill="currentColor" />
+  </svg>
+);
 const IconeSucesso = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -24,6 +43,31 @@ const IconeSucesso = () => (
     <path d="m8 12 3 3 5-5" />
   </svg>
 );
+const IconeOlhoAberto = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+const IconeOlhoFechado = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
+
+/* ── Validação de senha ── */
+function validarSenha(senha) {
+  if (senha.length < 8)             return "Mínimo de 8 caracteres.";
+  if (!/[A-Z]/.test(senha))        return "Deve conter ao menos uma letra maiúscula.";
+  if (!/[a-z]/.test(senha))        return "Deve conter ao menos uma letra minúscula.";
+  if (!/[0-9]/.test(senha))        return "Deve conter ao menos um número.";
+  if (!/[^A-Za-z0-9]/.test(senha)) return "Deve conter ao menos um caractere especial.";
+  return null;
+}
 
 /* ── Dados de perfil ── */
 const profileDescriptions = {
@@ -38,90 +82,262 @@ const profileNames = {
   administrador: "Administrador",
 };
 
-/* ── Modal de Recuperação de Senha ── */
+/* ══════════════════════════════════════════
+   Modal Recuperar Senha — 3 passos
+   ══════════════════════════════════════════ */
+
+const PASSOS = ["identificador", "codigo", "nova-senha"];
+
 function ModalRecuperarSenha({ aberto, onFechar }) {
-  const [cpfCnpj, setCpfCnpj] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro]       = useState("");
-  const [sucesso, setSucesso] = useState(false);
+  const [passo, setPasso]                   = useState("identificador");
+  const [loading, setLoading]               = useState(false);
+  const [erro, setErro]                     = useState("");
+  // passo 1
+  const [identificador, setIdentificador]   = useState("");
+  const [emailMascarado, setEmailMascarado] = useState("");
+  // passo 2
+  const [emailCompleto, setEmailCompleto]   = useState("");
+  const [codigo, setCodigo]                 = useState("");
+  const [emailVerificado, setEmailVerificado] = useState("");
+  // passo 3
+  const [novaSenha, setNovaSenha]           = useState("");
+  const [confirmar, setConfirmar]           = useState("");
+  const [showNova, setShowNova]             = useState(false);
+  const [showConfirmar, setShowConfirmar]   = useState(false);
+
+  function resetar() {
+    setPasso("identificador");
+    setLoading(false);
+    setErro("");
+    setIdentificador("");
+    setEmailMascarado("");
+    setEmailCompleto("");
+    setCodigo("");
+    setEmailVerificado("");
+    setNovaSenha("");
+    setConfirmar("");
+    setShowNova(false);
+    setShowConfirmar(false);
+  }
 
   function handleFechar() {
-    setCpfCnpj("");
-    setErro("");
-    setSucesso(false);
-    setLoading(false);
+    resetar();
     onFechar();
   }
 
-  async function handleSubmit(e) {
+  /* Passo 1 — enviar identificador */
+  async function handleEnviarIdentificador(e) {
     e.preventDefault();
     setErro("");
-
-    if (!cpfCnpj.trim()) {
+    if (!identificador.trim()) {
       setErro("Informe seu CPF ou CNPJ cadastrado.");
       return;
     }
-
     setLoading(true);
     try {
-      // TODO: conectar ao endpoint real de recuperação de senha
-      await new Promise(r => setTimeout(r, 1200));
-      setSucesso(true);
-    } catch {
-      setErro("Não foi possível enviar a solicitação. Tente novamente.");
+      const data = await enviarIdentificador(identificador);
+      setEmailMascarado(data.email);
+      setPasso("codigo");
+    } catch (err) {
+      setErro(err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  return (
-    <BcModal aberto={aberto} onFechar={handleFechar}>
-      {sucesso ? (
+  /* Passo 2 — verificar código */
+  async function handleVerificarCodigo(e) {
+    e.preventDefault();
+    setErro("");
+    if (!emailCompleto.trim()) {
+      setErro("Informe seu email completo.");
+      return;
+    }
+    if (codigo.trim().length !== 6) {
+      setErro("O código deve ter 6 dígitos.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await verificarCodigo(emailCompleto, codigo);
+      setEmailVerificado(data.email);
+      setPasso("nova-senha");
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* Passo 3 — definir nova senha */
+  async function handleDefinirSenha(e) {
+    e.preventDefault();
+    setErro("");
+    const erroSenha = validarSenha(novaSenha);
+    if (erroSenha) { setErro(erroSenha); return; }
+    if (novaSenha !== confirmar) { setErro("As senhas não coincidem."); return; }
+    setLoading(true);
+    try {
+      await definirNovaSenha(emailVerificado, novaSenha);
+      setPasso("sucesso");
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (passo === "sucesso") {
+    return (
+      <BcModal aberto={aberto} onFechar={handleFechar}>
         <div className="mrs-sucesso">
           <div className="mrs-sucesso__icone"><IconeSucesso /></div>
-          <h2>Solicitação enviada!</h2>
-          <p>
-            Se o CPF ou CNPJ informado estiver cadastrado, você receberá as
-            instruções para redefinir sua senha em breve.
-          </p>
-          <BcButton onClick={handleFechar}>Fechar</BcButton>
+          <h2>Senha alterada!</h2>
+          <p>Sua senha foi redefinida com sucesso. Você já pode fazer login com a nova senha.</p>
+          <BcButton onClick={handleFechar}>Ir para o login</BcButton>
         </div>
-      ) : (
-        <div className="mrs-wrap">
-          <div className="mrs-header">
-            <div className="mrs-header__icone"><IconeEmail /></div>
-            <h2>Recuperar senha</h2>
-            <p>
-              Informe o CPF ou CNPJ cadastrado. Enviaremos as instruções
-              para redefinir sua senha.
-            </p>
-          </div>
-          <form className="mrs-form" onSubmit={handleSubmit} noValidate>
-            <BcInput
-              label="CPF ou CNPJ"
-              name="cpfCnpjRecuperar"
-              type="text"
-              placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              value={cpfCnpj}
-              onChange={e => setCpfCnpj(formatarCpfCnpj(e.target.value))}
-              autoComplete="off"
-              maxLength={18}
-              error={erro}
-            />
-            <BcButton type="submit" loading={loading}>
-              Enviar instruções
-            </BcButton>
-            <BcButton variant="ghost" onClick={handleFechar}>
-              Cancelar
-            </BcButton>
-          </form>
+      </BcModal>
+    );
+  }
+
+  const passoAtual = PASSOS.indexOf(passo);
+
+  return (
+    <BcModal aberto={aberto} onFechar={handleFechar}>
+      <div className="mrs-wrap">
+
+        {/* Indicador de passos */}
+        <div className="mrs-passos">
+          {PASSOS.map((_, i) => (
+            <div key={i} className={`mrs-passo-dot ${i <= passoAtual ? "mrs-passo-dot--ativo" : ""}`} />
+          ))}
         </div>
-      )}
+
+        {/* ── Passo 1: Identificador ── */}
+        {passo === "identificador" && (
+          <>
+            <div className="mrs-header">
+              <div className="mrs-header__icone"><IconeEmail /></div>
+              <h2>Recuperar senha</h2>
+              <p>Informe o CPF ou CNPJ cadastrado para receber o código de recuperação.</p>
+            </div>
+            <form className="mrs-form" onSubmit={handleEnviarIdentificador} noValidate>
+              <BcInput
+                label="CPF ou CNPJ"
+                name="mrs-identificador"
+                type="text"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                value={identificador}
+                onChange={e => { setIdentificador(e.target.value); setErro(""); }}
+                autoComplete="off"
+                error={erro}
+              />
+              <BcButton type="submit" loading={loading}>Enviar código</BcButton>
+              <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
+            </form>
+          </>
+        )}
+
+        {/* ── Passo 2: Email completo + Código ── */}
+        {passo === "codigo" && (
+          <>
+            <div className="mrs-header">
+              <div className="mrs-header__icone"><IconeCodigo /></div>
+              <h2>Digite o código</h2>
+              <p>
+                Enviamos um código para{" "}
+                <strong className="mrs-email-destaque">{emailMascarado}</strong>.
+                Confirme seu email e insira o código recebido.
+              </p>
+            </div>
+            <form className="mrs-form" onSubmit={handleVerificarCodigo} noValidate>
+              <BcInput
+                label="Seu email completo"
+                name="mrs-email-completo"
+                type="email"
+                placeholder="seuemail@exemplo.com"
+                value={emailCompleto}
+                onChange={e => { setEmailCompleto(e.target.value); setErro(""); }}
+                autoComplete="email"
+              />
+              <BcInput
+                label="Código de verificação"
+                name="mrs-codigo"
+                type="text"
+                placeholder="000000"
+                value={codigo}
+                onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
+                autoComplete="one-time-code"
+                maxLength={6}
+                error={erro}
+              />
+              <BcButton type="submit" loading={loading}>Verificar código</BcButton>
+              <BcButton variant="ghost" onClick={() => { setPasso("identificador"); setErro(""); setCodigo(""); setEmailCompleto(""); }}>
+                Voltar
+              </BcButton>
+            </form>
+          </>
+        )}
+
+        {/* ── Passo 3: Nova senha ── */}
+        {passo === "nova-senha" && (
+          <>
+            <div className="mrs-header">
+              <div className="mrs-header__icone"><IconeCadeado /></div>
+              <h2>Nova senha</h2>
+              <p>Crie uma senha forte com pelo menos 8 caracteres, maiúscula, minúscula, número e símbolo.</p>
+            </div>
+            <form className="mrs-form" onSubmit={handleDefinirSenha} noValidate>
+              <BcInput
+                label="Nova senha"
+                name="mrs-nova-senha"
+                type={showNova ? "text" : "password"}
+                placeholder="Crie uma senha forte"
+                value={novaSenha}
+                onChange={e => { setNovaSenha(e.target.value); setErro(""); }}
+                autoComplete="new-password"
+                suffix={
+                  <button type="button" className="mrs-olho" onClick={() => setShowNova(v => !v)}>
+                    {showNova ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+                  </button>
+                }
+                hint={<BcPasswordStrength password={novaSenha} />}
+              />
+              <BcInput
+                label="Confirmar nova senha"
+                name="mrs-confirmar"
+                type={showConfirmar ? "text" : "password"}
+                placeholder="Repita a senha"
+                value={confirmar}
+                onChange={e => { setConfirmar(e.target.value); setErro(""); }}
+                autoComplete="new-password"
+                suffix={
+                  <button type="button" className="mrs-olho" onClick={() => setShowConfirmar(v => !v)}>
+                    {showConfirmar ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+                  </button>
+                }
+                hint={
+                  confirmar.length > 0 ? (
+                    <span style={{ fontSize: 12, fontWeight: 500, color: novaSenha === confirmar ? "#0d9e8a" : "#e05252" }}>
+                      {novaSenha === confirmar ? "✓ Senhas coincidem" : "✗ Senhas não coincidem"}
+                    </span>
+                  ) : null
+                }
+              />
+              {erro && <div className="mrs-erro" role="alert">{erro}</div>}
+              <BcButton type="submit" loading={loading}>Salvar nova senha</BcButton>
+            </form>
+          </>
+        )}
+
+      </div>
     </BcModal>
   );
 }
 
-/* ── Login Page ── */
+/* ══════════════════════════════════
+   Login Page
+   ══════════════════════════════════ */
 export default function LoginPage({ onLogin }) {
   const [cpfCnpj, setCpfCnpj]               = useState("");
   const [password, setPassword]             = useState("");
@@ -130,15 +346,6 @@ export default function LoginPage({ onLogin }) {
   const [error, setError]                   = useState("");
   const [loadingProfile, setLoadingProfile] = useState("");
   const [modalRecuperar, setModalRecuperar] = useState(false);
-  const [doisFatores, setDoisFatores] = useState({
-    aberto: false,
-    perfil: "",
-    emailMascarado: "",
-    email: "",
-    codigo: "",
-    loading: false,
-    erro: "",
-  });
   const [toast, setToast] = useState({
     aberto: false, tipo: "info", titulo: "", mensagem: "",
   });
@@ -161,11 +368,9 @@ export default function LoginPage({ onLogin }) {
   async function handleProfileLogin(profile) {
     if (loadingProfile) return;
     if (!validateForm()) return;
-
     setError("");
     fecharToast();
     setLoadingProfile(profile);
-
     try {
       const data = await loginUsuario({
         identificador: cpfCnpj,
@@ -173,84 +378,12 @@ export default function LoginPage({ onLogin }) {
         perfil: profile,
         rememberMe,
       });
-
-      if (data.requer2fa) {
-        setDoisFatores({
-          aberto: true,
-          perfil: profile,
-          emailMascarado: data.email || "",
-          email: "",
-          codigo: "",
-          loading: false,
-          erro: "",
-        });
-        mostrarToast("info", "Verificacao enviada", "Informe o codigo enviado para o e-mail cadastrado.");
-        return;
-      }
-
-      mostrarToast(
-        "sucesso",
-        "Login realizado",
-        `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`
-      );
-
+      mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
       if (onLogin) onLogin(profile, data);
     } catch (err) {
       mostrarToast("erro", "Falha no login", err.message || "Nao foi possivel fazer login.");
     } finally {
       setLoadingProfile("");
-    }
-  }
-
-  function fecharDoisFatores() {
-    setDoisFatores({
-      aberto: false,
-      perfil: "",
-      emailMascarado: "",
-      email: "",
-      codigo: "",
-      loading: false,
-      erro: "",
-    });
-  }
-
-  async function handleVerificar2fa(evento) {
-    evento.preventDefault();
-
-    if (!doisFatores.email.trim()) {
-      setDoisFatores((atual) => ({ ...atual, erro: "Informe o e-mail cadastrado." }));
-      return;
-    }
-
-    if (!doisFatores.codigo.trim()) {
-      setDoisFatores((atual) => ({ ...atual, erro: "Informe o codigo recebido." }));
-      return;
-    }
-
-    setDoisFatores((atual) => ({ ...atual, loading: true, erro: "" }));
-
-    try {
-      const data = await verificar2fa({
-        email: doisFatores.email,
-        codigo: doisFatores.codigo,
-        rememberMe,
-      });
-      const perfil = doisFatores.perfil;
-
-      fecharDoisFatores();
-      mostrarToast(
-        "sucesso",
-        "Login realizado",
-        `Login de ${profileNames[perfil].toLowerCase()} realizado com sucesso.`
-      );
-
-      if (onLogin) onLogin(perfil, data);
-    } catch (err) {
-      setDoisFatores((atual) => ({
-        ...atual,
-        loading: false,
-        erro: err.message || "Nao foi possivel verificar o codigo.",
-      }));
     }
   }
 
@@ -269,54 +402,6 @@ export default function LoginPage({ onLogin }) {
         onFechar={() => setModalRecuperar(false)}
       />
 
-      <BcModal aberto={doisFatores.aberto} onFechar={fecharDoisFatores}>
-        <div className="mrs-wrap">
-          <div className="mrs-header">
-            <div className="mrs-header__icone"><IconeEmail /></div>
-            <h2>Verificacao em duas etapas</h2>
-            <p>
-              Digite o e-mail cadastrado e o codigo enviado
-              {doisFatores.emailMascarado ? ` para ${doisFatores.emailMascarado}` : ""}.
-            </p>
-          </div>
-          <form className="mrs-form" onSubmit={handleVerificar2fa} noValidate>
-            {doisFatores.erro ? (
-              <div className="login-form__message login-form__message--error" role="alert">
-                {doisFatores.erro}
-              </div>
-            ) : null}
-            <BcInput
-              label="E-mail"
-              name="email2fa"
-              type="email"
-              placeholder="email@exemplo.com"
-              value={doisFatores.email}
-              onChange={e => setDoisFatores((atual) => ({ ...atual, email: e.target.value }))}
-              autoComplete="email"
-            />
-            <BcInput
-              label="Codigo"
-              name="codigo2fa"
-              type="text"
-              placeholder="000000"
-              value={doisFatores.codigo}
-              onChange={e => setDoisFatores((atual) => ({
-                ...atual,
-                codigo: e.target.value.replace(/\D/g, "").slice(0, 6),
-              }))}
-              autoComplete="one-time-code"
-              maxLength={6}
-            />
-            <BcButton type="submit" loading={doisFatores.loading}>
-              Verificar codigo
-            </BcButton>
-            <BcButton variant="ghost" onClick={fecharDoisFatores}>
-              Cancelar
-            </BcButton>
-          </form>
-        </div>
-      </BcModal>
-
       <section className="login-page__hero">
         <div className="login-page__hero-content">
           <div className="login-page__eyebrow">Plataforma de cuidado e gestao</div>
@@ -326,7 +411,6 @@ export default function LoginPage({ onLogin }) {
             Entre com sua conta para acessar rotinas assistenciais, gestao
             institucional e paineis administrativos em um so ambiente.
           </p>
-
           <div className="login-page__highlights" aria-label="Diferenciais da plataforma">
             <article className="login-highlight">
               <span className="login-highlight__icon" aria-hidden="true">+</span>
@@ -368,12 +452,11 @@ export default function LoginPage({ onLogin }) {
               type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
               value={cpfCnpj}
-              onChange={e => setCpfCnpj(formatarCpfCnpj(e.target.value))}
+              onChange={e => setCpfCnpj(e.target.value)}
               autoComplete="off"
-              maxLength={18}
+              maxLength={14}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
-
             <BcInput
               label="Senha"
               name="password"
@@ -395,7 +478,6 @@ export default function LoginPage({ onLogin }) {
                 </button>
               }
             />
-
             <div className="login-form__row">
               <label className="login-form__checkbox">
                 <input
@@ -405,7 +487,6 @@ export default function LoginPage({ onLogin }) {
                 />
                 <span>Lembrar de mim</span>
               </label>
-
               <button
                 type="button"
                 className="login-form__link"
@@ -431,9 +512,7 @@ export default function LoginPage({ onLogin }) {
                     {loadingProfile === profile ? "Entrando como" : "Entrar como"}{" "}
                     {profileNames[profile]}
                   </span>
-                  <span className="login-profile-button__description">
-                    {description}
-                  </span>
+                  <span className="login-profile-button__description">{description}</span>
                 </button>
               ))}
             </div>
