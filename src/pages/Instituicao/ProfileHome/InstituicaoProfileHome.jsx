@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
+import BcFormModal, { BcFormModalRow, BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
@@ -631,13 +632,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
       </BcModal>
 
       <BcModal aberto={modalIdosoAberto} onFechar={fecharModalIdoso}>
-        <section className="instituicao-modal">
-          <div className="instituicao-modal__header">
-            <h2>{idosoEmEdicao ? "Editar Idoso" : "Novo Idoso"}</h2>
-          </div>
-
-          <form className="instituicao-modal__form" onSubmit={handleCadastrarIdoso}>
-            {erroIdoso ? <div className="instituicao-modal__error" role="alert">{erroIdoso}</div> : null}
+        <BcFormModal
+          title={idosoEmEdicao ? "Editar Idoso" : "Novo Idoso"}
+          subtitle={idosoEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
+          error={erroIdoso}
+          onSubmit={handleCadastrarIdoso}
+        >
 
             <BcInput
               label="Nome *"
@@ -655,19 +655,16 @@ export default function InstituicaoProfileHome({ onLogout }) {
               maxLength={14}
             />
 
-            <div className="instituicao-modal__textareaGroup">
-              <label htmlFor="observacoes" className="instituicao-modal__label">Observações</label>
-              <textarea
-                id="observacoes"
-                name="observacoes"
-                className="instituicao-modal__textarea"
-                placeholder="Observações importantes sobre o idoso..."
-                value={formIdoso.observacoes}
-                onChange={atualizarIdoso}
-              />
-            </div>
+            <BcFormModalTextarea
+              id="observacoes"
+              label="Observações"
+              name="observacoes"
+              placeholder="Observações importantes sobre o idoso..."
+              value={formIdoso.observacoes}
+              onChange={atualizarIdoso}
+            />
 
-            <div className="instituicao-modal__row">
+            <BcFormModalRow>
               <BcInput
                 label="DDD *"
                 name="ddd"
@@ -684,13 +681,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
                 onChange={atualizarIdoso}
                 maxLength={10}
               />
-            </div>
+            </BcFormModalRow>
 
             <BcButton type="submit" loading={salvandoIdoso}>
               {idosoEmEdicao ? "Salvar alteracoes" : "Cadastrar"}
             </BcButton>
-          </form>
-        </section>
+        </BcFormModal>
       </BcModal>
     </div>
   );
