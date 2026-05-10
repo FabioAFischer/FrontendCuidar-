@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { getAuthToken, logout } from "./api/authApi";
 import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
+import CuidadorDashboard from "./pages/Cuidador/Dashboard/CuidadorDashboard";
 import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
-import RolePlaceholder from "./pages/Shared/RolePlaceholder";
 import "./styles/global.css";
 import "./App.css";
 
@@ -126,14 +126,7 @@ export default function App() {
         return <AdminDashboard onLogout={handleLogout} />;
 
       case "area-cuidador":
-        return (
-          <RolePlaceholder
-            titulo="Area do Cuidador"
-            descricao="A autenticacao do cuidador ja esta conectada ao fluxo de login e pronta para receber a proxima tela."
-            botao="Voltar para o login"
-            onLogout={handleLogout}
-          />
-        );
+        return <CuidadorDashboard onLogout={handleLogout} />;
 
       case "area-instituicao":
         return <InstituicaoProfileHome onLogout={handleLogout} />;
