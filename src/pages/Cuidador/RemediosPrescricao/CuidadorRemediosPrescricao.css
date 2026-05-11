@@ -62,6 +62,11 @@
   top: 96px;
 }
 
+.cuidador-remedios-listagem {
+  position: sticky;
+  top: 96px;
+}
+
 .cuidador-remedios-card__header {
   margin-bottom: 16px;
   display: flex;
@@ -414,6 +419,10 @@
   }
 
   .cuidador-remedios-card--fixo {
+    position: static;
+  }
+
+  .cuidador-remedios-listagem {
     position: static;
   }
 }

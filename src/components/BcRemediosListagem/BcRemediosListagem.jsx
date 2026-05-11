@@ -76,7 +76,7 @@ export default function BcRemediosListagem({
         textoConfirmar="Sim, inativar"
         textoCarregandoExcluir="Inativando..."
         excluindo={inativando}
-        itensPorPagina={5}
+        itensPorPagina={100}
       />
     </div>
   );

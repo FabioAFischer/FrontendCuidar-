@@ -27,6 +27,12 @@
   box-shadow: none;
 }
 
+.bc-remedios-listagem .bc-listagem-tabelaWrap {
+  max-height: calc(100vh - 304px);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 .bc-remedios-listagem .bc-listagem-header {
   border-top: 1px solid #f0f0f0;
 }
@@ -87,6 +93,10 @@
 
   .bc-remedios-listagem .bc-listagem-card {
     grid-row: 3;
+  }
+
+  .bc-remedios-listagem .bc-listagem-tabelaWrap {
+    max-height: 420px;
   }
 
   .bc-remedios-listagem__add {
