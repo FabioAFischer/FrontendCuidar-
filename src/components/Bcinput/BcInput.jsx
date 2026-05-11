@@ -10,6 +10,7 @@
  *   onChange    : fn
  *   maxLength   : number
  *   autoComplete: string
+ *   inputMode   : string   — modo do teclado virtual
  *   suffix      : ReactNode — elemento no canto direito (ex: botão de olho)
  *   hint        : ReactNode — mensagem abaixo do input (ex: força da senha)
  *   error       : string   — mensagem de erro inline
@@ -25,6 +26,7 @@ export default function BcInput({
   onChange,
   maxLength,
   autoComplete,
+  inputMode,
   suffix,
   hint,
   error,
@@ -42,6 +44,7 @@ export default function BcInput({
           onChange={onChange}
           maxLength={maxLength}
           autoComplete={autoComplete}
+          inputMode={inputMode}
           className="bc-input"
         />
         {suffix && <div className="bc-input-suffix">{suffix}</div>}
