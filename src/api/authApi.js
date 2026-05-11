@@ -7,6 +7,20 @@ const PERFIL_BACKEND = {
   cuidador: "CUIDADOR",
 };
 
+const CUIDADOR_MOCK = {
+  id: 9001,
+  nome: "Phillip MLK",
+  email: "phillip.mlk@gmail.com",
+  emailMascarado: "p********k@gmail.com",
+  cpf: "52998224725",
+  identificadoresAceitos: ["52998224725", "52998224725529"],
+  senha: "Phillip@123",
+  codigo2fa: "123456",
+  perfil: "CUIDADOR",
+  token: "mock-cuidador-token",
+  tipo: "Bearer",
+};
+
 function getStorage(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
@@ -18,11 +32,27 @@ function salvarSessao(data, rememberMe) {
   storage.setItem("perfil", data.perfil);
   storage.setItem("usuarioId", String(data.id));
   storage.setItem("usuarioNome", data.nome);
+
+  if (data.email) {
+    storage.setItem("usuarioEmail", data.email);
+  }
 }
 
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
+
+  if (
+    perfilBackend === CUIDADOR_MOCK.perfil &&
+    CUIDADOR_MOCK.identificadoresAceitos.includes(identificadorNormalizado) &&
+    senha === CUIDADOR_MOCK.senha
+  ) {
+    return {
+      requer2fa: true,
+      email: CUIDADOR_MOCK.emailMascarado,
+      perfil: CUIDADOR_MOCK.perfil,
+    };
+  }
 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
@@ -53,6 +83,23 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
 }
 
 export async function verificar2fa({ email, codigo, rememberMe = true }) {
+  const emailNormalizado = String(email || "").trim().toLowerCase();
+  const codigoNormalizado = String(codigo || "").trim();
+
+  if (emailNormalizado === CUIDADOR_MOCK.email && codigoNormalizado === CUIDADOR_MOCK.codigo2fa) {
+    const cuidadorMockado = {
+      id: CUIDADOR_MOCK.id,
+      nome: CUIDADOR_MOCK.nome,
+      email: CUIDADOR_MOCK.email,
+      perfil: CUIDADOR_MOCK.perfil,
+      token: CUIDADOR_MOCK.token,
+      tipo: CUIDADOR_MOCK.tipo,
+    };
+
+    salvarSessao(cuidadorMockado, rememberMe);
+    return cuidadorMockado;
+  }
+
   const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -93,10 +140,12 @@ export function logout() {
   localStorage.removeItem("perfil");
   localStorage.removeItem("usuarioId");
   localStorage.removeItem("usuarioNome");
+  localStorage.removeItem("usuarioEmail");
 
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("tokenTipo");
   sessionStorage.removeItem("perfil");
   sessionStorage.removeItem("usuarioId");
   sessionStorage.removeItem("usuarioNome");
+  sessionStorage.removeItem("usuarioEmail");
 }
