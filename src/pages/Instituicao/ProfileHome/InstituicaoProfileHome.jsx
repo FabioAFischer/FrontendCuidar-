@@ -638,21 +638,21 @@ export default function InstituicaoProfileHome({ onLogout }) {
           error={erroIdoso}
           onSubmit={handleCadastrarIdoso}
         >
-
-            <BcInput
-              label="Nome *"
-              name="nome"
-              placeholder="Insira um nome"
-              value={formIdoso.nome}
-              onChange={atualizarIdoso}
-            />
             <BcInput
               label="CPF *"
               name="cpf"
               placeholder="000.000.000-00"
               value={formIdoso.cpf}
               onChange={atualizarIdoso}
+              inputMode="numeric"
               maxLength={14}
+            />
+            <BcInput
+              label="Nome *"
+              name="nome"
+              placeholder="Insira um nome"
+              value={formIdoso.nome}
+              onChange={atualizarIdoso}
             />
 
             <BcFormModalTextarea
