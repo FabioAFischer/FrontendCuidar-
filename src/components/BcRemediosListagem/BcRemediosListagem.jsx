@@ -25,6 +25,8 @@ export default function BcRemediosListagem({
   erro,
   inativando,
   onCadastrar,
+  onVisualizar,
+  onEditar,
   onInativar,
 }) {
   const [busca, setBusca] = useState("");
@@ -58,12 +60,6 @@ export default function BcRemediosListagem({
         itens={remediosFiltrados}
         colunas={[
           { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
-          {
-            chave: "observacao",
-            titulo: "Observacao",
-            className: "bc-listagem-tdMuted",
-            render: (remedio) => remedio.observacao || "-",
-          },
         ]}
         busca={busca}
         placeholderBusca="Buscar remedio..."
@@ -72,6 +68,8 @@ export default function BcRemediosListagem({
         carregando={carregando}
         textoCarregando="Carregando remedios..."
         erro={erro}
+        onVisualizar={onVisualizar}
+        onEditar={onEditar}
         onExcluir={onInativar}
         tituloConfirmacao="Inativar remedio?"
         mensagemConfirmacao="O remedio sera inativado e removido da listagem."

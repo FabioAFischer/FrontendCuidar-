@@ -176,7 +176,14 @@
 }
 
 .bc-listagem-thAcoes {
-  text-align: right;
+  width: 1%;
+  text-align: center;
+}
+
+.bc-listagem-acoesCabecalho {
+  width: 112px;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .bc-listagem-tabela tbody tr {
@@ -191,6 +198,12 @@
 .bc-listagem-tabela td {
   padding: 13px 20px;
   vertical-align: middle;
+}
+
+.bc-listagem-tdAcoes {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .bc-listagem-tdNome {
@@ -209,8 +222,9 @@
 .bc-listagem-acoes {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
+  width: 112px;
 }
 
 .bc-listagem-btnIcone {
@@ -228,6 +242,16 @@
 
 .bc-listagem-btnEditar {
   color: #555;
+}
+
+.bc-listagem-btnVisualizar {
+  color: #555;
+}
+
+.bc-listagem-btnVisualizar:hover {
+  border-color: #0d9e8a;
+  color: #0d9e8a;
+  background: #e6f7f5;
 }
 
 .bc-listagem-btnEditar:hover {
