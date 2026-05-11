@@ -9,6 +9,7 @@ import BcToast from "../../../components/BcToast/BcToast";
 import {
   atualizarCuidador as atualizarCuidadorApi,
   atualizarIdoso as atualizarIdosoApi,
+  buscarIdosoPorCpf,
   cadastrarCuidador,
   cadastrarIdoso,
   deletarCuidador,
@@ -44,6 +45,11 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
   const [erroCuidador, setErroCuidador] = useState("");
   const [erroIdoso, setErroIdoso] = useState("");
+  const [consultaCpfIdoso, setConsultaCpfIdoso] = useState({
+    carregando: false,
+    consultado: false,
+    idoso: null,
+  });
   const [toast, setToast] = useState({
     aberto: false,
     tipo: "info",
@@ -121,6 +127,43 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setCuidadoresInativos(Array.isArray(salvos) ? salvos : []);
   }, []);
 
+  useEffect(() => {
+    const cpfLimpo = somenteNumeros(formIdoso.cpf);
+
+    if (!modalIdosoAberto || idosoEmEdicao || cpfLimpo.length !== 11) {
+      setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
+      return;
+    }
+
+    let cancelado = false;
+
+    async function verificarCpfIdoso() {
+      try {
+        setConsultaCpfIdoso({ carregando: true, consultado: false, idoso: null });
+        const idosoEncontrado = await buscarIdosoPorCpf(cpfLimpo);
+
+        if (!cancelado) {
+          setConsultaCpfIdoso({
+            carregando: false,
+            consultado: true,
+            idoso: idosoEncontrado,
+          });
+        }
+      } catch (erro) {
+        if (!cancelado) {
+          setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
+          setErroIdoso(erro.message);
+        }
+      }
+    }
+
+    verificarCpfIdoso();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [formIdoso.cpf, idosoEmEdicao, modalIdosoAberto]);
+
   const cuidadoresFiltrados = cuidadores.filter((cuidador) =>
     String(cuidador.nome || "").toLowerCase().includes(buscaCuidador.toLowerCase()) ||
     String(cuidador.cpf || "").includes(buscaCuidador.replace(/\D/g, "")) ||
@@ -192,6 +235,14 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setFormIdoso((anterior) => ({ ...anterior, [name]: novoValor }));
   }
 
+  function getHintCpfIdoso() {
+    if (consultaCpfIdoso.carregando) return "Verificando CPF...";
+    if (!consultaCpfIdoso.consultado) return null;
+    return consultaCpfIdoso.idoso
+      ? "CPF encontrado no sistema."
+      : "CPF ainda nao cadastrado.";
+  }
+
   function limparFormCuidador() {
     setFormCuidador({
       cpf: "",
@@ -214,6 +265,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       telefone: "",
       contatoId: null,
     });
+    setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
   }
 
   function abrirEdicaoCuidador(cuidador) {
@@ -646,6 +698,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onChange={atualizarIdoso}
               inputMode="numeric"
               maxLength={14}
+              hint={getHintCpfIdoso()}
             />
             <BcInput
               label="Nome *"

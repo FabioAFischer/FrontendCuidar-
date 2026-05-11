@@ -153,6 +153,29 @@ export async function listarIdosos(page = 0, size = 100) {
   return conteudoPaginado(data);
 }
 
+export async function buscarIdosoPorCpf(cpf) {
+  const cpfLimpo = somenteNumeros(cpf);
+
+  if (cpfLimpo.length !== 11) {
+    return null;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/idoso/trazerdados/${cpfLimpo}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Erro ao buscar idoso pelo CPF."));
+  }
+
+  return response.json().catch(() => null);
+}
+
 export async function cadastrarContato(dados) {
   return requestApi("/contato/cadastrar", {
     method: "POST",
