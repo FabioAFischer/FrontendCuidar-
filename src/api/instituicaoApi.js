@@ -9,6 +9,36 @@ function getInstituicaoId() {
   return Number(localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId"));
 }
 
+function getUsuarioId() {
+  return Number(localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId"));
+}
+
+function getAuthTokenAtual() {
+  return localStorage.getItem("token") || sessionStorage.getItem("token");
+}
+
+const IDOSO_MOCK_VINCULADO = {
+  id: 7001,
+  nome: "Helena Martins",
+  cpf: "34872561890",
+  observacoes: "Paciente vinculado ao cuidador mockado para desenvolvimento.",
+  instituicaoId: 1,
+  contatoId: 7101,
+  contato: {
+    id: 7101,
+    ddd: "11",
+    telefone: "987654321",
+  },
+  vinculo: {
+    id: 7201,
+    cuidadorId: 9001,
+    idosoId: 7001,
+    nomeCuidador: "Phillip MLK",
+    nomeIdoso: "Helena Martins",
+    dataCriacao: "2026-05-11",
+  },
+};
+
 async function getErrorMessage(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
@@ -151,6 +181,31 @@ export async function listarIdosos(page = 0, size = 100) {
   });
 
   return conteudoPaginado(data);
+}
+
+export async function listarIdososDoCuidador(cuidadorId = getUsuarioId(), page = 0, size = 100) {
+  if (cuidadorId === 9001 || getAuthTokenAtual() === "mock-cuidador-token") {
+    return [IDOSO_MOCK_VINCULADO];
+  }
+
+  const vinculosData = await requestApi(`/vinculo/cuidador/${cuidadorId}?page=${page}&size=${size}`, {
+    fallback: "Erro ao buscar vinculos do cuidador.",
+  });
+  const vinculos = conteudoPaginado(vinculosData);
+
+  if (vinculos.length === 0) {
+    return [];
+  }
+
+  const idosos = await listarIdosos(0, 100);
+  const idsVinculados = new Set(vinculos.map((vinculo) => Number(vinculo.idosoId)));
+
+  return idosos
+    .filter((idoso) => idsVinculados.has(Number(idoso.id)))
+    .map((idoso) => ({
+      ...idoso,
+      vinculo: vinculos.find((vinculo) => Number(vinculo.idosoId) === Number(idoso.id)),
+    }));
 }
 
 export async function buscarIdosoPorCpf(cpf) {
