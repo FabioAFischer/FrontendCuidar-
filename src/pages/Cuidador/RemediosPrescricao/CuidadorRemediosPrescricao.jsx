@@ -1,4 +1,8 @@
+import { useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
+import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
+import BcInput from "../../../components/Bcinput/BcInput";
+import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import "./CuidadorRemediosPrescricao.css";
@@ -80,9 +84,15 @@ function IconeCheck() {
   );
 }
 
-function BotaoIcone({ children, tipo = "padrao", label }) {
+function BotaoIcone({ children, tipo = "padrao", label, onClick }) {
   return (
-    <button className={`cuidador-remedios-acao cuidador-remedios-acao--${tipo}`} type="button" title={label} aria-label={label}>
+    <button
+      className={`cuidador-remedios-acao cuidador-remedios-acao--${tipo}`}
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -98,6 +108,37 @@ function TituloSecao({ icone, children }) {
 }
 
 export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
+  const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
+  const [formRemedio, setFormRemedio] = useState({
+    nome: "",
+    observacao: "",
+  });
+
+  function abrirCadastroRemedio() {
+    setFormRemedio({
+      nome: "",
+      observacao: "",
+    });
+    setModalRemedioAberto(true);
+  }
+
+  function fecharCadastroRemedio() {
+    setModalRemedioAberto(false);
+    setFormRemedio({
+      nome: "",
+      observacao: "",
+    });
+  }
+
+  function atualizarRemedio(evento) {
+    const { name, value } = evento.target;
+    setFormRemedio((anterior) => ({ ...anterior, [name]: value }));
+  }
+
+  function handleCadastrarRemedio(evento) {
+    evento.preventDefault();
+  }
+
   return (
     <div className="cuidador-remedios-page">
       <BcTopbar
@@ -118,23 +159,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           <aside className="cuidador-remedios-card cuidador-remedios-card--fixo">
             <div className="cuidador-remedios-card__header">
               <TituloSecao icone={<IconeRemedio />}>Remedios ({remedios.length})</TituloSecao>
-              <BotaoIcone label="Adicionar remedio"><IconeMais /></BotaoIcone>
+              <BotaoIcone label="Adicionar remedio" onClick={abrirCadastroRemedio}><IconeMais /></BotaoIcone>
             </div>
-
-            <form className="cuidador-remedios-form">
-              <div className="cuidador-remedios-form__topo">
-                <h3>Novo Remedio</h3>
-              </div>
-              <label>
-                Nome *
-                <input placeholder="Insira o nome do remedio" readOnly />
-              </label>
-              <label>
-                Observacao
-                <textarea placeholder="Observacoes importantes sobre o remedio..." readOnly />
-              </label>
-              <BcButton fullWidth={true}>Cadastrar</BcButton>
-            </form>
 
             <div className="cuidador-remedios-lista">
               {remedios.length > 0 ? (
@@ -273,6 +299,35 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           </aside>
         </section>
       </main>
+
+      <BcModal aberto={modalRemedioAberto} onFechar={fecharCadastroRemedio}>
+        <BcFormModal
+          title="Novo Remedio"
+          subtitle="Preencha os dados para cadastrar"
+          onSubmit={handleCadastrarRemedio}
+        >
+          <BcInput
+            label="Nome *"
+            name="nome"
+            placeholder="Insira o nome do remedio"
+            value={formRemedio.nome}
+            onChange={atualizarRemedio}
+          />
+
+          <BcFormModalTextarea
+            id="observacao"
+            label="Observacao"
+            name="observacao"
+            placeholder="Observacoes importantes sobre o remedio..."
+            value={formRemedio.observacao}
+            onChange={atualizarRemedio}
+          />
+
+          <BcButton type="submit">
+            Cadastrar
+          </BcButton>
+        </BcFormModal>
+      </BcModal>
     </div>
   );
 }
