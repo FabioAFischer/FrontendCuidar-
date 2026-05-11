@@ -9,6 +9,7 @@ import BcToast from "../../../components/BcToast/BcToast";
 import {
   atualizarCuidador as atualizarCuidadorApi,
   atualizarIdoso as atualizarIdosoApi,
+  buscarIdosoPorCpf,
   cadastrarCuidador,
   cadastrarIdoso,
   deletarCuidador,
@@ -32,6 +33,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [cuidadorParaReativar, setCuidadorParaReativar] = useState(null);
   const [cuidadoresInativos, setCuidadoresInativos] = useState([]);
   const [idosoEmEdicao, setIdosoEmEdicao] = useState(null);
+  const [idosoParaReativar, setIdosoParaReativar] = useState(null);
   const [cuidadores, setCuidadores] = useState([]);
   const [idosos, setIdosos] = useState([]);
   const [buscaCuidador, setBuscaCuidador] = useState("");
@@ -44,6 +46,11 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [excluindoIdoso, setExcluindoIdoso] = useState(false);
   const [erroCuidador, setErroCuidador] = useState("");
   const [erroIdoso, setErroIdoso] = useState("");
+  const [consultaCpfIdoso, setConsultaCpfIdoso] = useState({
+    carregando: false,
+    consultado: false,
+    idoso: null,
+  });
   const [toast, setToast] = useState({
     aberto: false,
     tipo: "info",
@@ -121,6 +128,67 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setCuidadoresInativos(Array.isArray(salvos) ? salvos : []);
   }, []);
 
+  useEffect(() => {
+    const cpfLimpo = somenteNumeros(formIdoso.cpf);
+
+    if (!modalIdosoAberto || idosoEmEdicao || cpfLimpo.length !== 11) {
+      setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
+      setIdosoParaReativar(null);
+      return;
+    }
+
+    let cancelado = false;
+
+    async function verificarCpfIdoso() {
+      try {
+        setConsultaCpfIdoso({ carregando: true, consultado: false, idoso: null });
+        const idosoEncontrado = await buscarIdosoPorCpf(cpfLimpo);
+
+        if (!cancelado) {
+          const statusIdoso = String(idosoEncontrado?.status || "").toUpperCase();
+
+          setConsultaCpfIdoso({
+            carregando: false,
+            consultado: true,
+            idoso: idosoEncontrado,
+          });
+
+          if (statusIdoso === "INATIVO") {
+            setIdosoParaReativar(idosoEncontrado);
+            setErroIdoso("");
+            setFormIdoso((anterior) => ({
+              ...anterior,
+              cpf: formatarCPF(String(idosoEncontrado.cpf || cpfLimpo)),
+              nome: idosoEncontrado.nome || "",
+              observacoes: idosoEncontrado.observacoes || "",
+              ddd: idosoEncontrado.contato?.ddd ? String(idosoEncontrado.contato.ddd) : "",
+              telefone: idosoEncontrado.contato?.telefone ? formatarTelefone(String(idosoEncontrado.contato.telefone)) : "",
+              contatoId: idosoEncontrado.contatoId || idosoEncontrado.contato?.id || null,
+            }));
+            return;
+          }
+
+          setIdosoParaReativar(null);
+
+          if (statusIdoso === "ATIVO") {
+            setErroIdoso("CPF ja cadastrado para um idoso ativo.");
+          }
+        }
+      } catch (erro) {
+        if (!cancelado) {
+          setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
+          setErroIdoso(erro.message);
+        }
+      }
+    }
+
+    verificarCpfIdoso();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [formIdoso.cpf, idosoEmEdicao, modalIdosoAberto]);
+
   const cuidadoresFiltrados = cuidadores.filter((cuidador) =>
     String(cuidador.nome || "").toLowerCase().includes(buscaCuidador.toLowerCase()) ||
     String(cuidador.cpf || "").includes(buscaCuidador.replace(/\D/g, "")) ||
@@ -189,7 +257,22 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (name === "ddd") novoValor = value.replace(/\D/g, "").slice(0, 2);
     if (name === "telefone") novoValor = formatarTelefone(value);
 
+    if (name === "cpf") {
+      setErroIdoso("");
+    }
+
     setFormIdoso((anterior) => ({ ...anterior, [name]: novoValor }));
+  }
+
+  function getHintCpfIdoso() {
+    if (consultaCpfIdoso.carregando) return "Verificando CPF...";
+    if (!consultaCpfIdoso.consultado) return null;
+    if (!consultaCpfIdoso.idoso) return "CPF ainda nao cadastrado.";
+
+    const statusIdoso = String(consultaCpfIdoso.idoso.status || "").toUpperCase();
+    return statusIdoso === "INATIVO"
+      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativacao."
+      : "CPF ja cadastrado para um idoso ativo.";
   }
 
   function limparFormCuidador() {
@@ -214,6 +297,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
       telefone: "",
       contatoId: null,
     });
+    setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
+    setIdosoParaReativar(null);
   }
 
   function abrirEdicaoCuidador(cuidador) {
@@ -241,6 +326,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function abrirEdicaoIdoso(idoso) {
     setErroIdoso("");
     setIdosoEmEdicao(idoso);
+    setIdosoParaReativar(null);
     setFormIdoso({
       nome: idoso.nome || "",
       cpf: formatarCPF(String(idoso.cpf || "")),
@@ -255,6 +341,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function fecharModalIdoso() {
     setModalIdosoAberto(false);
     setIdosoEmEdicao(null);
+    setIdosoParaReativar(null);
     setErroIdoso("");
     limparFormIdoso();
   }
@@ -278,6 +365,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }
 
   function validarIdoso() {
+    const statusIdosoEncontrado = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
+    if (!idosoEmEdicao && statusIdosoEncontrado === "ATIVO") return "CPF ja cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
     if (!cpfValido(formIdoso.cpf)) return "CPF invalido.";
     if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
@@ -419,14 +508,28 @@ export default function InstituicaoProfileHome({ onLogout }) {
         if (idosoCadastrado) {
           setIdosos((anteriores) => [idosoCadastrado, ...anteriores]);
         }
-        mostrarToast("sucesso", "Idoso cadastrado", `${formIdoso.nome} foi cadastrado com sucesso.`);
+        mostrarToast(
+          "sucesso",
+          idosoParaReativar ? "Idoso reativado" : "Idoso cadastrado",
+          idosoParaReativar
+            ? `${formIdoso.nome} foi reativado com sucesso.`
+            : `${formIdoso.nome} foi cadastrado com sucesso.`
+        );
       }
 
       fecharModalIdoso();
       await carregarIdosos();
     } catch (erro) {
       setErroIdoso(erro.message);
-      mostrarToast("erro", idosoEmEdicao ? "Erro ao atualizar idoso" : "Erro ao cadastrar idoso", erro.message);
+      mostrarToast(
+        "erro",
+        idosoEmEdicao
+          ? "Erro ao atualizar idoso"
+          : idosoParaReativar
+            ? "Erro ao reativar idoso"
+            : "Erro ao cadastrar idoso",
+        erro.message
+      );
     } finally {
       setSalvandoIdoso(false);
     }
@@ -633,26 +736,27 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
       <BcModal aberto={modalIdosoAberto} onFechar={fecharModalIdoso}>
         <BcFormModal
-          title={idosoEmEdicao ? "Editar Idoso" : "Novo Idoso"}
-          subtitle={idosoEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
+          title={idosoEmEdicao ? "Editar Idoso" : idosoParaReativar ? "Reativar Idoso" : "Novo Idoso"}
+          subtitle={idosoEmEdicao ? "Atualize os dados abaixo" : idosoParaReativar ? "Confira os dados antes de reativar" : "Preencha os dados para cadastrar"}
           error={erroIdoso}
           onSubmit={handleCadastrarIdoso}
         >
-
-            <BcInput
-              label="Nome *"
-              name="nome"
-              placeholder="Insira um nome"
-              value={formIdoso.nome}
-              onChange={atualizarIdoso}
-            />
             <BcInput
               label="CPF *"
               name="cpf"
               placeholder="000.000.000-00"
               value={formIdoso.cpf}
               onChange={atualizarIdoso}
+              inputMode="numeric"
               maxLength={14}
+              hint={getHintCpfIdoso()}
+            />
+            <BcInput
+              label="Nome *"
+              name="nome"
+              placeholder="Insira um nome"
+              value={formIdoso.nome}
+              onChange={atualizarIdoso}
             />
 
             <BcFormModalTextarea
@@ -684,7 +788,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             </BcFormModalRow>
 
             <BcButton type="submit" loading={salvandoIdoso}>
-              {idosoEmEdicao ? "Salvar alteracoes" : "Cadastrar"}
+              {idosoEmEdicao ? "Salvar alteracoes" : idosoParaReativar ? "Reativar" : "Cadastrar"}
             </BcButton>
         </BcFormModal>
       </BcModal>
