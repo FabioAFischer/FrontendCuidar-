@@ -1,0 +1,95 @@
+.bc-remedios-listagem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66px;
+  align-items: stretch;
+  column-gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+}
+
+.bc-remedios-listagem .bc-listagem-toolbar {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  border-radius: 14px 0 0 0;
+  box-shadow: none;
+  padding-right: 12px;
+}
+
+.bc-remedios-listagem .bc-listagem-buscaWrap {
+  max-width: 100%;
+}
+
+.bc-remedios-listagem .bc-listagem-card {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  border-radius: 0 0 14px 14px;
+  box-shadow: none;
+}
+
+.bc-remedios-listagem .bc-listagem-header {
+  border-top: 1px solid #f0f0f0;
+}
+
+.bc-remedios-listagem__addWrap {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 16px 20px 16px 0;
+  border-radius: 0 14px 0 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.bc-remedios-listagem__add {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #dce6e5;
+  border-radius: 10px;
+  background: #fff;
+  color: #526263;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.bc-remedios-listagem__add:hover {
+  border-color: #0d9e8a;
+  background: #e6f7f5;
+  color: #0d9e8a;
+}
+
+.bc-remedios-listagem__add svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 640px) {
+  .bc-remedios-listagem {
+    grid-template-columns: 1fr;
+  }
+
+  .bc-remedios-listagem .bc-listagem-toolbar {
+    grid-column: 1;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .bc-remedios-listagem__addWrap {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 0 20px 16px;
+    border-radius: 0;
+    justify-content: stretch;
+  }
+
+  .bc-remedios-listagem .bc-listagem-card {
+    grid-row: 3;
+  }
+
+  .bc-remedios-listagem__add {
+    width: 100%;
+  }
+}

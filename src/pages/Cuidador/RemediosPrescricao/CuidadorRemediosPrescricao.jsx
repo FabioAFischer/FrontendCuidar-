@@ -3,9 +3,10 @@ import BcButton from "../../../components/Bcbutton/BcButton";
 import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcModal from "../../../components/BcModal/BcModal";
+import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemediosListagem";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
-import { cadastrarRemedio, listarRemedios } from "../../../api/remedioApi";
+import { cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./CuidadorRemediosPrescricao.css";
 
 const idosos = [
@@ -110,6 +111,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [carregandoRemedios, setCarregandoRemedios] = useState(true);
   const [erroRemedios, setErroRemedios] = useState("");
   const [salvandoRemedio, setSalvandoRemedio] = useState(false);
+  const [inativandoRemedio, setInativandoRemedio] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [erroCadastroRemedio, setErroCadastroRemedio] = useState("");
   const [formRemedio, setFormRemedio] = useState({
@@ -185,6 +187,19 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     }
   }
 
+  async function handleInativarRemedio(remedio) {
+    try {
+      setInativandoRemedio(true);
+      setErroRemedios("");
+      await inativarRemedio(remedio.id);
+      setRemedios((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(remedio.id)));
+    } catch (erro) {
+      setErroRemedios(erro.message);
+    } finally {
+      setInativandoRemedio(false);
+    }
+  }
+
   return (
     <div className="cuidador-remedios-page">
       <BcTopbar
@@ -202,43 +217,15 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
         </button>
 
         <section className="cuidador-remedios-grid" aria-label="Remedios e prescricoes">
-          <aside className="cuidador-remedios-card cuidador-remedios-card--fixo">
-            <div className="cuidador-remedios-card__header">
-              <TituloSecao icone={<IconeRemedio />}>Remedios ({remedios.length})</TituloSecao>
-              <BotaoIcone label="Adicionar remedio" onClick={abrirCadastroRemedio}><IconeMais /></BotaoIcone>
-            </div>
-
-            <div className="cuidador-remedios-lista">
-              {carregandoRemedios ? (
-                <div className="cuidador-remedios-vazio">
-                  <p>Carregando remedios...</p>
-                </div>
-              ) : erroRemedios ? (
-                <div className="cuidador-remedios-vazio">
-                  <p>Nao foi possivel carregar os remedios.</p>
-                  <small>{erroRemedios}</small>
-                </div>
-              ) : remedios.length > 0 ? (
-                remedios.map((remedio) => (
-                  <article className="cuidador-remedios-item" key={remedio.id || remedio.nome}>
-                    <div>
-                      <h3>{remedio.nome}</h3>
-                      <p>{remedio.observacao}</p>
-                      <small>{remedio.status || "ATIVO"}</small>
-                    </div>
-                    <div className="cuidador-remedios-item__acoes">
-                      <BotaoIcone label="Editar remedio"><IconeEditar /></BotaoIcone>
-                      <BotaoIcone tipo="perigo" label="Excluir remedio"><IconeLixeira /></BotaoIcone>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="cuidador-remedios-vazio">
-                  <p>Nenhum remedio cadastrado.</p>
-                  <small>Cadastre o primeiro remedio para liberar prescricoes e agenda.</small>
-                </div>
-              )}
-            </div>
+          <aside className="cuidador-remedios-listagem">
+            <BcRemediosListagem
+              remedios={remedios}
+              carregando={carregandoRemedios}
+              erro={erroRemedios}
+              inativando={inativandoRemedio}
+              onCadastrar={abrirCadastroRemedio}
+              onInativar={handleInativarRemedio}
+            />
           </aside>
 
           <section className="cuidador-remedios-centro">

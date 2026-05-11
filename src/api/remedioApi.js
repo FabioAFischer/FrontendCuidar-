@@ -133,7 +133,7 @@ export async function atualizarRemedio(id, dados) {
   });
 }
 
-export async function deletarRemedio(id) {
+export async function inativarRemedio(id) {
   if (usandoCuidadorMockado()) {
     const remedios = listarRemediosMockados();
     salvarRemediosMockados(remedios.filter((remedio) => Number(remedio.id) !== Number(id)));
@@ -145,3 +145,5 @@ export async function deletarRemedio(id) {
     fallback: "Erro ao deletar remedio.",
   });
 }
+
+export const deletarRemedio = inativarRemedio;
