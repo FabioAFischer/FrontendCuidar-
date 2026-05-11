@@ -227,6 +227,37 @@
   gap: 11px;
 }
 
+.cuidador-remedios-vazio {
+  padding: 28px 18px;
+  border: 1px dashed #c9dcda;
+  border-radius: 12px;
+  background: #fbfdfd;
+  text-align: center;
+}
+
+.cuidador-remedios-vazio--alto {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cuidador-remedios-vazio p {
+  color: #475467;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-vazio small {
+  display: block;
+  max-width: 340px;
+  margin: 8px auto 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .cuidador-remedios-item,
 .cuidador-remedios-prescricao,
 .cuidador-remedios-agenda {

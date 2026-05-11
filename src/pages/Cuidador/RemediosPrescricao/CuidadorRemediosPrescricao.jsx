@@ -4,51 +4,15 @@ import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import "./CuidadorRemediosPrescricao.css";
 
 const remedios = [
-  {
-    nome: "Losartana 50mg",
-    observacao: "Controle de pressao arterial. Manter acompanhamento diario.",
-    resumo: "2 tomas hoje",
-  },
-  {
-    nome: "Metformina 850mg",
-    observacao: "Administrar junto das refeicoes principais.",
-    resumo: "1 toma hoje",
-  },
-  {
-    nome: "Vitamina D 2000 UI",
-    observacao: "Suplementacao semanal conforme orientacao medica.",
-    resumo: "Sem dose hoje",
-  },
 ];
 
 const idosos = [
-  { nome: "Maria Silva", cpf: "123.456.789-00", telefone: "(11) 98765-4321", selecionado: true },
-  { nome: "Joao Santos", cpf: "987.654.321-00", telefone: "(11) 91234-5678", selecionado: false },
 ];
 
 const prescricoes = [
-  {
-    remedio: "Losartana 50mg",
-    dosagem: "1 comprimido",
-    intervalo: "12h",
-    fim: "26/05/2026",
-    etiqueta: "Jejum nao necessario",
-    instrucao: "Oferecer com agua e aferir pressao antes da segunda dose.",
-  },
-  {
-    remedio: "Metformina 850mg",
-    dosagem: "1 comprimido",
-    intervalo: "24h",
-    fim: "30/05/2026",
-    etiqueta: "Tomar apos o almoco",
-    instrucao: "Evitar administrar com o estomago vazio.",
-  },
 ];
 
 const agenda = [
-  { tipo: "REMEDIO", status: "AGENDADO", horario: "Hoje, 08:00", descricao: "Losartana 50mg" },
-  { tipo: "REMEDIO", status: "AGENDADO", horario: "Hoje, 20:00", descricao: "Losartana 50mg" },
-  { tipo: "CONSULTA", status: "REALIZADO", horario: "Ontem, 14:30", descricao: "Retorno cardiologista" },
 ];
 
 function IconeRemedio() {
@@ -160,33 +124,39 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             <form className="cuidador-remedios-form">
               <div className="cuidador-remedios-form__topo">
                 <h3>Novo Remedio</h3>
-                <span>visual</span>
               </div>
               <label>
                 Nome *
-                <input value="Dipirona 500mg" readOnly />
+                <input placeholder="Insira o nome do remedio" readOnly />
               </label>
               <label>
                 Observacao
-                <textarea value="Administrar apenas em caso de febre ou dor." readOnly />
+                <textarea placeholder="Observacoes importantes sobre o remedio..." readOnly />
               </label>
               <BcButton fullWidth={true}>Cadastrar</BcButton>
             </form>
 
             <div className="cuidador-remedios-lista">
-              {remedios.map((remedio) => (
-                <article className="cuidador-remedios-item" key={remedio.nome}>
-                  <div>
-                    <h3>{remedio.nome}</h3>
-                    <p>{remedio.observacao}</p>
-                    <small>{remedio.resumo}</small>
-                  </div>
-                  <div className="cuidador-remedios-item__acoes">
-                    <BotaoIcone label="Editar remedio"><IconeEditar /></BotaoIcone>
-                    <BotaoIcone tipo="perigo" label="Excluir remedio"><IconeLixeira /></BotaoIcone>
-                  </div>
-                </article>
-              ))}
+              {remedios.length > 0 ? (
+                remedios.map((remedio) => (
+                  <article className="cuidador-remedios-item" key={remedio.nome}>
+                    <div>
+                      <h3>{remedio.nome}</h3>
+                      <p>{remedio.observacao}</p>
+                      <small>{remedio.resumo}</small>
+                    </div>
+                    <div className="cuidador-remedios-item__acoes">
+                      <BotaoIcone label="Editar remedio"><IconeEditar /></BotaoIcone>
+                      <BotaoIcone tipo="perigo" label="Excluir remedio"><IconeLixeira /></BotaoIcone>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="cuidador-remedios-vazio">
+                  <p>Nenhum remedio cadastrado.</p>
+                  <small>Cadastre o primeiro remedio para liberar prescricoes e agenda.</small>
+                </div>
+              )}
             </div>
           </aside>
 
@@ -196,94 +166,72 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                 <TituloSecao icone={<IconeUsuarios />}>Selecione um Idoso</TituloSecao>
               </div>
 
-              <div className="cuidador-remedios-idosos">
-                {idosos.map((idoso) => (
-                  <button
-                    className={`cuidador-remedios-idoso ${idoso.selecionado ? "cuidador-remedios-idoso--selecionado" : ""}`}
-                    type="button"
-                    key={idoso.cpf}
-                  >
-                    <strong>{idoso.nome}</strong>
-                    <span>CPF: {idoso.cpf}</span>
-                    <span>{idoso.telefone}</span>
-                  </button>
-                ))}
-              </div>
+              {idosos.length > 0 ? (
+                <div className="cuidador-remedios-idosos">
+                  {idosos.map((idoso) => (
+                    <button
+                      className={`cuidador-remedios-idoso ${idoso.selecionado ? "cuidador-remedios-idoso--selecionado" : ""}`}
+                      type="button"
+                      key={idoso.cpf}
+                    >
+                      <strong>{idoso.nome}</strong>
+                      <span>CPF: {idoso.cpf}</span>
+                      <span>{idoso.telefone}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>Nenhum idoso vinculado.</p>
+                  <small>Quando houver idosos disponiveis, eles aparecerao aqui para selecao.</small>
+                </div>
+              )}
             </div>
 
             <div className="cuidador-remedios-card">
               <div className="cuidador-remedios-card__header">
-                <TituloSecao icone={<IconeRemedio />}>Prescricoes de Maria Silva</TituloSecao>
+                <TituloSecao icone={<IconeRemedio />}>Prescricoes</TituloSecao>
                 <button className="cuidador-remedios-prescrever" type="button">
                   <IconeMais />
                   Prescrever
                 </button>
               </div>
 
-              <form className="cuidador-remedios-prescricao-form">
-                <div className="cuidador-remedios-form__topo cuidador-remedios-campo--inteiro">
-                  <h3>Nova Prescricao</h3>
-                  <span>modelo visual</span>
-                </div>
-                <label className="cuidador-remedios-campo--inteiro">
-                  Remedio *
-                  <select defaultValue="Losartana 50mg">
-                    <option>Losartana 50mg</option>
-                  </select>
-                </label>
-                <label>
-                  Dosagem *
-                  <input value="1 comprimido" readOnly />
-                </label>
-                <label>
-                  Intervalo (horas) *
-                  <input value="12" readOnly />
-                </label>
-                <label>
-                  Data Fim *
-                  <input value="2026-05-26" readOnly />
-                </label>
-                <label className="cuidador-remedios-checkbox">
-                  <input type="checkbox" defaultChecked readOnly />
-                  Necessario jejum
-                </label>
-                <label className="cuidador-remedios-campo--inteiro">
-                  Instrucao
-                  <textarea value="Oferecer com agua. Registrar qualquer efeito adverso observado." readOnly />
-                </label>
-                <div className="cuidador-remedios-campo--inteiro">
-                  <BcButton fullWidth={true}>Prescrever</BcButton>
-                </div>
-              </form>
-
               <div className="cuidador-remedios-lista">
-                {prescricoes.map((prescricao) => (
-                  <article className="cuidador-remedios-prescricao" key={prescricao.remedio}>
-                    <div>
-                      <h3>{prescricao.remedio}</h3>
-                      <dl>
-                        <div>
-                          <dt>Dosagem</dt>
-                          <dd>{prescricao.dosagem}</dd>
-                        </div>
-                        <div>
-                          <dt>Intervalo</dt>
-                          <dd>{prescricao.intervalo}</dd>
-                        </div>
-                        <div>
-                          <dt>Fim</dt>
-                          <dd>{prescricao.fim}</dd>
-                        </div>
-                      </dl>
-                      <span>{prescricao.etiqueta}</span>
-                      <p>{prescricao.instrucao}</p>
-                    </div>
-                    <div className="cuidador-remedios-item__acoes">
-                      <BotaoIcone label="Editar prescricao"><IconeEditar /></BotaoIcone>
-                      <BotaoIcone tipo="perigo" label="Remover prescricao"><IconeLixeira /></BotaoIcone>
-                    </div>
-                  </article>
-                ))}
+                {prescricoes.length > 0 ? (
+                  prescricoes.map((prescricao) => (
+                    <article className="cuidador-remedios-prescricao" key={prescricao.remedio}>
+                      <div>
+                        <h3>{prescricao.remedio}</h3>
+                        <dl>
+                          <div>
+                            <dt>Dosagem</dt>
+                            <dd>{prescricao.dosagem}</dd>
+                          </div>
+                          <div>
+                            <dt>Intervalo</dt>
+                            <dd>{prescricao.intervalo}</dd>
+                          </div>
+                          <div>
+                            <dt>Fim</dt>
+                            <dd>{prescricao.fim}</dd>
+                          </div>
+                        </dl>
+                        <span>{prescricao.etiqueta}</span>
+                        <p>{prescricao.instrucao}</p>
+                      </div>
+                      <div className="cuidador-remedios-item__acoes">
+                        <BotaoIcone label="Editar prescricao"><IconeEditar /></BotaoIcone>
+                        <BotaoIcone tipo="perigo" label="Remover prescricao"><IconeLixeira /></BotaoIcone>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                    <p>Nenhuma prescricao registrada.</p>
+                    <small>Cadastre um remedio e selecione um idoso para iniciar uma prescricao.</small>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -294,52 +242,33 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
               <BotaoIcone label="Adicionar evento"><IconeMais /></BotaoIcone>
             </div>
 
-            <p className="cuidador-remedios-agenda-paciente">Maria Silva</p>
-
-            <form className="cuidador-remedios-form">
-              <div className="cuidador-remedios-form__topo">
-                <h3>Novo Evento</h3>
-                <span>preenchido</span>
-              </div>
-              <label>
-                Tipo *
-                  <select defaultValue="REMEDIO">
-                  <option>REMEDIO</option>
-                </select>
-              </label>
-              <label>
-                Remedio
-                  <select defaultValue="Losartana 50mg">
-                  <option>Losartana 50mg</option>
-                </select>
-              </label>
-              <label>
-                Data *
-                <input value="2026-05-11T20:00" readOnly />
-              </label>
-              <BcButton fullWidth={true}>Adicionar</BcButton>
-            </form>
-
             <div className="cuidador-remedios-lista">
-              {agenda.map((evento) => (
-                <article className={`cuidador-remedios-agenda ${evento.status === "REALIZADO" ? "cuidador-remedios-agenda--realizado" : ""}`} key={`${evento.horario}-${evento.descricao}`}>
-                  <div>
-                    <div className="cuidador-remedios-agenda__badges">
-                      <span>{evento.tipo}</span>
-                      <span>{evento.status}</span>
+              {agenda.length > 0 ? (
+                agenda.map((evento) => (
+                  <article className={`cuidador-remedios-agenda ${evento.status === "REALIZADO" ? "cuidador-remedios-agenda--realizado" : ""}`} key={`${evento.horario}-${evento.descricao}`}>
+                    <div>
+                      <div className="cuidador-remedios-agenda__badges">
+                        <span>{evento.tipo}</span>
+                        <span>{evento.status}</span>
+                      </div>
+                      <time>{evento.horario}</time>
+                      <p>{evento.descricao}</p>
                     </div>
-                    <time>{evento.horario}</time>
-                    <p>{evento.descricao}</p>
-                  </div>
-                  <div className="cuidador-remedios-item__acoes">
-                    {evento.status === "AGENDADO" ? (
-                      <BotaoIcone tipo="sucesso" label="Marcar como realizado"><IconeCheck /></BotaoIcone>
-                    ) : null}
-                    <BotaoIcone label="Editar evento"><IconeEditar /></BotaoIcone>
-                    <BotaoIcone tipo="perigo" label="Excluir evento"><IconeLixeira /></BotaoIcone>
-                  </div>
-                </article>
-              ))}
+                    <div className="cuidador-remedios-item__acoes">
+                      {evento.status === "AGENDADO" ? (
+                        <BotaoIcone tipo="sucesso" label="Marcar como realizado"><IconeCheck /></BotaoIcone>
+                      ) : null}
+                      <BotaoIcone label="Editar evento"><IconeEditar /></BotaoIcone>
+                      <BotaoIcone tipo="perigo" label="Excluir evento"><IconeLixeira /></BotaoIcone>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>Nenhum evento agendado.</p>
+                  <small>Os lembretes de medicacao aparecerao aqui depois das prescricoes.</small>
+                </div>
+              )}
             </div>
           </aside>
         </section>
