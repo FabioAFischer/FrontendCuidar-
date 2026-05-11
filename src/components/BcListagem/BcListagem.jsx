@@ -17,6 +17,13 @@ const IconeEditar = () => (
   </svg>
 );
 
+const IconeVisualizar = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
 const IconeInativar = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <circle cx="12" cy="12" r="9" />
@@ -58,6 +65,7 @@ export default function BcListagem({
   carregando = false,
   textoCarregando = "Carregando...",
   erro = "",
+  onVisualizar,
   onEditar,
   onExcluir,
   tituloConfirmacao = "Inativar registro?",
@@ -69,7 +77,7 @@ export default function BcListagem({
 }) {
   const [itemParaExcluir, setItemParaExcluir] = useState(null);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const temAcoes = Boolean(onEditar || onExcluir);
+  const temAcoes = Boolean(onVisualizar || onEditar || onExcluir);
   const totalPaginas = Math.max(1, Math.ceil(itens.length / itensPorPagina));
 
   const itensPaginados = useMemo(() => {
@@ -142,7 +150,11 @@ export default function BcListagem({
                   {colunas.map((coluna) => (
                     <th key={coluna.chave}>{coluna.titulo}</th>
                   ))}
-                  {temAcoes ? <th className="bc-listagem-thAcoes">Acoes</th> : null}
+                  {temAcoes ? (
+                    <th className="bc-listagem-thAcoes">
+                      <span className="bc-listagem-acoesCabecalho">Acoes</span>
+                    </th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
@@ -154,8 +166,18 @@ export default function BcListagem({
                       </td>
                     ))}
                     {temAcoes ? (
-                      <td>
+                      <td className="bc-listagem-tdAcoes">
                         <div className="bc-listagem-acoes">
+                          {onVisualizar ? (
+                            <button
+                              className="bc-listagem-btnIcone bc-listagem-btnVisualizar"
+                              title="Visualizar"
+                              type="button"
+                              onClick={() => onVisualizar(item)}
+                            >
+                              <IconeVisualizar />
+                            </button>
+                          ) : null}
                           {onEditar ? (
                             <button
                               className="bc-listagem-btnIcone bc-listagem-btnEditar"
