@@ -11,6 +11,9 @@ import {
   verificarCodigo,
   definirNovaSenha,
 } from "../../api/recuperarSenhaApi";
+import {
+  formatarCpfCnpj,
+} from "../../utils/validacaoDocumento";
 import "./LoginPage.css";
 
 /* ── Ícones ── */
@@ -400,6 +403,15 @@ export default function LoginPage({ onLogin }) {
     setToast(atual => ({ ...atual, aberto: false }));
   }
 
+  function handleCpfCnpjChange(event) {
+    const valorFormatado = formatarCpfCnpj(event.target.value);
+    setCpfCnpj(valorFormatado);
+
+    if (error) {
+      setError("");
+    }
+  }
+
   function validateForm() {
     if (!cpfCnpj.trim()) { setError("Informe seu CPF ou CNPJ."); return false; }
     if (!password.trim()) { setError("Informe a sua senha."); return false; }
@@ -517,8 +529,8 @@ export default function LoginPage({ onLogin }) {
             <BcInput
               label="CPF ou CNPJ" name="cpfCnpj" type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              value={cpfCnpj} onChange={e => setCpfCnpj(e.target.value)}
-              autoComplete="off" maxLength={14}
+              value={cpfCnpj} onChange={handleCpfCnpjChange}
+              autoComplete="off" inputMode="numeric" maxLength={18}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
             <BcInput
