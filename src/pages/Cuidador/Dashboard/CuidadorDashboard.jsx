@@ -87,9 +87,9 @@ function isEventoProximo(dataAgendada) {
   return diferencaHoras >= 0 && diferencaHoras <= 24;
 }
 
-function QuickActionCard({ icon, title, description }) {
+function QuickActionCard({ icon, title, description, onClick }) {
   return (
-    <button type="button" className="cuidador-action-card">
+    <button type="button" className="cuidador-action-card" onClick={onClick}>
       <span className="cuidador-action-card__icon">{icon}</span>
       <span className="cuidador-action-card__text">
         <strong>{title}</strong>
@@ -196,7 +196,7 @@ function EmergencyContacts() {
   );
 }
 
-export default function CuidadorDashboard({ onLogout }) {
+export default function CuidadorDashboard({ onLogout, onOpenRemedios }) {
   const [nomeCuidador, setNomeCuidador] = useState(getNomeCuidador);
   const [idosos, setIdosos] = useState([]);
   const [agendaEvents] = useState([]);
@@ -249,6 +249,7 @@ export default function CuidadorDashboard({ onLogout }) {
             title="Medicacoes"
             description="Gerenciar medicacoes dos pacientes"
             icon={<IconeMedicacao />}
+            onClick={onOpenRemedios}
           />
           <QuickActionCard
             title="Lembretes de Consultas"
