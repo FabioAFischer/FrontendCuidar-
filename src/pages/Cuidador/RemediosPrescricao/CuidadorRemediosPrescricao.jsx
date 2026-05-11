@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
+import { cadastrarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./CuidadorRemediosPrescricao.css";
-
-const remedios = [
-];
 
 const idosos = [
 ];
@@ -108,13 +106,37 @@ function TituloSecao({ icone, children }) {
 }
 
 export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
+  const [remedios, setRemedios] = useState([]);
+  const [carregandoRemedios, setCarregandoRemedios] = useState(true);
+  const [erroRemedios, setErroRemedios] = useState("");
+  const [salvandoRemedio, setSalvandoRemedio] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
+  const [erroCadastroRemedio, setErroCadastroRemedio] = useState("");
   const [formRemedio, setFormRemedio] = useState({
     nome: "",
     observacao: "",
   });
 
+  useEffect(() => {
+    carregarRemedios();
+  }, []);
+
+  async function carregarRemedios() {
+    try {
+      setCarregandoRemedios(true);
+      setErroRemedios("");
+      const lista = await listarRemedios();
+      setRemedios(Array.isArray(lista) ? lista : []);
+    } catch (erro) {
+      setErroRemedios(erro.message);
+      setRemedios([]);
+    } finally {
+      setCarregandoRemedios(false);
+    }
+  }
+
   function abrirCadastroRemedio() {
+    setErroCadastroRemedio("");
     setFormRemedio({
       nome: "",
       observacao: "",
@@ -124,6 +146,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   function fecharCadastroRemedio() {
     setModalRemedioAberto(false);
+    setErroCadastroRemedio("");
     setFormRemedio({
       nome: "",
       observacao: "",
@@ -135,8 +158,31 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setFormRemedio((anterior) => ({ ...anterior, [name]: value }));
   }
 
-  function handleCadastrarRemedio(evento) {
+  async function handleCadastrarRemedio(evento) {
     evento.preventDefault();
+
+    if (!formRemedio.nome.trim()) {
+      setErroCadastroRemedio("Informe o nome do remedio.");
+      return;
+    }
+
+    try {
+      setSalvandoRemedio(true);
+      setErroCadastroRemedio("");
+      const remedioCadastrado = await cadastrarRemedio(formRemedio);
+
+      if (remedioCadastrado) {
+        setRemedios((anteriores) => [remedioCadastrado, ...anteriores]);
+      } else {
+        await carregarRemedios();
+      }
+
+      fecharCadastroRemedio();
+    } catch (erro) {
+      setErroCadastroRemedio(erro.message);
+    } finally {
+      setSalvandoRemedio(false);
+    }
   }
 
   return (
@@ -163,13 +209,22 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             </div>
 
             <div className="cuidador-remedios-lista">
-              {remedios.length > 0 ? (
+              {carregandoRemedios ? (
+                <div className="cuidador-remedios-vazio">
+                  <p>Carregando remedios...</p>
+                </div>
+              ) : erroRemedios ? (
+                <div className="cuidador-remedios-vazio">
+                  <p>Nao foi possivel carregar os remedios.</p>
+                  <small>{erroRemedios}</small>
+                </div>
+              ) : remedios.length > 0 ? (
                 remedios.map((remedio) => (
-                  <article className="cuidador-remedios-item" key={remedio.nome}>
+                  <article className="cuidador-remedios-item" key={remedio.id || remedio.nome}>
                     <div>
                       <h3>{remedio.nome}</h3>
                       <p>{remedio.observacao}</p>
-                      <small>{remedio.resumo}</small>
+                      <small>{remedio.status || "ATIVO"}</small>
                     </div>
                     <div className="cuidador-remedios-item__acoes">
                       <BotaoIcone label="Editar remedio"><IconeEditar /></BotaoIcone>
@@ -304,6 +359,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
         <BcFormModal
           title="Novo Remedio"
           subtitle="Preencha os dados para cadastrar"
+          error={erroCadastroRemedio}
           onSubmit={handleCadastrarRemedio}
         >
           <BcInput
@@ -323,7 +379,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             onChange={atualizarRemedio}
           />
 
-          <BcButton type="submit">
+          <BcButton type="submit" loading={salvandoRemedio}>
             Cadastrar
           </BcButton>
         </BcFormModal>
