@@ -1,24 +1,55 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./BcToast.css";
 
 const TIPOS = {
   sucesso: {
     tituloPadrao: "Tudo certo",
-    icone: "✓",
+    icone: "OK",
   },
   erro: {
     tituloPadrao: "Algo deu errado",
     icone: "!",
   },
   aviso: {
-    tituloPadrao: "Atenção",
+    tituloPadrao: "Atencao",
     icone: "i",
   },
   info: {
-    tituloPadrao: "Informação",
+    tituloPadrao: "Informacao",
     icone: "i",
   },
 };
+
+export function useBcToast() {
+  const [toast, setToast] = useState({
+    aberto: false,
+    tipo: "info",
+    titulo: "",
+    mensagem: "",
+  });
+
+  const mostrarToast = useCallback((tipo, titulo, mensagem) => {
+    setToast({
+      aberto: true,
+      tipo,
+      titulo,
+      mensagem,
+    });
+  }, []);
+
+  const fecharToast = useCallback(() => {
+    setToast((atual) => ({ ...atual, aberto: false }));
+  }, []);
+
+  return {
+    toastProps: {
+      ...toast,
+      onFechar: fecharToast,
+    },
+    mostrarToast,
+    fecharToast,
+  };
+}
 
 export default function BcToast({
   aberto = false,
@@ -37,11 +68,16 @@ export default function BcToast({
 
   if (!aberto) return null;
 
-  const config = TIPOS[tipo] || TIPOS.info;
+  const tipoSeguro = TIPOS[tipo] ? tipo : "info";
+  const config = TIPOS[tipoSeguro];
 
   return (
-    <div className="bc-toast-region" role="status" aria-live="polite">
-      <div className={`bc-toast bc-toast--${tipo}`}>
+    <div
+      className="bc-toast-region"
+      role={tipoSeguro === "erro" ? "alert" : "status"}
+      aria-live={tipoSeguro === "erro" ? "assertive" : "polite"}
+    >
+      <div className={`bc-toast bc-toast--${tipoSeguro}`}>
         <span className="bc-toast__icone" aria-hidden="true">
           {config.icone}
         </span>
@@ -60,7 +96,7 @@ export default function BcToast({
             aria-label="Fechar aviso"
             onClick={onFechar}
           >
-            ×
+            x
           </button>
         ) : null}
       </div>
