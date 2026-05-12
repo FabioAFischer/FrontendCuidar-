@@ -344,3 +344,9 @@
     justify-content: center;
   }
 }
+
+.bc-listagem-toolbarFiltros {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
