@@ -464,6 +464,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       setErroRemedios("");
       await inativarRemedio(remedio.id);
       setRemedios((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(remedio.id)));
+      setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.remedioId) !== Number(remedio.id)));
     } catch (erro) {
       setErroRemedios(erro.message);
     } finally {

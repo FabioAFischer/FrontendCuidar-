@@ -72,7 +72,7 @@ export default function BcRemediosListagem({
         onEditar={onEditar}
         onExcluir={onInativar}
         tituloConfirmacao="Inativar remedio?"
-        mensagemConfirmacao="O remedio sera inativado e removido da listagem."
+        mensagemConfirmacao="O remedio sera inativado e todas as prescricoes vinculadas a ele tambem serao removidas da listagem."
         textoConfirmar="Sim, inativar"
         textoCarregandoExcluir="Inativando..."
         excluindo={inativando}
