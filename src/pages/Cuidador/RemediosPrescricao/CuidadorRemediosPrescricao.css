@@ -10,6 +10,9 @@
 }
 
 .cuidador-remedios-voltar {
+  position: sticky;
+  top: 16px;
+  z-index: 20;
   min-height: 42px;
   margin-bottom: 20px;
   padding: 10px 14px;
