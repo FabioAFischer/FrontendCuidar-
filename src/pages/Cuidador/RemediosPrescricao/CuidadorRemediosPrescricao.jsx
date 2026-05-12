@@ -5,7 +5,7 @@ import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModa
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemediosListagem";
-import BcToast from "../../../components/BcToast/BcToast";
+import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
@@ -161,6 +161,7 @@ function fimDoDia(valor) {
 }
 
 export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
+  const { toastProps, mostrarToast } = useBcToast();
   const [remedios, setRemedios] = useState([]);
   const [idosos, setIdosos] = useState([]);
   const [prescricoes, setPrescricoes] = useState([]);
@@ -180,12 +181,6 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [buscaRemedioPrescricao, setBuscaRemedioPrescricao] = useState("");
   const [sugestoesRemedioAbertas, setSugestoesRemedioAbertas] = useState(false);
   const [confirmacao, setConfirmacao] = useState(null);
-  const [toast, setToast] = useState({
-    aberto: false,
-    tipo: "info",
-    titulo: "",
-    mensagem: "",
-  });
   const [remedioEmEdicao, setRemedioEmEdicao] = useState(null);
   const [prescricaoEmEdicao, setPrescricaoEmEdicao] = useState(null);
   const [remedioEmVisualizacao, setRemedioEmVisualizacao] = useState(null);
@@ -217,19 +212,6 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       String(remedio.nome || "").toLowerCase().startsWith(termo)
     );
   }, [buscaRemedioPrescricao, remedios]);
-
-  function mostrarToast(tipo, titulo, mensagem) {
-    setToast({
-      aberto: true,
-      tipo,
-      titulo,
-      mensagem,
-    });
-  }
-
-  function fecharToast() {
-    setToast((atual) => ({ ...atual, aberto: false }));
-  }
 
   useEffect(() => {
     carregarRemedios();
@@ -579,13 +561,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   return (
     <div className="cuidador-remedios-page">
-      <BcToast
-        aberto={toast.aberto}
-        tipo={toast.tipo}
-        titulo={toast.titulo}
-        mensagem={toast.mensagem}
-        onFechar={fecharToast}
-      />
+      <BcToast {...toastProps} />
 
       <BcTopbar
         title="Gerenciamento de Prescricoes"
