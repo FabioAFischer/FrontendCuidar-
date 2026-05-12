@@ -5,17 +5,8 @@ import BcModal from "../../../components/BcModal/BcModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
-import BcToast from "../../../components/BcToast/BcToast";
-import {
-  IconeBusca,
-  IconeEdificio,
-  IconeEditar,
-  IconeInativar,
-  IconeMais,
-  IconeOlhoAberto,
-  IconeOlhoFechado,
-  IconeSair,
-} from "../../../components/icons/Icons";
+import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
+import { IconeOlhoAberto, IconeOlhoFechado } from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
@@ -233,32 +224,13 @@ function ModalEditar({ instituicao, onFechar, onSucesso, onToast }) {
 
 /* ── Dashboard principal ── */
 export default function Admindashboard({ onLogout }) {
+  const { toastProps, mostrarToast } = useBcToast();
   const [instituicoes, setInstituicoes]     = useState([]);
   const [busca, setBusca]                   = useState("");
   const [modalCadastro, setModalCadastro]   = useState(false);
   const [modalEditar, setModalEditar]       = useState(null); // guarda a instituição a editar
   const [confirmDelete, setConfirmDelete]   = useState(null);
   const [deletando, setDeletando]           = useState(false);
-  const [toast, setToast] = useState({
-    aberto: false,
-    tipo: "info",
-    titulo: "",
-    mensagem: "",
-  });
-
-  const mostrarToast = useCallback((tipo, titulo, mensagem) => {
-    setToast({
-      aberto: true,
-      tipo,
-      titulo,
-      mensagem,
-    });
-  }, []);
-
-  function fecharToast() {
-    setToast((atual) => ({ ...atual, aberto: false }));
-  }
-
   const recarregarLista = useCallback(() => {
     listarInstituicoes()
       .then(data => setInstituicoes(Array.isArray(data) ? data : []))
@@ -292,13 +264,7 @@ export default function Admindashboard({ onLogout }) {
 
   return (
     <div className="adm-page">
-      <BcToast
-        aberto={toast.aberto}
-        tipo={toast.tipo}
-        titulo={toast.titulo}
-        mensagem={toast.mensagem}
-        onFechar={fecharToast}
-      />
+      <BcToast {...toastProps} />
 
       <BcTopbar
         title="Painel Administrativo"

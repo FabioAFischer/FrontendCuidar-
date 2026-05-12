@@ -5,7 +5,7 @@ import BcInput from "../../../components/Bcinput/BcInput";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
-import BcToast from "../../../components/BcToast/BcToast";
+import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import {
   atualizarCuidador as atualizarCuidadorApi,
   atualizarIdoso as atualizarIdosoApi,
@@ -27,6 +27,7 @@ import { cpfValido, somenteNumeros } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 export default function InstituicaoProfileHome({ onLogout }) {
+  const { toastProps, mostrarToast } = useBcToast();
   const [modalCuidadorAberto, setModalCuidadorAberto] = useState(false);
   const [modalIdosoAberto, setModalIdosoAberto] = useState(false);
   const [cuidadorEmEdicao, setCuidadorEmEdicao] = useState(null);
@@ -50,12 +51,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
     carregando: false,
     consultado: false,
     idoso: null,
-  });
-  const [toast, setToast] = useState({
-    aberto: false,
-    tipo: "info",
-    titulo: "",
-    mensagem: "",
   });
   const [formCuidador, setFormCuidador] = useState({
     cpf: "",
@@ -87,7 +82,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally {
       setCarregandoCuidadores(false);
     }
-  }, []);
+  }, [mostrarToast]);
 
   const carregarIdosos = useCallback(async () => {
     try {
@@ -101,20 +96,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally {
       setCarregandoIdosos(false);
     }
-  }, []);
-
-  function mostrarToast(tipo, titulo, mensagem) {
-    setToast({
-      aberto: true,
-      tipo,
-      titulo,
-      mensagem,
-    });
-  }
-
-  function fecharToast() {
-    setToast((atual) => ({ ...atual, aberto: false }));
-  }
+  }, [mostrarToast]);
 
   useEffect(() => {
     carregarCuidadores();
@@ -552,13 +534,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   return (
     <div className="instituicao-home">
-      <BcToast
-        aberto={toast.aberto}
-        tipo={toast.tipo}
-        titulo={toast.titulo}
-        mensagem={toast.mensagem}
-        onFechar={fecharToast}
-      />
+      <BcToast {...toastProps} />
 
       <BcTopbar
         title="Painel da Instituição"
