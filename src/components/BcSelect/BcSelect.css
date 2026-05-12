@@ -1,0 +1,18 @@
+.bc-select {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  background: #f2f2f2;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a1a;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.bc-select:focus {
+  border-color: #0d9e8a;
+  background: #fff;
+}
