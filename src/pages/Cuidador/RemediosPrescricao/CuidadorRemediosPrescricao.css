@@ -147,6 +147,32 @@
   gap: 11px;
 }
 
+.cuidador-remedios-prescricoes-lista {
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-thumb:hover {
+  background: #98a2b3;
+}
+
 .cuidador-remedios-vazio {
   padding: 28px 18px;
   border: 1px dashed #c9dcda;

@@ -563,7 +563,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                 </button>
               </div>
 
-              <div className="cuidador-remedios-lista">
+              <div className="cuidador-remedios-lista cuidador-remedios-prescricoes-lista">
                 {carregandoPrescricoes ? (
                   <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                     <p>Carregando prescricoes...</p>
