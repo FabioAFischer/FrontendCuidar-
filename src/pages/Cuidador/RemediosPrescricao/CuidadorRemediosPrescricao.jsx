@@ -138,13 +138,25 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [salvandoRemedio, setSalvandoRemedio] = useState(false);
   const [inativandoRemedio, setInativandoRemedio] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
+  const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
   const [remedioEmEdicao, setRemedioEmEdicao] = useState(null);
   const [remedioEmVisualizacao, setRemedioEmVisualizacao] = useState(null);
   const [erroCadastroRemedio, setErroCadastroRemedio] = useState("");
+  const [erroPrescricao, setErroPrescricao] = useState("");
   const [formRemedio, setFormRemedio] = useState({
     nome: "",
     observacao: "",
   });
+  const [formPrescricao, setFormPrescricao] = useState({
+    remedioId: "",
+    dosagem: "",
+    intervalo: "",
+    dataFim: "",
+    necessarioJejum: "false",
+    instrucao: "",
+  });
+
+  const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
 
   useEffect(() => {
     carregarRemedios();
@@ -224,6 +236,53 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   function fecharVisualizacaoRemedio() {
     setRemedioEmVisualizacao(null);
+  }
+
+  function abrirCadastroPrescricao() {
+    setErroPrescricao("");
+    setFormPrescricao({
+      remedioId: "",
+      dosagem: "",
+      intervalo: "",
+      dataFim: "",
+      necessarioJejum: "false",
+      instrucao: "",
+    });
+    setModalPrescricaoAberto(true);
+  }
+
+  function fecharCadastroPrescricao() {
+    setModalPrescricaoAberto(false);
+    setErroPrescricao("");
+    setFormPrescricao({
+      remedioId: "",
+      dosagem: "",
+      intervalo: "",
+      dataFim: "",
+      necessarioJejum: "false",
+      instrucao: "",
+    });
+  }
+
+  function atualizarPrescricao(evento) {
+    const { name, value } = evento.target;
+    setFormPrescricao((anterior) => ({ ...anterior, [name]: value }));
+  }
+
+  function handleSalvarPrescricao(evento) {
+    evento.preventDefault();
+
+    if (!idosoSelecionado) {
+      setErroPrescricao("Selecione um idoso para criar a prescricao.");
+      return;
+    }
+
+    if (!formPrescricao.remedioId) {
+      setErroPrescricao("Selecione um remedio.");
+      return;
+    }
+
+    setErroPrescricao("A integracao de salvar prescricao ainda sera conectada ao backend.");
   }
 
   async function handleSalvarRemedio(evento) {
@@ -352,7 +411,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             <div className="cuidador-remedios-card">
               <div className="cuidador-remedios-card__header">
                 <TituloSecao icone={<IconeRemedio />}>Prescricoes</TituloSecao>
-                <button className="cuidador-remedios-prescrever" type="button">
+                <button className="cuidador-remedios-prescrever" type="button" onClick={abrirCadastroPrescricao}>
                   <IconeMais />
                   Prescrever
                 </button>
@@ -490,6 +549,91 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             Fechar
           </BcButton>
         </section>
+      </BcModal>
+
+      <BcModal aberto={modalPrescricaoAberto} onFechar={fecharCadastroPrescricao}>
+        <BcFormModal
+          title="Nova Prescricao"
+          subtitle="Preencha os dados para criar uma prescricao para o idoso selecionado"
+          error={erroPrescricao}
+          onSubmit={handleSalvarPrescricao}
+          className="cuidador-remedios-prescricao-modal"
+        >
+          <div className="cuidador-remedios-prescricao-paciente">
+            <span>Idoso selecionado</span>
+            <strong>{idosoSelecionado?.nome || "Nenhum idoso selecionado"}</strong>
+            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Nao informado"}</small> : null}
+          </div>
+
+          <div className="cuidador-remedios-campo">
+            <label htmlFor="prescricao-remedio" className="bc-form-modal__label">Remedio *</label>
+            <select
+              id="prescricao-remedio"
+              name="remedioId"
+              className="cuidador-remedios-select"
+              value={formPrescricao.remedioId}
+              onChange={atualizarPrescricao}
+            >
+              <option value="">Selecione um remedio</option>
+              {remedios.map((remedio) => (
+                <option key={remedio.id} value={remedio.id}>{remedio.nome}</option>
+              ))}
+            </select>
+          </div>
+
+          <BcInput
+            label="Dosagem *"
+            name="dosagem"
+            placeholder="Ex: 1 comprimido"
+            value={formPrescricao.dosagem}
+            onChange={atualizarPrescricao}
+          />
+
+          <BcInput
+            label="Intervalo em horas *"
+            name="intervalo"
+            type="number"
+            placeholder="Ex: 8"
+            value={formPrescricao.intervalo}
+            onChange={atualizarPrescricao}
+            inputMode="decimal"
+          />
+
+          <BcInput
+            label="Data final"
+            name="dataFim"
+            type="datetime-local"
+            value={formPrescricao.dataFim}
+            onChange={atualizarPrescricao}
+          />
+
+          <div className="cuidador-remedios-campo">
+            <label htmlFor="prescricao-jejum" className="bc-form-modal__label">Necessario jejum?</label>
+            <select
+              id="prescricao-jejum"
+              name="necessarioJejum"
+              className="cuidador-remedios-select"
+              value={formPrescricao.necessarioJejum}
+              onChange={atualizarPrescricao}
+            >
+              <option value="false">Nao</option>
+              <option value="true">Sim</option>
+            </select>
+          </div>
+
+          <BcFormModalTextarea
+            id="prescricao-instrucao"
+            label="Instrucao"
+            name="instrucao"
+            placeholder="Orientacoes importantes sobre a administracao..."
+            value={formPrescricao.instrucao}
+            onChange={atualizarPrescricao}
+          />
+
+          <BcButton type="submit">
+            Criar prescricao
+          </BcButton>
+        </BcFormModal>
       </BcModal>
     </div>
   );
