@@ -6,12 +6,13 @@
  *   onFechar  : fn
  *   children  : ReactNode
  */
+import { createPortal } from "react-dom";
 import "./BcModal.css";
 
 export default function BcModal({ aberto, onFechar, children }) {
   if (!aberto) return null;
 
-  return (
+  const conteudo = (
     <div className="bcmodal-overlay" onClick={(e) => e.stopPropagation()}>
       <div
         className="bcmodal-content"
@@ -28,4 +29,6 @@ export default function BcModal({ aberto, onFechar, children }) {
       </div>
     </div>
   );
+
+  return createPortal(conteudo, document.body);
 }

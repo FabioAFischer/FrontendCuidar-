@@ -39,6 +39,115 @@ const IDOSO_MOCK_VINCULADO = {
   },
 };
 
+const OUTRO_IDOSO_MOCK_VINCULADO = {
+  id: 7002,
+  nome: "Antonio Ribeiro",
+  cpf: "61248375901",
+  observacoes: "Paciente vinculado ao cuidador mockado para testes de prescricao.",
+  instituicaoId: 1,
+  contatoId: 7102,
+  contato: {
+    id: 7102,
+    ddd: "11",
+    telefone: "976543210",
+  },
+  vinculo: {
+    id: 7202,
+    cuidadorId: 9001,
+    idosoId: 7002,
+    nomeCuidador: "Phillip MLK",
+    nomeIdoso: "Antonio Ribeiro",
+    dataCriacao: "2026-05-12",
+  },
+};
+
+const IDOSOS_MOCK_VINCULADOS_EXTRAS = [
+  {
+    id: 7003,
+    nome: "Maria Aparecida Souza",
+    cpf: "73491628504",
+    observacoes: "Paciente vinculado ao cuidador mockado para testes de selecao.",
+    instituicaoId: 1,
+    contatoId: 7103,
+    contato: {
+      id: 7103,
+      ddd: "11",
+      telefone: "965432109",
+    },
+    vinculo: {
+      id: 7203,
+      cuidadorId: 9001,
+      idosoId: 7003,
+      nomeCuidador: "Phillip MLK",
+      nomeIdoso: "Maria Aparecida Souza",
+      dataCriacao: "2026-05-12",
+    },
+  },
+  {
+    id: 7004,
+    nome: "Jose Carlos Pereira",
+    cpf: "48502761398",
+    observacoes: "Paciente vinculado ao cuidador mockado para testes de prescricao.",
+    instituicaoId: 1,
+    contatoId: 7104,
+    contato: {
+      id: 7104,
+      ddd: "11",
+      telefone: "954321098",
+    },
+    vinculo: {
+      id: 7204,
+      cuidadorId: 9001,
+      idosoId: 7004,
+      nomeCuidador: "Phillip MLK",
+      nomeIdoso: "Jose Carlos Pereira",
+      dataCriacao: "2026-05-12",
+    },
+  },
+  {
+    id: 7005,
+    nome: "Sebastiana Oliveira",
+    cpf: "90157263486",
+    observacoes: "Paciente vinculado ao cuidador mockado para testes de agenda.",
+    instituicaoId: 1,
+    contatoId: 7105,
+    contato: {
+      id: 7105,
+      ddd: "11",
+      telefone: "943210987",
+    },
+    vinculo: {
+      id: 7205,
+      cuidadorId: 9001,
+      idosoId: 7005,
+      nomeCuidador: "Phillip MLK",
+      nomeIdoso: "Sebastiana Oliveira",
+      dataCriacao: "2026-05-12",
+    },
+  },
+  {
+    id: 7006,
+    nome: "Francisco Almeida",
+    cpf: "26739814570",
+    observacoes: "Paciente vinculado ao cuidador mockado para testes de gerenciamento.",
+    instituicaoId: 1,
+    contatoId: 7106,
+    contato: {
+      id: 7106,
+      ddd: "11",
+      telefone: "932109876",
+    },
+    vinculo: {
+      id: 7206,
+      cuidadorId: 9001,
+      idosoId: 7006,
+      nomeCuidador: "Phillip MLK",
+      nomeIdoso: "Francisco Almeida",
+      dataCriacao: "2026-05-12",
+    },
+  },
+];
+
 async function getErrorMessage(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
@@ -185,7 +294,7 @@ export async function listarIdosos(page = 0, size = 100) {
 
 export async function listarIdososDoCuidador(cuidadorId = getUsuarioId(), page = 0, size = 100) {
   if (cuidadorId === 9001 || getAuthTokenAtual() === "mock-cuidador-token") {
-    return [IDOSO_MOCK_VINCULADO];
+    return [IDOSO_MOCK_VINCULADO, OUTRO_IDOSO_MOCK_VINCULADO, ...IDOSOS_MOCK_VINCULADOS_EXTRAS];
   }
 
   const vinculosData = await requestApi(`/vinculo/cuidador/${cuidadorId}?page=${page}&size=${size}`, {

@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import "./BcConfirmacao.css";
 
 const IconeAlerta = () => (
@@ -23,7 +24,7 @@ export default function BcConfirmacao({
 }) {
   if (!aberto) return null;
 
-  return (
+  const conteudo = (
     <div className="bc-confirmacao-overlay" onClick={(evento) => evento.stopPropagation()}>
       <div className="bc-confirmacao" onClick={(evento) => evento.stopPropagation()}>
         <div className="bc-confirmacao__icone">{icone}</div>
@@ -49,4 +50,6 @@ export default function BcConfirmacao({
       </div>
     </div>
   );
+
+  return createPortal(conteudo, document.body);
 }

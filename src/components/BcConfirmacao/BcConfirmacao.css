@@ -1,11 +1,11 @@
 .bc-confirmacao-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 1400;
   padding: 16px;
   animation: bc-confirmacao-fade-in 0.15s ease;
 }

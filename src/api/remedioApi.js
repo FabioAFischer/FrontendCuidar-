@@ -3,6 +3,7 @@ import { API_BASE_URL } from "./env";
 
 const MOCK_TOKEN = "mock-cuidador-token";
 const MOCK_REMEDIOS_KEY = "remediosMockados";
+const MOCK_PRESCRICOES_KEY = "prescricoesMockadas";
 
 function getAuthTokenAtual() {
   return localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -60,6 +61,15 @@ function listarRemediosMockados() {
 
 function salvarRemediosMockados(remedios) {
   localStorage.setItem(MOCK_REMEDIOS_KEY, JSON.stringify(remedios));
+}
+
+function listarPrescricoesMockadas() {
+  const dados = JSON.parse(localStorage.getItem(MOCK_PRESCRICOES_KEY) || "[]");
+  return Array.isArray(dados) ? dados : [];
+}
+
+function salvarPrescricoesMockadas(prescricoes) {
+  localStorage.setItem(MOCK_PRESCRICOES_KEY, JSON.stringify(prescricoes));
 }
 
 export async function listarRemedios(page = 0, size = 100) {
@@ -136,7 +146,17 @@ export async function atualizarRemedio(id, dados) {
 export async function inativarRemedio(id) {
   if (usandoCuidadorMockado()) {
     const remedios = listarRemediosMockados();
+    const prescricoes = listarPrescricoesMockadas();
+
     salvarRemediosMockados(remedios.filter((remedio) => Number(remedio.id) !== Number(id)));
+    salvarPrescricoesMockadas(
+      prescricoes.map((prescricao) =>
+        Number(prescricao.remedioId) === Number(id)
+          ? { ...prescricao, status: "INATIVO" }
+          : prescricao
+      )
+    );
+
     return null;
   }
 
