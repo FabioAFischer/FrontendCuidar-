@@ -7,11 +7,9 @@ import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemedio
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
+import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, inativarPrescricao, listarPrescricoesPorIdoso } from "../../../api/prescricaoApi";
 import { atualizarRemedio as atualizarRemedioApi, cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./CuidadorRemediosPrescricao.css";
-
-const prescricoes = [
-];
 
 const agenda = [
 ];
@@ -58,6 +56,15 @@ function IconeEditar() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function IconeVisualizar() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
@@ -127,20 +134,51 @@ function formatarTelefone(idoso) {
   return ddd ? `(${ddd}) ${telefoneFormatado}` : telefoneFormatado;
 }
 
+function formatarData(valor) {
+  if (!valor) return "Sem data";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "Sem data";
+
+  return data.toLocaleDateString("pt-BR");
+}
+
+function valorInputData(valor) {
+  if (!valor) return "";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "";
+
+  const offsetMs = data.getTimezoneOffset() * 60000;
+  return new Date(data.getTime() - offsetMs).toISOString().slice(0, 10);
+}
+
+function fimDoDia(valor) {
+  if (!valor) return null;
+  return `${valor}T23:59:59`;
+}
+
 export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [remedios, setRemedios] = useState([]);
   const [idosos, setIdosos] = useState([]);
+  const [prescricoes, setPrescricoes] = useState([]);
   const [idosoSelecionadoId, setIdosoSelecionadoId] = useState(null);
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [erroIdosos, setErroIdosos] = useState("");
   const [carregandoRemedios, setCarregandoRemedios] = useState(true);
   const [erroRemedios, setErroRemedios] = useState("");
+  const [carregandoPrescricoes, setCarregandoPrescricoes] = useState(false);
+  const [erroListagemPrescricao, setErroListagemPrescricao] = useState("");
   const [salvandoRemedio, setSalvandoRemedio] = useState(false);
+  const [salvandoPrescricao, setSalvandoPrescricao] = useState(false);
   const [inativandoRemedio, setInativandoRemedio] = useState(false);
+  const [inativandoPrescricao, setInativandoPrescricao] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
   const [remedioEmEdicao, setRemedioEmEdicao] = useState(null);
+  const [prescricaoEmEdicao, setPrescricaoEmEdicao] = useState(null);
   const [remedioEmVisualizacao, setRemedioEmVisualizacao] = useState(null);
+  const [prescricaoEmVisualizacao, setPrescricaoEmVisualizacao] = useState(null);
   const [erroCadastroRemedio, setErroCadastroRemedio] = useState("");
   const [erroPrescricao, setErroPrescricao] = useState("");
   const [formRemedio, setFormRemedio] = useState({
@@ -162,6 +200,29 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     carregarRemedios();
     carregarIdosos();
   }, []);
+
+  useEffect(() => {
+    async function carregarPrescricoesDoIdoso() {
+      if (!idosoSelecionadoId) {
+        setPrescricoes([]);
+        return;
+      }
+
+      try {
+        setCarregandoPrescricoes(true);
+        setErroListagemPrescricao("");
+        const lista = await listarPrescricoesPorIdoso(idosoSelecionadoId);
+        setPrescricoes(Array.isArray(lista) ? lista : []);
+      } catch (erro) {
+        setErroListagemPrescricao(erro.message);
+        setPrescricoes([]);
+      } finally {
+        setCarregandoPrescricoes(false);
+      }
+    }
+
+    carregarPrescricoesDoIdoso();
+  }, [idosoSelecionadoId]);
 
   async function carregarIdosos() {
     try {
@@ -238,8 +299,17 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setRemedioEmVisualizacao(null);
   }
 
+  function abrirVisualizacaoPrescricao(prescricao) {
+    setPrescricaoEmVisualizacao(prescricao);
+  }
+
+  function fecharVisualizacaoPrescricao() {
+    setPrescricaoEmVisualizacao(null);
+  }
+
   function abrirCadastroPrescricao() {
     setErroPrescricao("");
+    setPrescricaoEmEdicao(null);
     setFormPrescricao({
       remedioId: "",
       dosagem: "",
@@ -253,6 +323,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   function fecharCadastroPrescricao() {
     setModalPrescricaoAberto(false);
+    setPrescricaoEmEdicao(null);
     setErroPrescricao("");
     setFormPrescricao({
       remedioId: "",
@@ -269,7 +340,21 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setFormPrescricao((anterior) => ({ ...anterior, [name]: value }));
   }
 
-  function handleSalvarPrescricao(evento) {
+  function abrirEdicaoPrescricao(prescricao) {
+    setErroPrescricao("");
+    setPrescricaoEmEdicao(prescricao);
+    setFormPrescricao({
+      remedioId: prescricao.remedioId ? String(prescricao.remedioId) : "",
+      dosagem: prescricao.dosagem || "",
+      intervalo: prescricao.intervalo ? String(prescricao.intervalo) : "",
+      dataFim: valorInputData(prescricao.dataFim),
+      necessarioJejum: prescricao.necessarioJejum ? "true" : "false",
+      instrucao: prescricao.instrucao || "",
+    });
+    setModalPrescricaoAberto(true);
+  }
+
+  async function handleSalvarPrescricao(evento) {
     evento.preventDefault();
 
     if (!idosoSelecionado) {
@@ -282,7 +367,51 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       return;
     }
 
-    setErroPrescricao("A integracao de salvar prescricao ainda sera conectada ao backend.");
+    if (!formPrescricao.dosagem.trim()) {
+      setErroPrescricao("Informe a dosagem.");
+      return;
+    }
+
+    if (!formPrescricao.intervalo || Number(formPrescricao.intervalo) <= 0) {
+      setErroPrescricao("Informe um intervalo maior que zero.");
+      return;
+    }
+
+    const remedioSelecionado = remedios.find((remedio) => Number(remedio.id) === Number(formPrescricao.remedioId));
+    const dados = {
+      remedioId: Number(formPrescricao.remedioId),
+      idosoId: Number(idosoSelecionado.id),
+      remedioNome: remedioSelecionado?.nome || "",
+      idosoNome: idosoSelecionado.nome || "",
+      dosagem: formPrescricao.dosagem,
+      intervalo: Number(formPrescricao.intervalo),
+      dataFim: fimDoDia(formPrescricao.dataFim),
+      necessarioJejum: formPrescricao.necessarioJejum === "true",
+      instrucao: formPrescricao.instrucao,
+    };
+
+    try {
+      setSalvandoPrescricao(true);
+      setErroPrescricao("");
+
+      if (prescricaoEmEdicao) {
+        const prescricaoAtualizada = await atualizarPrescricaoApi(prescricaoEmEdicao.id, dados);
+        setPrescricoes((anteriores) =>
+          anteriores.map((prescricao) =>
+            Number(prescricao.id) === Number(prescricaoEmEdicao.id) ? prescricaoAtualizada : prescricao
+          )
+        );
+      } else {
+        const prescricaoCriada = await cadastrarPrescricao(dados);
+        setPrescricoes((anteriores) => [prescricaoCriada, ...anteriores]);
+      }
+
+      fecharCadastroPrescricao();
+    } catch (erro) {
+      setErroPrescricao(erro.message);
+    } finally {
+      setSalvandoPrescricao(false);
+    }
   }
 
   async function handleSalvarRemedio(evento) {
@@ -337,6 +466,23 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       setErroRemedios(erro.message);
     } finally {
       setInativandoRemedio(false);
+    }
+  }
+
+  async function handleInativarPrescricao(prescricao) {
+    if (!window.confirm("Tem certeza que deseja remover esta prescricao?")) {
+      return;
+    }
+
+    try {
+      setInativandoPrescricao(true);
+      setErroListagemPrescricao("");
+      await inativarPrescricao(prescricao.id);
+      setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(prescricao.id)));
+    } catch (erro) {
+      setErroListagemPrescricao(erro.message);
+    } finally {
+      setInativandoPrescricao(false);
     }
   }
 
@@ -418,11 +564,23 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
               </div>
 
               <div className="cuidador-remedios-lista">
-                {prescricoes.length > 0 ? (
+                {carregandoPrescricoes ? (
+                  <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                    <p>Carregando prescricoes...</p>
+                  </div>
+                ) : erroListagemPrescricao ? (
+                  <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                    <p>{erroListagemPrescricao}</p>
+                    <small>Nao foi possivel carregar as prescricoes deste idoso.</small>
+                  </div>
+                ) : prescricoes.length > 0 ? (
                   prescricoes.map((prescricao) => (
-                    <article className="cuidador-remedios-prescricao" key={prescricao.remedio}>
+                    <article className="cuidador-remedios-prescricao" key={prescricao.id}>
                       <div>
-                        <h3>{prescricao.remedio}</h3>
+                        <div className="cuidador-remedios-prescricao__topo">
+                          <h3>{prescricao.remedioNome || "Remedio nao identificado"}</h3>
+                          <span>{prescricao.necessarioJejum ? "Necessario jejum" : "Sem jejum"}</span>
+                        </div>
                         <dl>
                           <div>
                             <dt>Dosagem</dt>
@@ -430,19 +588,18 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                           </div>
                           <div>
                             <dt>Intervalo</dt>
-                            <dd>{prescricao.intervalo}</dd>
+                            <dd>{prescricao.intervalo}h</dd>
                           </div>
                           <div>
                             <dt>Fim</dt>
-                            <dd>{prescricao.fim}</dd>
+                            <dd>{formatarData(prescricao.dataFim)}</dd>
                           </div>
                         </dl>
-                        <span>{prescricao.etiqueta}</span>
-                        <p>{prescricao.instrucao}</p>
                       </div>
                       <div className="cuidador-remedios-item__acoes">
-                        <BotaoIcone label="Editar prescricao"><IconeEditar /></BotaoIcone>
-                        <BotaoIcone tipo="perigo" label="Remover prescricao"><IconeLixeira /></BotaoIcone>
+                        <BotaoIcone label="Visualizar prescricao" onClick={() => abrirVisualizacaoPrescricao(prescricao)}><IconeVisualizar /></BotaoIcone>
+                        <BotaoIcone label="Editar prescricao" onClick={() => abrirEdicaoPrescricao(prescricao)}><IconeEditar /></BotaoIcone>
+                        <BotaoIcone tipo="perigo" label="Remover prescricao" onClick={() => handleInativarPrescricao(prescricao)}><IconeLixeira /></BotaoIcone>
                       </div>
                     </article>
                   ))
@@ -551,10 +708,57 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
         </section>
       </BcModal>
 
+      <BcModal aberto={Boolean(prescricaoEmVisualizacao)} onFechar={fecharVisualizacaoPrescricao}>
+        <section className="cuidador-remedios-detalhes" aria-label="Dados da prescricao">
+          <header className="cuidador-remedios-detalhes__header">
+            <span className="cuidador-remedios-detalhes__icone"><IconeRemedio /></span>
+            <div>
+              <h2>Dados da Prescricao</h2>
+              <p>Informacoes cadastradas para consulta.</p>
+            </div>
+          </header>
+
+          <dl className="cuidador-remedios-detalhes__lista">
+            <div>
+              <dt>Idoso</dt>
+              <dd>{prescricaoEmVisualizacao?.idosoNome || idosoSelecionado?.nome || "-"}</dd>
+            </div>
+            <div>
+              <dt>Remedio</dt>
+              <dd>{prescricaoEmVisualizacao?.remedioNome || "-"}</dd>
+            </div>
+            <div>
+              <dt>Dosagem</dt>
+              <dd>{prescricaoEmVisualizacao?.dosagem || "-"}</dd>
+            </div>
+            <div>
+              <dt>Intervalo</dt>
+              <dd>{prescricaoEmVisualizacao?.intervalo ? `${prescricaoEmVisualizacao.intervalo}h` : "-"}</dd>
+            </div>
+            <div>
+              <dt>Fim</dt>
+              <dd>{formatarData(prescricaoEmVisualizacao?.dataFim)}</dd>
+            </div>
+            <div>
+              <dt>Jejum</dt>
+              <dd>{prescricaoEmVisualizacao?.necessarioJejum ? "Necessario" : "Nao necessario"}</dd>
+            </div>
+            <div>
+              <dt>Instrucao</dt>
+              <dd>{prescricaoEmVisualizacao?.instrucao || "-"}</dd>
+            </div>
+          </dl>
+
+          <BcButton type="button" onClick={fecharVisualizacaoPrescricao}>
+            Fechar
+          </BcButton>
+        </section>
+      </BcModal>
+
       <BcModal aberto={modalPrescricaoAberto} onFechar={fecharCadastroPrescricao}>
         <BcFormModal
-          title="Nova Prescricao"
-          subtitle="Preencha os dados para criar uma prescricao para o idoso selecionado"
+          title={prescricaoEmEdicao ? "Editar Prescricao" : "Nova Prescricao"}
+          subtitle={prescricaoEmEdicao ? "Atualize os dados da prescricao" : "Preencha os dados para criar uma prescricao para o idoso selecionado"}
           error={erroPrescricao}
           onSubmit={handleSalvarPrescricao}
           className="cuidador-remedios-prescricao-modal"
@@ -602,7 +806,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           <BcInput
             label="Data final"
             name="dataFim"
-            type="datetime-local"
+            type="date"
             value={formPrescricao.dataFim}
             onChange={atualizarPrescricao}
           />
@@ -630,8 +834,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             onChange={atualizarPrescricao}
           />
 
-          <BcButton type="submit">
-            Criar prescricao
+          <BcButton type="submit" loading={salvandoPrescricao} disabled={inativandoPrescricao}>
+            {prescricaoEmEdicao ? "Salvar alteracoes" : "Criar prescricao"}
           </BcButton>
         </BcFormModal>
       </BcModal>

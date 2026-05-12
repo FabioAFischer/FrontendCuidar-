@@ -212,9 +212,8 @@
 }
 
 .cuidador-remedios-item small,
-.cuidador-remedios-prescricao span {
+.cuidador-remedios-prescricao__topo span {
   display: inline-flex;
-  margin-top: 10px;
   padding: 5px 8px;
   border-radius: 999px;
   background: #eef6f5;
@@ -223,10 +222,23 @@
   font-weight: 800;
 }
 
+.cuidador-remedios-prescricao {
+  padding: 12px 14px;
+}
+
+.cuidador-remedios-item small {
+  margin-top: 10px;
+}
+
 .cuidador-remedios-item__acoes {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.cuidador-remedios-prescricao .cuidador-remedios-item__acoes {
+  align-self: stretch;
+  justify-content: center;
 }
 
 .cuidador-remedios-idosos {
@@ -298,15 +310,22 @@
   font-size: 17px;
 }
 
+.cuidador-remedios-prescricao__topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .cuidador-remedios-prescricao dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .cuidador-remedios-prescricao dl div {
-  padding: 10px;
+  padding: 9px 10px;
   border-radius: 10px;
   background: #f5f8f8;
 }
