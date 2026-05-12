@@ -5,6 +5,15 @@ import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcPasswordStrength from "../../components/BcPasswordStrength/BcPasswordStrength";
 import BcToast from "../../components/BcToast/BcToast";
+import {
+  IconeCadeado,
+  IconeCodigo,
+  IconeEmail,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
+  IconeSeguranca,
+  IconeSucesso,
+} from "../../components/icons/Icons";
 import { login as loginUsuario, verificar2fa } from "../../api/authApi";
 import {
   enviarIdentificador,
@@ -17,58 +26,6 @@ import {
 import "./LoginPage.css";
 
 /* ── Ícones ── */
-const IconeEmail = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <rect x="2" y="4" width="20" height="16" rx="3" />
-    <path d="m2 7 8.586 5.657a2 2 0 0 0 2.828 0L22 7" />
-  </svg>
-);
-const IconeCodigo = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <rect x="5" y="2" width="14" height="20" rx="2" />
-    <path d="M12 18h.01M8 6h8M8 10h8M8 14h4" />
-  </svg>
-);
-const IconeCadeado = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    <circle cx="12" cy="16" r="1" fill="currentColor" />
-  </svg>
-);
-const IconeSeguranca = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <path d="m9 12 2 2 4-4" />
-  </svg>
-);
-const IconeSucesso = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="m8 12 3 3 5-5" />
-  </svg>
-);
-const IconeOlhoAberto = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-const IconeOlhoFechado = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-);
-
 /* ── Validação de senha ── */
 function validarSenha(senha) {
   if (senha.length < 8)             return "Mínimo de 8 caracteres.";

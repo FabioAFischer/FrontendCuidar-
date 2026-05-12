@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import BcLogo from "../../../components/Bclogo/BcLogo";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcModal from "../../../components/BcModal/BcModal";
@@ -6,49 +6,21 @@ import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast from "../../../components/BcToast/BcToast";
-import { IconeOlhoAberto, IconeOlhoFechado } from "../../../components/icons/Icons";
+import {
+  IconeBusca,
+  IconeEdificio,
+  IconeEditar,
+  IconeInativar,
+  IconeMais,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
+  IconeSair,
+} from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
 /* ── Ícones ── */
-const IconeBusca = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-  </svg>
-);
-const IconeEditar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
-const IconeInativar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="m8.5 8.5 7 7" />
-  </svg>
-);
-const IconeSair = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-const IconeEdificio = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <path d="M9 3v18M3 9h6M3 15h6M15 9h3M15 13h3M15 17h3" />
-  </svg>
-);
-const IconeMais = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
 /* ── Helpers ── */
 function formatarCNPJ(v) {
   const n = v.replace(/\D/g, "").slice(0, 14);
@@ -274,29 +246,29 @@ export default function Admindashboard({ onLogout }) {
     mensagem: "",
   });
 
-  function mostrarToast(tipo, titulo, mensagem) {
+  const mostrarToast = useCallback((tipo, titulo, mensagem) => {
     setToast({
       aberto: true,
       tipo,
       titulo,
       mensagem,
     });
-  }
+  }, []);
 
   function fecharToast() {
     setToast((atual) => ({ ...atual, aberto: false }));
   }
 
-  function recarregarLista() {
+  const recarregarLista = useCallback(() => {
     listarInstituicoes()
       .then(data => setInstituicoes(Array.isArray(data) ? data : []))
       .catch(err => mostrarToast("erro", "Erro ao carregar instituicoes", err.message));
-  }
+  }, [mostrarToast]);
 
   // Carrega a lista ao montar a tela
   useEffect(() => {
     recarregarLista();
-  }, []);
+  }, [recarregarLista]);
 
   const filtradas = instituicoes.filter(i =>
     i.nome.toLowerCase().includes(busca.toLowerCase()) ||
