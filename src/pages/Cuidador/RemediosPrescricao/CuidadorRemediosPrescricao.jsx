@@ -6,11 +6,9 @@ import BcModal from "../../../components/BcModal/BcModal";
 import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemediosListagem";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
+import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import { atualizarRemedio as atualizarRemedioApi, cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./CuidadorRemediosPrescricao.css";
-
-const idosos = [
-];
 
 const prescricoes = [
 ];
@@ -106,8 +104,35 @@ function TituloSecao({ icone, children }) {
   );
 }
 
+function formatarCpf(valor = "") {
+  const numeros = String(valor).replace(/\D/g, "").slice(0, 11);
+  return numeros
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+function formatarTelefone(idoso) {
+  const contato = idoso?.contato || {};
+  const ddd = contato.ddd || idoso?.ddd;
+  const telefone = contato.telefone || idoso?.telefone;
+
+  if (!telefone) return "Telefone nao informado";
+
+  const numero = String(telefone).replace(/\D/g, "");
+  const telefoneFormatado = numero.length > 8
+    ? numero.replace(/(\d{5})(\d{4})$/, "$1-$2")
+    : numero.replace(/(\d{4})(\d{4})$/, "$1-$2");
+
+  return ddd ? `(${ddd}) ${telefoneFormatado}` : telefoneFormatado;
+}
+
 export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [remedios, setRemedios] = useState([]);
+  const [idosos, setIdosos] = useState([]);
+  const [idosoSelecionadoId, setIdosoSelecionadoId] = useState(null);
+  const [carregandoIdosos, setCarregandoIdosos] = useState(true);
+  const [erroIdosos, setErroIdosos] = useState("");
   const [carregandoRemedios, setCarregandoRemedios] = useState(true);
   const [erroRemedios, setErroRemedios] = useState("");
   const [salvandoRemedio, setSalvandoRemedio] = useState(false);
@@ -123,7 +148,26 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   useEffect(() => {
     carregarRemedios();
+    carregarIdosos();
   }, []);
+
+  async function carregarIdosos() {
+    try {
+      setCarregandoIdosos(true);
+      setErroIdosos("");
+      const lista = await listarIdososDoCuidador();
+      const idososVinculados = Array.isArray(lista) ? lista : [];
+
+      setIdosos(idososVinculados);
+      setIdosoSelecionadoId(idososVinculados[0]?.id || null);
+    } catch (erro) {
+      setErroIdosos(erro.message);
+      setIdosos([]);
+      setIdosoSelecionadoId(null);
+    } finally {
+      setCarregandoIdosos(false);
+    }
+  }
 
   async function carregarRemedios() {
     try {
@@ -273,17 +317,27 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                 <TituloSecao icone={<IconeUsuarios />}>Selecione um Idoso</TituloSecao>
               </div>
 
-              {idosos.length > 0 ? (
+              {carregandoIdosos ? (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>Carregando idosos vinculados...</p>
+                </div>
+              ) : erroIdosos ? (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>{erroIdosos}</p>
+                  <small>Nao foi possivel carregar os idosos vinculados ao cuidador.</small>
+                </div>
+              ) : idosos.length > 0 ? (
                 <div className="cuidador-remedios-idosos">
                   {idosos.map((idoso) => (
                     <button
-                      className={`cuidador-remedios-idoso ${idoso.selecionado ? "cuidador-remedios-idoso--selecionado" : ""}`}
+                      className={`cuidador-remedios-idoso ${Number(idosoSelecionadoId) === Number(idoso.id) ? "cuidador-remedios-idoso--selecionado" : ""}`}
                       type="button"
-                      key={idoso.cpf}
+                      key={idoso.id || idoso.cpf}
+                      onClick={() => setIdosoSelecionadoId(idoso.id)}
                     >
                       <strong>{idoso.nome}</strong>
-                      <span>CPF: {idoso.cpf}</span>
-                      <span>{idoso.telefone}</span>
+                      <span>CPF: {formatarCpf(idoso.cpf) || "Nao informado"}</span>
+                      <span>{formatarTelefone(idoso)}</span>
                     </button>
                   ))}
                 </div>
