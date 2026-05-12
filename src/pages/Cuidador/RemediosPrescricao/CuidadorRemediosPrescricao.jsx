@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
+import BcConfirmacao from "../../../components/BcConfirmacao/BcConfirmacao";
 import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcModal from "../../../components/BcModal/BcModal";
@@ -175,6 +176,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [inativandoPrescricao, setInativandoPrescricao] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
+  const [confirmacao, setConfirmacao] = useState(null);
   const [remedioEmEdicao, setRemedioEmEdicao] = useState(null);
   const [prescricaoEmEdicao, setPrescricaoEmEdicao] = useState(null);
   const [remedioEmVisualizacao, setRemedioEmVisualizacao] = useState(null);
@@ -456,7 +458,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     }
   }
 
-  async function handleInativarRemedio(remedio) {
+  async function confirmarInativacaoRemedio(remedio) {
     try {
       setInativandoRemedio(true);
       setErroRemedios("");
@@ -469,21 +471,34 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     }
   }
 
-  async function handleInativarPrescricao(prescricao) {
-    if (!window.confirm("Tem certeza que deseja remover esta prescricao?")) {
-      return;
-    }
+  function solicitarInativacaoPrescricao(prescricao) {
+    setConfirmacao({
+      tipo: "prescricao",
+      item: prescricao,
+      titulo: "Remover prescricao?",
+      mensagem: "A prescricao sera removida da listagem deste idoso.",
+      textoConfirmar: "Remover",
+      textoCarregando: "Removendo...",
+    });
+  }
 
+  async function confirmarInativacaoPrescricao(prescricao) {
     try {
       setInativandoPrescricao(true);
       setErroListagemPrescricao("");
       await inativarPrescricao(prescricao.id);
       setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(prescricao.id)));
+      setConfirmacao(null);
     } catch (erro) {
       setErroListagemPrescricao(erro.message);
     } finally {
       setInativandoPrescricao(false);
     }
+  }
+
+  function confirmarAcaoPendente() {
+    if (!confirmacao) return;
+    confirmarInativacaoPrescricao(confirmacao.item);
   }
 
   return (
@@ -512,7 +527,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
               onCadastrar={abrirCadastroRemedio}
               onVisualizar={abrirVisualizacaoRemedio}
               onEditar={abrirEdicaoRemedio}
-              onInativar={handleInativarRemedio}
+              onInativar={confirmarInativacaoRemedio}
             />
           </aside>
 
@@ -599,7 +614,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                       <div className="cuidador-remedios-item__acoes">
                         <BotaoIcone label="Visualizar prescricao" onClick={() => abrirVisualizacaoPrescricao(prescricao)}><IconeVisualizar /></BotaoIcone>
                         <BotaoIcone label="Editar prescricao" onClick={() => abrirEdicaoPrescricao(prescricao)}><IconeEditar /></BotaoIcone>
-                        <BotaoIcone tipo="perigo" label="Remover prescricao" onClick={() => handleInativarPrescricao(prescricao)}><IconeLixeira /></BotaoIcone>
+                        <BotaoIcone tipo="perigo" label="Remover prescricao" onClick={() => solicitarInativacaoPrescricao(prescricao)}><IconeLixeira /></BotaoIcone>
                       </div>
                     </article>
                   ))
@@ -839,6 +854,18 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           </BcButton>
         </BcFormModal>
       </BcModal>
+
+      <BcConfirmacao
+        aberto={Boolean(confirmacao)}
+        titulo={confirmacao?.titulo}
+        mensagem={confirmacao?.mensagem}
+        textoConfirmar={confirmacao?.textoConfirmar}
+        textoCarregando={confirmacao?.textoCarregando}
+        carregando={inativandoRemedio || inativandoPrescricao}
+        icone={<IconeLixeira />}
+        onCancelar={() => setConfirmacao(null)}
+        onConfirmar={confirmarAcaoPendente}
+      />
     </div>
   );
 }
