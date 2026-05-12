@@ -536,6 +536,71 @@
   background: #fff;
 }
 
+.cuidador-remedios-combobox {
+  position: relative;
+}
+
+.cuidador-remedios-combobox__input {
+  padding-right: 16px;
+}
+
+.cuidador-remedios-combobox__lista {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #dce6e5;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(31, 47, 53, 0.14);
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-combobox__opcao,
+.cuidador-remedios-combobox__vazio {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: #fff;
+  color: #1a1a1a;
+  font: inherit;
+  text-align: left;
+}
+
+.cuidador-remedios-combobox__opcao {
+  cursor: pointer;
+}
+
+.cuidador-remedios-combobox__opcao:hover,
+.cuidador-remedios-combobox__opcao--selecionada {
+  background: #e6f7f5;
+  color: #0a7d6e;
+}
+
+.cuidador-remedios-combobox__vazio {
+  color: #667085;
+}
+
 @media (max-width: 1180px) {
   .cuidador-remedios-grid {
     grid-template-columns: 1fr;

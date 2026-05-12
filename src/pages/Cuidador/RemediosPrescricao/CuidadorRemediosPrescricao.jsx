@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcConfirmacao from "../../../components/BcConfirmacao/BcConfirmacao";
 import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
@@ -177,6 +177,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [inativandoPrescricao, setInativandoPrescricao] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
+  const [buscaRemedioPrescricao, setBuscaRemedioPrescricao] = useState("");
+  const [sugestoesRemedioAbertas, setSugestoesRemedioAbertas] = useState(false);
   const [confirmacao, setConfirmacao] = useState(null);
   const [toast, setToast] = useState({
     aberto: false,
@@ -204,6 +206,17 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   });
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
+  const remediosFiltradosPrescricao = useMemo(() => {
+    const termo = buscaRemedioPrescricao.trim().toLowerCase();
+
+    if (!termo) {
+      return remedios;
+    }
+
+    return remedios.filter((remedio) =>
+      String(remedio.nome || "").toLowerCase().startsWith(termo)
+    );
+  }, [buscaRemedioPrescricao, remedios]);
 
   function mostrarToast(tipo, titulo, mensagem) {
     setToast({
@@ -332,6 +345,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   function abrirCadastroPrescricao() {
     setErroPrescricao("");
     setPrescricaoEmEdicao(null);
+    setBuscaRemedioPrescricao("");
+    setSugestoesRemedioAbertas(false);
     setFormPrescricao({
       remedioId: "",
       dosagem: "",
@@ -347,6 +362,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setModalPrescricaoAberto(false);
     setPrescricaoEmEdicao(null);
     setErroPrescricao("");
+    setBuscaRemedioPrescricao("");
+    setSugestoesRemedioAbertas(false);
     setFormPrescricao({
       remedioId: "",
       dosagem: "",
@@ -365,6 +382,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   function abrirEdicaoPrescricao(prescricao) {
     setErroPrescricao("");
     setPrescricaoEmEdicao(prescricao);
+    setBuscaRemedioPrescricao(prescricao.remedioNome || "");
+    setSugestoesRemedioAbertas(false);
     setFormPrescricao({
       remedioId: prescricao.remedioId ? String(prescricao.remedioId) : "",
       dosagem: prescricao.dosagem || "",
@@ -374,6 +393,20 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       instrucao: prescricao.instrucao || "",
     });
     setModalPrescricaoAberto(true);
+  }
+
+  function atualizarBuscaRemedioPrescricao(evento) {
+    const valor = evento.target.value;
+
+    setBuscaRemedioPrescricao(valor);
+    setSugestoesRemedioAbertas(true);
+    setFormPrescricao((anterior) => ({ ...anterior, remedioId: "" }));
+  }
+
+  function selecionarRemedioPrescricao(remedio) {
+    setBuscaRemedioPrescricao(remedio.nome || "");
+    setSugestoesRemedioAbertas(false);
+    setFormPrescricao((anterior) => ({ ...anterior, remedioId: String(remedio.id) }));
   }
 
   async function handleSalvarPrescricao(evento) {
@@ -837,18 +870,44 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
           <div className="cuidador-remedios-campo">
             <label htmlFor="prescricao-remedio" className="bc-form-modal__label">Remedio *</label>
-            <select
-              id="prescricao-remedio"
-              name="remedioId"
-              className="cuidador-remedios-select"
-              value={formPrescricao.remedioId}
-              onChange={atualizarPrescricao}
-            >
-              <option value="">Selecione um remedio</option>
-              {remedios.map((remedio) => (
-                <option key={remedio.id} value={remedio.id}>{remedio.nome}</option>
-              ))}
-            </select>
+            <div className="cuidador-remedios-combobox">
+              <input
+                id="prescricao-remedio"
+                className="cuidador-remedios-select cuidador-remedios-combobox__input"
+                type="text"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={sugestoesRemedioAbertas}
+                aria-controls="prescricao-remedio-opcoes"
+                placeholder="Digite o nome do remedio"
+                value={buscaRemedioPrescricao}
+                onChange={atualizarBuscaRemedioPrescricao}
+                onFocus={() => setSugestoesRemedioAbertas(true)}
+                onBlur={() => window.setTimeout(() => setSugestoesRemedioAbertas(false), 120)}
+              />
+
+              {sugestoesRemedioAbertas ? (
+                <div className="cuidador-remedios-combobox__lista" id="prescricao-remedio-opcoes" role="listbox">
+                  {remediosFiltradosPrescricao.length > 0 ? (
+                    remediosFiltradosPrescricao.map((remedio) => (
+                      <button
+                        className={`cuidador-remedios-combobox__opcao ${Number(formPrescricao.remedioId) === Number(remedio.id) ? "cuidador-remedios-combobox__opcao--selecionada" : ""}`}
+                        type="button"
+                        role="option"
+                        aria-selected={Number(formPrescricao.remedioId) === Number(remedio.id)}
+                        key={remedio.id}
+                        onMouseDown={(evento) => evento.preventDefault()}
+                        onClick={() => selecionarRemedioPrescricao(remedio)}
+                      >
+                        {remedio.nome}
+                      </button>
+                    ))
+                  ) : (
+                    <span className="cuidador-remedios-combobox__vazio">Nenhum remedio encontrado.</span>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <BcInput
