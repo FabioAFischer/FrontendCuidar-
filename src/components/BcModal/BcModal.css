@@ -1,11 +1,11 @@
 .bcmodal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1300;
   padding: 16px;
   animation: bcmodal-fade-in 0.18s ease;
 }
