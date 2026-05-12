@@ -5,6 +5,7 @@ import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModa
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemediosListagem";
+import BcToast from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
@@ -177,6 +178,12 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
   const [confirmacao, setConfirmacao] = useState(null);
+  const [toast, setToast] = useState({
+    aberto: false,
+    tipo: "info",
+    titulo: "",
+    mensagem: "",
+  });
   const [remedioEmEdicao, setRemedioEmEdicao] = useState(null);
   const [prescricaoEmEdicao, setPrescricaoEmEdicao] = useState(null);
   const [remedioEmVisualizacao, setRemedioEmVisualizacao] = useState(null);
@@ -197,6 +204,19 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   });
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
+
+  function mostrarToast(tipo, titulo, mensagem) {
+    setToast({
+      aberto: true,
+      tipo,
+      titulo,
+      mensagem,
+    });
+  }
+
+  function fecharToast() {
+    setToast((atual) => ({ ...atual, aberto: false }));
+  }
 
   useEffect(() => {
     carregarRemedios();
@@ -395,8 +415,9 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     try {
       setSalvandoPrescricao(true);
       setErroPrescricao("");
+      const editandoPrescricao = Boolean(prescricaoEmEdicao);
 
-      if (prescricaoEmEdicao) {
+      if (editandoPrescricao) {
         const prescricaoAtualizada = await atualizarPrescricaoApi(prescricaoEmEdicao.id, dados);
         setPrescricoes((anteriores) =>
           anteriores.map((prescricao) =>
@@ -409,8 +430,16 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       }
 
       fecharCadastroPrescricao();
+      mostrarToast(
+        "sucesso",
+        editandoPrescricao ? "Prescricao atualizada" : "Prescricao cadastrada",
+        editandoPrescricao
+          ? "As alteracoes da prescricao foram salvas."
+          : "A prescricao foi criada para o idoso selecionado."
+      );
     } catch (erro) {
       setErroPrescricao(erro.message);
+      mostrarToast("erro", "Erro ao salvar prescricao", erro.message);
     } finally {
       setSalvandoPrescricao(false);
     }
@@ -427,8 +456,9 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     try {
       setSalvandoRemedio(true);
       setErroCadastroRemedio("");
+      const editandoRemedio = Boolean(remedioEmEdicao);
 
-      if (remedioEmEdicao) {
+      if (editandoRemedio) {
         const remedioAtualizado = await atualizarRemedioApi(remedioEmEdicao.id, formRemedio);
 
         if (remedioAtualizado) {
@@ -451,8 +481,16 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       }
 
       fecharCadastroRemedio();
+      mostrarToast(
+        "sucesso",
+        editandoRemedio ? "Remedio atualizado" : "Remedio cadastrado",
+        editandoRemedio
+          ? "As alteracoes do remedio foram salvas."
+          : "O remedio foi adicionado a listagem."
+      );
     } catch (erro) {
       setErroCadastroRemedio(erro.message);
+      mostrarToast("erro", "Erro ao salvar remedio", erro.message);
     } finally {
       setSalvandoRemedio(false);
     }
@@ -465,8 +503,10 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       await inativarRemedio(remedio.id);
       setRemedios((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(remedio.id)));
       setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.remedioId) !== Number(remedio.id)));
+      mostrarToast("sucesso", "Remedio inativado", "As prescricoes vinculadas tambem foram removidas da listagem.");
     } catch (erro) {
       setErroRemedios(erro.message);
+      mostrarToast("erro", "Erro ao inativar remedio", erro.message);
     } finally {
       setInativandoRemedio(false);
     }
@@ -490,8 +530,10 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       await inativarPrescricao(prescricao.id);
       setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(prescricao.id)));
       setConfirmacao(null);
+      mostrarToast("sucesso", "Prescricao removida", "A prescricao foi removida da listagem deste idoso.");
     } catch (erro) {
       setErroListagemPrescricao(erro.message);
+      mostrarToast("erro", "Erro ao remover prescricao", erro.message);
     } finally {
       setInativandoPrescricao(false);
     }
@@ -504,6 +546,14 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   return (
     <div className="cuidador-remedios-page">
+      <BcToast
+        aberto={toast.aberto}
+        tipo={toast.tipo}
+        titulo={toast.titulo}
+        mensagem={toast.mensagem}
+        onFechar={fecharToast}
+      />
+
       <BcTopbar
         title="Gerenciamento de Prescricoes"
         subtitle="Remedios, prescricoes e agenda"
