@@ -230,6 +230,29 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 13px;
+  max-height: 245px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-thumb:hover {
+  background: #98a2b3;
 }
 
 .cuidador-remedios-idoso {
