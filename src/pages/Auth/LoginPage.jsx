@@ -4,7 +4,7 @@ import BcLogo from "../../components/Bclogo/BcLogo";
 import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcPasswordStrength from "../../components/BcPasswordStrength/BcPasswordStrength";
-import BcToast from "../../components/BcToast/BcToast";
+import BcToast, { useBcToast } from "../../components/BcToast/BcToast";
 import { login as loginUsuario, verificar2fa } from "../../api/authApi";
 import {
   enviarIdentificador,
@@ -377,6 +377,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
    Login Page
    ══════════════════════════════════ */
 export default function LoginPage({ onLogin }) {
+  const { toastProps, mostrarToast, fecharToast } = useBcToast();
   const [cpfCnpj, setCpfCnpj]               = useState("");
   const [password, setPassword]             = useState("");
   const [showPassword, setShowPassword]     = useState(false);
@@ -390,18 +391,6 @@ export default function LoginPage({ onLogin }) {
   const [twoFaEmail, setTwoFaEmail]         = useState("");
   const [twoFaPerfil, setTwoFaPerfil]       = useState("");
   const [twoFaRemember, setTwoFaRemember]   = useState(true);
-
-  const [toast, setToast] = useState({
-    aberto: false, tipo: "info", titulo: "", mensagem: "",
-  });
-
-  function mostrarToast(tipo, titulo, mensagem) {
-    setToast({ aberto: true, tipo, titulo, mensagem });
-  }
-
-  function fecharToast() {
-    setToast(atual => ({ ...atual, aberto: false }));
-  }
 
   function handleCpfCnpjChange(event) {
     const valorFormatado = formatarCpfCnpj(event.target.value);
@@ -460,13 +449,7 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <main className="login-page">
-      <BcToast
-        aberto={toast.aberto}
-        tipo={toast.tipo}
-        titulo={toast.titulo}
-        mensagem={toast.mensagem}
-        onFechar={fecharToast}
-      />
+      <BcToast {...toastProps} />
 
       <Modal2FA
         aberto={modal2FA}
