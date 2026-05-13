@@ -6,7 +6,16 @@ import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
-import { IconeOlhoAberto, IconeOlhoFechado } from "../../../components/icons/Icons";
+import {
+  IconeBusca,
+  IconeEdificio,
+  IconeEditar,
+  IconeInativar,
+  IconeMais,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
+  IconeSair,
+} from "../../../components/icons/Icons";
 import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";

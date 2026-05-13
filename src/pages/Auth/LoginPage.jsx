@@ -5,6 +5,15 @@ import BcButton from "../../components/Bcbutton/BcButton";
 import BcModal from "../../components/BcModal/BcModal";
 import BcPasswordStrength from "../../components/BcPasswordStrength/BcPasswordStrength";
 import BcToast, { useBcToast } from "../../components/BcToast/BcToast";
+import {
+  IconeCadeado,
+  IconeCodigo,
+  IconeEmail,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
+  IconeSeguranca,
+  IconeSucesso,
+} from "../../components/icons/Icons";
 import { login as loginUsuario, verificar2fa } from "../../api/authApi";
 import {
   enviarIdentificador,
