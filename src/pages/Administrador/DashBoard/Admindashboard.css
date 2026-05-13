@@ -18,3 +18,20 @@
     padding: 16px 16px 40px;
   }
 }
+
+.adm-select-status {
+  min-width: 160px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.adm-select-status:focus {
+  border-color: #0d9e8a;
+}

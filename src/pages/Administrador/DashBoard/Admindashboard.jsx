@@ -21,13 +21,22 @@ import {
   listarInstituicoes,
   atualizarInstituicao,
   deletarInstituicao,
+  reativarInstituicao,
 } from "../../../api/administradorApi";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
 /* ── Ícones ── */
 const IconeSair = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
@@ -35,7 +44,15 @@ const IconeSair = () => (
 );
 
 const IconeEdificio = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+  >
     <rect x="3" y="3" width="18" height="18" rx="2" />
     <path d="M9 3v18M3 9h6M3 15h6M15 9h3M15 13h3M15 17h3" />
   </svg>
@@ -54,6 +71,7 @@ function formatarCNPJ(v) {
 
 function formatarCEP(v) {
   const n = v.replace(/\D/g, "").slice(0, 8);
+
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
 
@@ -75,13 +93,17 @@ function validar(form, exigirSenha = false) {
   if (!cnpjValido(form.cnpj)) return "CNPJ inválido.";
   if (!form.email.trim()) return "Informe o email.";
   if (!form.bairro.trim()) return "Informe o bairro.";
-  if (form.uf.trim().length !== 2) return "UF deve ter 2 letras (ex: SC).";
+  if (form.uf.trim().length !== 2)
+    return "UF deve ter 2 letras (ex: SC).";
   if (!form.numero.trim()) return "Informe o número.";
-  if (form.cep.replace(/\D/g, "").length < 8) return "CEP inválido.";
+  if (form.cep.replace(/\D/g, "").length < 8)
+    return "CEP inválido.";
 
   if (
     exigirSenha &&
-    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(form.senha)
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(
+      form.senha
+    )
   ) {
     return "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.";
   }
@@ -150,7 +172,7 @@ function useViaCEP(cep, setForm, onToast) {
   return { buscandoCEP };
 }
 
-/* ── Campos de endereço ── */
+/* ── Campos endereço ── */
 function CamposEndereco({ form, onChange, buscandoCEP }) {
   return (
     <>
@@ -193,7 +215,7 @@ function CamposEndereco({ form, onChange, buscandoCEP }) {
   );
 }
 
-/* ── Modal Cadastro ── */
+/* ── Modal cadastro ── */
 function ModalCadastro({ onSucesso, onToast }) {
   const [form, setForm] = useState(FORM_INICIAL);
   const [showSenha, setShowSenha] = useState(false);
@@ -358,7 +380,7 @@ function ModalCadastro({ onSucesso, onToast }) {
   );
 }
 
-/* ── Modal Edição ── */
+/* ── Modal edição ── */
 function ModalEditar({ instituicao, onSucesso, onToast }) {
   const [form, setForm] = useState({
     nome: instituicao.nome || "",
@@ -493,7 +515,8 @@ const COLUNAS = [
     chave: "bairro",
     titulo: "Endereço",
     className: "bc-listagem-tdMuted",
-    render: (inst) => `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
+    render: (inst) =>
+      `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
   },
   {
     chave: "cep",
@@ -503,13 +526,13 @@ const COLUNAS = [
   {
     chave: "status",
     titulo: "Status",
-    className: "bc-listagem-tdMuted",
     render: (inst) => (
       <span
-        style={{
-          color: inst.status === "ATIVO" ? "#0d9e8a" : "#e05252",
-          fontWeight: 600,
-        }}
+        className={
+          inst.status === "ATIVO"
+            ? "bc-status bc-status--ativo"
+            : "bc-status bc-status--inativo"
+        }
       >
         {inst.status}
       </span>
@@ -571,21 +594,35 @@ export default function Admindashboard({ onLogout }) {
     return matchBusca && matchStatus;
   });
 
-  async function handleInativar(inst) {
+  async function handleToggleStatus(inst) {
     setExcluindo(true);
 
     try {
-      await deletarInstituicao(inst.id);
+      if (inst.status === "ATIVO") {
+        await deletarInstituicao(inst.id);
 
-      mostrarToast(
-        "sucesso",
-        "Instituição inativada",
-        `${inst.nome} foi inativada.`
-      );
+        mostrarToast(
+          "sucesso",
+          "Instituição inativada",
+          `${inst.nome} foi inativada.`
+        );
+      } else {
+        await reativarInstituicao(inst.id);
 
-      recarregarLista();
+        mostrarToast(
+          "sucesso",
+          "Instituição reativada",
+          `${inst.nome} foi reativada.`
+        );
+      }
+
+      await recarregarLista();
     } catch (err) {
-      mostrarToast("erro", "Erro ao inativar", err.message);
+      mostrarToast(
+        "erro",
+        "Erro ao atualizar status",
+        err.message
+      );
     } finally {
       setExcluindo(false);
     }
@@ -622,12 +659,12 @@ export default function Admindashboard({ onLogout }) {
           carregando={carregando}
           excluindo={excluindo}
           onEditar={(inst) => setModalEditar(inst)}
-          onExcluir={handleInativar}
-          tituloConfirmacao="Inativar instituição?"
-          mensagemConfirmacao="A instituição deixará de aparecer como ativa na listagem."
-          textoConfirmar="Sim, inativar"
+          onExcluir={handleToggleStatus}
+          tituloConfirmacao="Alterar status da instituição?"
+          mensagemConfirmacao="Deseja alterar o status desta instituição?"
+          textoConfirmar="Confirmar"
           textoCarregandoExcluir="Inativando..."
-          toolbarExtra={
+          filtrosToolbar={
             <BcSelect
               value={filtroStatus}
               onChange={setFiltroStatus}
@@ -641,7 +678,6 @@ export default function Admindashboard({ onLogout }) {
         />
       </main>
 
-      {/* Modal Cadastro */}
       <BcModal
         aberto={modalCadastro}
         onFechar={() => setModalCadastro(false)}
@@ -655,7 +691,6 @@ export default function Admindashboard({ onLogout }) {
         />
       </BcModal>
 
-      {/* Modal Edição */}
       <BcModal
         aberto={!!modalEditar}
         onFechar={() => setModalEditar(null)}

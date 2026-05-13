@@ -32,7 +32,9 @@ export async function cadastrarInstituicao(dados) {
 export async function listarInstituicoes(page = 0, size = 100) {
   const response = await fetch(
     `${API_BASE_URL}/instituicao/listar_todas?page=${page}&size=${size}`,
-    { headers: getAuthHeaders() }
+    {
+      headers: getAuthHeaders(),
+    }
   );
 
   if (!response.ok) {
@@ -40,6 +42,7 @@ export async function listarInstituicoes(page = 0, size = 100) {
   }
 
   const data = await response.json();
+
   return Array.isArray(data.content) ? data.content : [];
 }
 
@@ -76,7 +79,20 @@ export async function deletarInstituicao(id) {
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao deletar instituicao."));
+    throw new Error(await getErrorMessage(response, "Erro ao inativar instituicao."));
+  }
+
+  return response.json().catch(() => null);
+}
+
+export async function reativarInstituicao(id) {
+  const response = await fetch(`${API_BASE_URL}/instituicao/ativar/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Erro ao ativar instituicao."));
   }
 
   return response.json().catch(() => null);
