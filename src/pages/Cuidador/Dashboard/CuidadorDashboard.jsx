@@ -196,7 +196,7 @@ function EmergencyContacts() {
   );
 }
 
-export default function CuidadorDashboard({ onLogout, onOpenRemedios }) {
+export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRemedios }) {
   const [nomeCuidador, setNomeCuidador] = useState(getNomeCuidador);
   const [idosos, setIdosos] = useState([]);
   const [agendaEvents] = useState([]);
@@ -252,9 +252,10 @@ export default function CuidadorDashboard({ onLogout, onOpenRemedios }) {
             onClick={onOpenRemedios}
           />
           <QuickActionCard
-            title="Lembretes de Consultas"
-            description="Ver consultas agendadas"
+            title="Consultas"
+            description="Cadastrar e ver consultas agendadas"
             icon={<IconeCalendario />}
+            onClick={onOpenConsultas}
           />
         </section>
 

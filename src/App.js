@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getAuthToken, logout } from "./api/authApi";
 import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
+import CuidadorConsultas from "./pages/Cuidador/Consultas/CuidadorConsultas";
 import CuidadorDashboard from "./pages/Cuidador/Dashboard/CuidadorDashboard";
 import CuidadorRemediosPrescricao from "./pages/Cuidador/RemediosPrescricao/CuidadorRemediosPrescricao";
 import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
@@ -12,6 +13,7 @@ const ROUTES = {
   login: "#/login",
   administrador: "#/administrador",
   cuidador: "#/cuidador",
+  cuidadorConsultas: "#/cuidador/consultas",
   cuidadorRemediosPrescricao: "#/cuidador/remedios-prescricao",
   instituicao: "#/instituicao",
 };
@@ -19,6 +21,7 @@ const ROUTES = {
 const ROUTE_PROFILE = {
   "dashboard-admin": "ADMINISTRADOR",
   "area-cuidador": "CUIDADOR",
+  "cuidador-consultas": "CUIDADOR",
   "cuidador-remedios-prescricao": "CUIDADOR",
   "area-instituicao": "INSTITUICAO",
 };
@@ -46,6 +49,8 @@ function getRouteFromHash(hash) {
       return "dashboard-admin";
     case ROUTES.cuidador:
       return "area-cuidador";
+    case ROUTES.cuidadorConsultas:
+      return "cuidador-consultas";
     case ROUTES.cuidadorRemediosPrescricao:
       return "cuidador-remedios-prescricao";
     case ROUTES.instituicao:
@@ -134,7 +139,16 @@ export default function App() {
         return (
           <CuidadorDashboard
             onLogout={handleLogout}
+            onOpenConsultas={() => navigateTo(ROUTES.cuidadorConsultas)}
             onOpenRemedios={() => navigateTo(ROUTES.cuidadorRemediosPrescricao)}
+          />
+        );
+
+      case "cuidador-consultas":
+        return (
+          <CuidadorConsultas
+            onLogout={handleLogout}
+            onBack={() => navigateTo(ROUTES.cuidador)}
           />
         );
 
