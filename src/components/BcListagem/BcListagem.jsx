@@ -1,54 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
+import {
+  IconeBusca,
+  IconeEditar,
+  IconeInativar,
+  IconeMais,
+  IconeSetaDireita,
+  IconeSetaEsquerda,
+  IconeVisualizar,
+} from "../icons/Icons";
 import "./BcListagem.css";
-
-const IconeBusca = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.35-4.35" />
-  </svg>
-);
-
-const IconeEditar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
-
-const IconeVisualizar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const IconeInativar = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="m8.5 8.5 7 7" />
-  </svg>
-);
-
-const IconeMais = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const IconeSetaEsquerda = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="m15 18-6-6 6-6" />
-  </svg>
-);
-
-const IconeSetaDireita = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
 
 export default function BcListagem({
   titulo,
