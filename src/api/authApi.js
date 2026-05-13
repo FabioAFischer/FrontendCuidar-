@@ -82,9 +82,10 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
   return data;
 }
 
-export async function verificar2fa({ email, codigo, rememberMe = true }) {
+export async function verificar2fa({ email, codigo, perfil, rememberMe = true }) {
   const emailNormalizado = String(email || "").trim().toLowerCase();
   const codigoNormalizado = String(codigo || "").trim();
+  const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
 
   if (emailNormalizado === CUIDADOR_MOCK.email && codigoNormalizado === CUIDADOR_MOCK.codigo2fa) {
     const cuidadorMockado = {
@@ -106,6 +107,7 @@ export async function verificar2fa({ email, codigo, rememberMe = true }) {
     body: JSON.stringify({
       email,
       codigo,
+      perfil: perfilBackend,
     }),
   });
 

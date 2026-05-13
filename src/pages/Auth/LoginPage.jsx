@@ -65,7 +65,7 @@ function Modal2FA({ aberto, emailMascarado, rememberMe, perfil, onSucesso, onFec
 
     setLoading(true);
     try {
-      const data = await verificar2fa({ email: emailCompleto, codigo, rememberMe });
+      const data = await verificar2fa({ email: emailCompleto, codigo, perfil, rememberMe });
       onSucesso(data, perfil);
     } catch (err) {
       setErro(err.message);
