@@ -1,29 +1,67 @@
 import { useCallback, useState, useEffect } from "react";
-import BcLogo from "../../../components/Bclogo/BcLogo";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcInput from "../../../components/Bcinput/BcInput";
 import BcPasswordStrength from "../../../components/BcPasswordStrength/BcPasswordStrength";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
-import {
-  IconeBusca,
+import BcListagem from "../../../components/BcListagem/BcListagem";
+import BcSelect from "../../../components/BcSelect/BcSelect";
+import BcFormModal, { BcFormModalRow } from "../../../components/BcFormModal/BcFormModal";
+import {   IconeBusca,
   IconeEdificio,
   IconeEditar,
   IconeInativar,
   IconeMais,
   IconeOlhoAberto,
   IconeOlhoFechado,
-  IconeSair,
-} from "../../../components/icons/Icons";
-import { cadastrarInstituicao, listarInstituicoes, atualizarInstituicao, deletarInstituicao } from "../../../api/administradorApi";
+  IconeSair, } from "../../../components/icons/Icons";
+import {
+  cadastrarInstituicao,
+  listarInstituicoes,
+  atualizarInstituicao,
+  deletarInstituicao,
+  reativarInstituicao,
+} from "../../../api/administradorApi";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
 /* ── Ícones ── */
+const IconeSair = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const IconeEdificio = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+  >
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M9 3v18M3 9h6M3 15h6M15 9h3M15 13h3M15 17h3" />
+  </svg>
+);
+
 /* ── Helpers ── */
 function formatarCNPJ(v) {
   const n = v.replace(/\D/g, "").slice(0, 14);
+
   return n
     .replace(/(\d{2})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -33,241 +71,560 @@ function formatarCNPJ(v) {
 
 function formatarCEP(v) {
   const n = v.replace(/\D/g, "").slice(0, 8);
+
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
 
+async function buscarCEP(cep) {
+  const n = cep.replace(/\D/g, "");
+
+  if (n.length !== 8) return null;
+
+  const res = await fetch(`https://viacep.com.br/ws/${n}/json/`);
+  const data = await res.json();
+
+  if (data.erro) return null;
+
+  return data;
+}
+
 function validar(form, exigirSenha = false) {
-  if (!form.nome.trim())                          return "Informe o nome.";
-  if (!cnpjValido(form.cnpj))                    return "CNPJ inválido.";
-  if (!form.email.trim())                         return "Informe o email.";
-  if (!form.bairro.trim())                        return "Informe o bairro.";
-  if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
-  if (!form.numero.trim())                        return "Informe o número.";
-  if (form.cep.replace(/\D/g, "").length < 8)    return "CEP inválido.";
-  if (exigirSenha && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(form.senha)) {
-    return "A senha deve ter no minimo 8 caracteres, com maiuscula, minuscula, numero e caractere especial.";
+  if (!form.nome.trim()) return "Informe o nome.";
+  if (!cnpjValido(form.cnpj)) return "CNPJ inválido.";
+  if (!form.email.trim()) return "Informe o email.";
+  if (!form.bairro.trim()) return "Informe o bairro.";
+  if (form.uf.trim().length !== 2)
+    return "UF deve ter 2 letras (ex: SC).";
+  if (!form.numero.trim()) return "Informe o número.";
+  if (form.cep.replace(/\D/g, "").length < 8)
+    return "CEP inválido.";
+
+  if (
+    exigirSenha &&
+    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(
+      form.senha
+    )
+  ) {
+    return "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.";
   }
-  if (exigirSenha && form.senha !== form.confirmarSenha) return "As senhas nao coincidem.";
+
+  if (exigirSenha && form.senha !== form.confirmarSenha) {
+    return "As senhas não coincidem.";
+  }
+
   return null;
 }
 
 const FORM_INICIAL = {
-  nome: "", cnpj: "", email: "", bairro: "", uf: "", numero: "", cep: "",
-  senha: "", confirmarSenha: "",
+  nome: "",
+  cnpj: "",
+  email: "",
+  bairro: "",
+  uf: "",
+  numero: "",
+  cep: "",
+  senha: "",
+  confirmarSenha: "",
 };
 
-/* ── Modal de Cadastro ── */
-function ModalCadastro({ onFechar, onSucesso, onToast }) {
-  const [form, setForm]                   = useState(FORM_INICIAL);
-  const [showSenha, setShowSenha]         = useState(false);
+/* ── Hook ViaCEP ── */
+function useViaCEP(cep, setForm, onToast) {
+  const [buscandoCEP, setBuscandoCEP] = useState(false);
+
+  useEffect(() => {
+    const digits = cep.replace(/\D/g, "");
+
+    if (digits.length !== 8) return;
+
+    const timer = setTimeout(async () => {
+      setBuscandoCEP(true);
+
+      try {
+        const data = await buscarCEP(cep);
+
+        if (data) {
+          setForm((prev) => ({
+            ...prev,
+            bairro: data.bairro || prev.bairro,
+            uf: data.uf || prev.uf,
+          }));
+        } else {
+          onToast?.(
+            "aviso",
+            "CEP não encontrado",
+            "Verifique o CEP e preencha o endereço manualmente."
+          );
+        }
+      } catch {
+        onToast?.(
+          "erro",
+          "Erro ao buscar CEP",
+          "Não foi possível consultar o ViaCEP."
+        );
+      } finally {
+        setBuscandoCEP(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [cep]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { buscandoCEP };
+}
+
+/* ── Campos endereço ── */
+function CamposEndereco({ form, onChange, buscandoCEP }) {
+  return (
+    <>
+      <BcInput
+        label={buscandoCEP ? "CEP (buscando...)" : "CEP"}
+        name="cep"
+        placeholder="00000-000"
+        value={form.cep}
+        onChange={onChange}
+        maxLength={9}
+      />
+
+      <BcFormModalRow>
+        <BcInput
+          label="UF"
+          name="uf"
+          placeholder="SC"
+          value={form.uf}
+          onChange={onChange}
+          maxLength={2}
+        />
+
+        <BcInput
+          label="Número"
+          name="numero"
+          placeholder="Ex: 123"
+          value={form.numero}
+          onChange={onChange}
+        />
+      </BcFormModalRow>
+
+      <BcInput
+        label="Bairro"
+        name="bairro"
+        placeholder="Nome do bairro"
+        value={form.bairro}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+/* ── Modal cadastro ── */
+function ModalCadastro({ onSucesso, onToast }) {
+  const [form, setForm] = useState(FORM_INICIAL);
+  const [showSenha, setShowSenha] = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
-  const [loading, setLoading]             = useState(false);
-  const [erro, setErro]                   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  const { buscandoCEP } = useViaCEP(form.cep, setForm, onToast);
 
   function handleChange(e) {
     const { name, value } = e.target;
+
     let v = value;
+
     if (name === "cnpj") v = formatarCNPJ(value);
-    if (name === "cep")  v = formatarCEP(value);
-    if (name === "uf")   v = value.toUpperCase().slice(0, 2);
-    setForm(prev => ({ ...prev, [name]: v }));
+    if (name === "cep") v = formatarCEP(value);
+    if (name === "uf") v = value.toUpperCase().slice(0, 2);
+
+    setForm((prev) => ({ ...prev, [name]: v }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setErro("");
+
     const err = validar(form, true);
-    if (err) { setErro(err); return; }
+
+    if (err) {
+      setErro(err);
+      return;
+    }
+
     setLoading(true);
+
     try {
       await cadastrarInstituicao({
-        nome:   form.nome,
-        cnpj:   form.cnpj.replace(/\D/g, ""),
-        email:  form.email,
-        senha:  form.senha,
+        nome: form.nome,
+        cnpj: form.cnpj.replace(/\D/g, ""),
+        email: form.email,
+        senha: form.senha,
         bairro: form.bairro,
-        uf:     form.uf,
+        uf: form.uf,
         numero: form.numero,
-        cep:    form.cep.replace(/\D/g, ""),
+        cep: form.cep.replace(/\D/g, ""),
       });
-      onToast?.("sucesso", "Instituicao cadastrada", `A instituicao ${form.nome} foi cadastrada com sucesso.`);
+
+      onToast?.(
+        "sucesso",
+        "Instituição cadastrada",
+        `A instituição ${form.nome} foi cadastrada com sucesso.`
+      );
+
       onSucesso();
     } catch (err) {
       setErro(err.message);
-      onToast?.("erro", "Erro ao cadastrar", err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  const senhasCoincidem = form.confirmarSenha.length > 0 && form.senha === form.confirmarSenha;
+  const senhasCoincidem =
+    form.confirmarSenha.length > 0 &&
+    form.senha === form.confirmarSenha;
 
   return (
-    <div className="mc-wrap">
-      <div className="mc-header">
-        <BcLogo size="md" />
-        <h1>Nova Instituição</h1>
-        <p>Preencha os dados para cadastrar</p>
-      </div>
-      <form className="mc-form" onSubmit={handleSubmit} noValidate>
-        <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
-        <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
-        <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
-        <BcInput label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={handleChange} />
-        <div className="mc-row">
-          <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={handleChange} maxLength={2} />
-          <BcInput label="Número" name="numero" placeholder="Ex: 123" value={form.numero} onChange={handleChange} />
-        </div>
-        <BcInput label="CEP" name="cep" placeholder="00000-000" value={form.cep} onChange={handleChange} maxLength={9} />
-        <BcInput
-          label="Senha" name="senha"
-          type={showSenha ? "text" : "password"}
-          placeholder="Crie uma senha"
-          value={form.senha} onChange={handleChange}
-          autoComplete="new-password"
-          suffix={
-            <button type="button" className="mc-olho" onClick={() => setShowSenha(v => !v)}>
-              {showSenha ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
-            </button>
-          }
-          hint={<BcPasswordStrength password={form.senha} />}
-        />
-        <BcInput
-          label="Confirmar Senha" name="confirmarSenha"
-          type={showConfirmar ? "text" : "password"}
-          placeholder="Confirme sua senha"
-          value={form.confirmarSenha} onChange={handleChange}
-          autoComplete="new-password"
-          suffix={
-            <button type="button" className="mc-olho" onClick={() => setShowConfirmar(v => !v)}>
-              {showConfirmar ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
-            </button>
-          }
-          hint={
-            form.confirmarSenha.length > 0 ? (
-              <span className="mc-match" style={{ color: senhasCoincidem ? "#0d9e8a" : "#e05252" }}>
-                {senhasCoincidem ? "✓ Senhas coincidem" : "✗ Senhas não coincidem"}
-              </span>
-            ) : null
-          }
-        />
-        {erro && <div className="mc-erro" role="alert">{erro}</div>}
-        <BcButton type="submit" loading={loading}>Cadastrar</BcButton>
-      </form>
-    </div>
+    <BcFormModal
+      title="Nova Instituição"
+      subtitle="Preencha os dados para cadastrar"
+      error={erro}
+      onSubmit={handleSubmit}
+    >
+      <BcInput
+        label="Nome"
+        name="nome"
+        placeholder="Nome da instituição"
+        value={form.nome}
+        onChange={handleChange}
+      />
+
+      <BcInput
+        label="CNPJ"
+        name="cnpj"
+        placeholder="00.000.000/0000-00"
+        value={form.cnpj}
+        onChange={handleChange}
+        maxLength={18}
+      />
+
+      <BcInput
+        label="Email"
+        name="email"
+        type="email"
+        placeholder="email@exemplo.com"
+        value={form.email}
+        onChange={handleChange}
+      />
+
+      <CamposEndereco
+        form={form}
+        onChange={handleChange}
+        buscandoCEP={buscandoCEP}
+      />
+
+      <BcInput
+        label="Senha"
+        name="senha"
+        type={showSenha ? "text" : "password"}
+        placeholder="Crie uma senha"
+        value={form.senha}
+        onChange={handleChange}
+        autoComplete="new-password"
+        suffix={
+          <button
+            type="button"
+            className="bc-form-modal__icon-button"
+            onClick={() => setShowSenha((v) => !v)}
+          >
+            {showSenha ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+          </button>
+        }
+        hint={<BcPasswordStrength password={form.senha} />}
+      />
+
+      <BcInput
+        label="Confirmar Senha"
+        name="confirmarSenha"
+        type={showConfirmar ? "text" : "password"}
+        placeholder="Confirme sua senha"
+        value={form.confirmarSenha}
+        onChange={handleChange}
+        autoComplete="new-password"
+        suffix={
+          <button
+            type="button"
+            className="bc-form-modal__icon-button"
+            onClick={() => setShowConfirmar((v) => !v)}
+          >
+            {showConfirmar ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+          </button>
+        }
+        hint={
+          form.confirmarSenha.length > 0 ? (
+            <span
+              className="bc-form-modal__match"
+              style={{
+                color: senhasCoincidem ? "#0d9e8a" : "#e05252",
+              }}
+            >
+              {senhasCoincidem
+                ? "✓ Senhas coincidem"
+                : "✗ Senhas não coincidem"}
+            </span>
+          ) : null
+        }
+      />
+
+      <BcButton type="submit" loading={loading}>
+        Cadastrar
+      </BcButton>
+    </BcFormModal>
   );
 }
 
-/* ── Modal de Edição ── */
-function ModalEditar({ instituicao, onFechar, onSucesso, onToast }) {
+/* ── Modal edição ── */
+function ModalEditar({ instituicao, onSucesso, onToast }) {
   const [form, setForm] = useState({
-    nome:   instituicao.nome   || "",
-    cnpj:   formatarCNPJ(String(instituicao.cnpj || "")),
-    email:  instituicao.email  || "",
+    nome: instituicao.nome || "",
+    cnpj: formatarCNPJ(String(instituicao.cnpj || "")),
+    email: instituicao.email || "",
     bairro: instituicao.bairro || "",
-    uf:     instituicao.uf     || "",
+    uf: instituicao.uf || "",
     numero: String(instituicao.numero || ""),
-    cep:    formatarCEP(String(instituicao.cep || "")),
+    cep: formatarCEP(String(instituicao.cep || "")),
   });
+
   const [loading, setLoading] = useState(false);
-  const [erro, setErro]       = useState("");
+  const [erro, setErro] = useState("");
+
+  const { buscandoCEP } = useViaCEP(form.cep, setForm, onToast);
 
   function handleChange(e) {
     const { name, value } = e.target;
+
     let v = value;
+
     if (name === "cnpj") v = formatarCNPJ(value);
-    if (name === "cep")  v = formatarCEP(value);
-    if (name === "uf")   v = value.toUpperCase().slice(0, 2);
-    setForm(prev => ({ ...prev, [name]: v }));
+    if (name === "cep") v = formatarCEP(value);
+    if (name === "uf") v = value.toUpperCase().slice(0, 2);
+
+    setForm((prev) => ({ ...prev, [name]: v }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setErro("");
+
     const err = validar(form);
-    if (err) { setErro(err); return; }
+
+    if (err) {
+      setErro(err);
+      return;
+    }
+
     setLoading(true);
+
     try {
       await atualizarInstituicao(instituicao.id, {
-        nome:   form.nome,
-        cnpj:   form.cnpj.replace(/\D/g, ""),
-        email:  form.email,
+        nome: form.nome,
+        cnpj: form.cnpj.replace(/\D/g, ""),
+        email: form.email,
         bairro: form.bairro,
-        uf:     form.uf,
+        uf: form.uf,
         numero: form.numero,
-        cep:    form.cep.replace(/\D/g, ""),
+        cep: form.cep.replace(/\D/g, ""),
       });
-      onToast?.("sucesso", "Instituicao atualizada", `Os dados de ${form.nome} foram salvos.`);
+
+      onToast?.(
+        "sucesso",
+        "Instituição atualizada",
+        `Os dados de ${form.nome} foram salvos.`
+      );
+
       onSucesso();
     } catch (err) {
       setErro(err.message);
-      onToast?.("erro", "Erro ao atualizar", err.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="mc-wrap">
-      <div className="mc-header">
-        <BcLogo size="md" />
-        <h1>Editar Instituição</h1>
-        <p>Atualize os dados abaixo</p>
-      </div>
-      <form className="mc-form" onSubmit={handleSubmit} noValidate>
-        <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
-        <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
-        <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
-        <BcInput label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={handleChange} />
-        <div className="mc-row">
-          <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={handleChange} maxLength={2} />
-          <BcInput label="Número" name="numero" placeholder="Ex: 123" value={form.numero} onChange={handleChange} />
-        </div>
-        <BcInput label="CEP" name="cep" placeholder="00000-000" value={form.cep} onChange={handleChange} maxLength={9} />
-        {erro && <div className="mc-erro" role="alert">{erro}</div>}
-        <BcButton type="submit" loading={loading}>Salvar alterações</BcButton>
-      </form>
-    </div>
+    <BcFormModal
+      title="Editar Instituição"
+      subtitle="Atualize os dados abaixo"
+      error={erro}
+      onSubmit={handleSubmit}
+    >
+      <BcInput
+        label="Nome"
+        name="nome"
+        placeholder="Nome da instituição"
+        value={form.nome}
+        onChange={handleChange}
+      />
+
+      <BcInput
+        label="CNPJ"
+        name="cnpj"
+        placeholder="00.000.000/0000-00"
+        value={form.cnpj}
+        onChange={handleChange}
+        maxLength={18}
+      />
+
+      <BcInput
+        label="Email"
+        name="email"
+        type="email"
+        placeholder="email@exemplo.com"
+        value={form.email}
+        onChange={handleChange}
+      />
+
+      <CamposEndereco
+        form={form}
+        onChange={handleChange}
+        buscandoCEP={buscandoCEP}
+      />
+
+      <BcButton type="submit" loading={loading}>
+        Salvar alterações
+      </BcButton>
+    </BcFormModal>
   );
 }
 
-/* ── Dashboard principal ── */
+/* ── Colunas ── */
+const COLUNAS = [
+  {
+    chave: "nome",
+    titulo: "Nome",
+    className: "bc-listagem-tdNome",
+  },
+  {
+    chave: "cnpj",
+    titulo: "CNPJ",
+    className: "bc-listagem-tdMuted",
+  },
+  {
+    chave: "email",
+    titulo: "Email",
+    className: "bc-listagem-tdMuted",
+  },
+  {
+    chave: "bairro",
+    titulo: "Endereço",
+    className: "bc-listagem-tdMuted",
+    render: (inst) =>
+      `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
+  },
+  {
+    chave: "cep",
+    titulo: "CEP",
+    className: "bc-listagem-tdMuted",
+  },
+  {
+    chave: "status",
+    titulo: "Status",
+    render: (inst) => (
+      <span
+        className={
+          inst.status === "ATIVO"
+            ? "bc-status bc-status--ativo"
+            : "bc-status bc-status--inativo"
+        }
+      >
+        {inst.status}
+      </span>
+    ),
+  },
+];
+
+/* ── Dashboard ── */
 export default function Admindashboard({ onLogout }) {
   const { toastProps, mostrarToast } = useBcToast();
-  const [instituicoes, setInstituicoes]     = useState([]);
-  const [busca, setBusca]                   = useState("");
-  const [modalCadastro, setModalCadastro]   = useState(false);
-  const [modalEditar, setModalEditar]       = useState(null); // guarda a instituição a editar
-  const [confirmDelete, setConfirmDelete]   = useState(null);
-  const [deletando, setDeletando]           = useState(false);
-  const recarregarLista = useCallback(() => {
-    listarInstituicoes()
-      .then(data => setInstituicoes(Array.isArray(data) ? data : []))
-      .catch(err => mostrarToast("erro", "Erro ao carregar instituicoes", err.message));
+
+  const [instituicoes, setInstituicoes] = useState([]);
+  const [busca, setBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("ATIVO");
+
+  const [carregando, setCarregando] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+
+  const [modalCadastro, setModalCadastro] = useState(false);
+  const [modalEditar, setModalEditar] = useState(null);
+
+  const recarregarLista = useCallback(async () => {
+    setCarregando(true);
+
+    try {
+      const data = await listarInstituicoes();
+
+      const lista = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.content)
+        ? data.content
+        : [];
+
+      setInstituicoes(lista);
+    } catch (err) {
+      mostrarToast("erro", "Erro ao carregar", err.message);
+    } finally {
+      setCarregando(false);
+    }
   }, [mostrarToast]);
 
-  // Carrega a lista ao montar a tela
   useEffect(() => {
     recarregarLista();
   }, [recarregarLista]);
 
-  const filtradas = instituicoes.filter(i =>
-    i.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    String(i.cnpj).includes(busca) ||
-    String(i.email || "").toLowerCase().includes(busca.toLowerCase())
-  );
+  const filtradas = instituicoes.filter((i) => {
+    const matchBusca =
+      i.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+      String(i.cnpj || "").includes(busca) ||
+      String(i.email || "")
+        .toLowerCase()
+        .includes(busca.toLowerCase());
 
-  async function handleDeletar(id) {
-    setDeletando(true);
+    const matchStatus =
+      filtroStatus === "TODAS"
+        ? true
+        : i.status === filtroStatus;
+
+    return matchBusca && matchStatus;
+  });
+
+  async function handleToggleStatus(inst) {
+    setExcluindo(true);
+
     try {
-      await deletarInstituicao(id);
-      setConfirmDelete(null);
-      recarregarLista();
-      mostrarToast("sucesso", "Instituicao inativada", "A instituicao foi inativada na listagem.");
+      if (inst.status === "ATIVO") {
+        await deletarInstituicao(inst.id);
+
+        mostrarToast(
+          "sucesso",
+          "Instituição inativada",
+          `${inst.nome} foi inativada.`
+        );
+      } else {
+        await reativarInstituicao(inst.id);
+
+        mostrarToast(
+          "sucesso",
+          "Instituição reativada",
+          `${inst.nome} foi reativada.`
+        );
+      }
+
+      await recarregarLista();
     } catch (err) {
-      mostrarToast("erro", "Erro ao inativar", err.message);
+      mostrarToast(
+        "erro",
+        "Erro ao atualizar status",
+        err.message
+      );
     } finally {
-      setDeletando(false);
+      setExcluindo(false);
     }
   }
 
@@ -282,131 +639,73 @@ export default function Admindashboard({ onLogout }) {
         actionIcon={<IconeSair />}
         onAction={onLogout}
       />
-      {/* Conteúdo */}
+
       <main className="adm-main">
-        <div className="adm-toolbar">
-          <div className="adm-busca-wrap">
-            <span className="adm-busca-icone"><IconeBusca /></span>
-            <input
-              className="adm-busca" type="text"
-              placeholder="Buscar por nome, CNPJ ou email..."
-              value={busca} onChange={e => setBusca(e.target.value)}
+        <BcListagem
+          titulo="Instituições Cadastradas"
+          iconeTitulo={<IconeEdificio />}
+          colunas={COLUNAS}
+          itens={filtradas}
+          busca={busca}
+          placeholderBusca="Buscar por nome, CNPJ ou email..."
+          onBuscaChange={setBusca}
+          textoBotao="Nova Instituição"
+          onBotaoClick={() => setModalCadastro(true)}
+          textoVazio={
+            busca
+              ? "Nenhuma instituição encontrada."
+              : "Nenhuma instituição cadastrada ainda."
+          }
+          carregando={carregando}
+          excluindo={excluindo}
+          onEditar={(inst) => setModalEditar(inst)}
+          onExcluir={handleToggleStatus}
+          tituloConfirmacao="Alterar status da instituição?"
+          mensagemConfirmacao="Deseja alterar o status desta instituição?"
+          textoConfirmar="Confirmar"
+          textoCarregandoExcluir="Inativando..."
+          filtrosToolbar={
+            <BcSelect
+              value={filtroStatus}
+              onChange={setFiltroStatus}
+              options={[
+                { value: "ATIVO", label: "Ativas" },
+                { value: "INATIVO", label: "Inativas" },
+                { value: "TODAS", label: "Todas" },
+              ]}
             />
-          </div>
-          <BcButton onClick={() => setModalCadastro(true)} fullWidth={false}>
-            <IconeMais /> Nova Instituição
-          </BcButton>
-        </div>
-
-        <div className="adm-tabela-card">
-          <div className="adm-tabela-header">
-            <span className="adm-tabela-titulo">
-              <IconeEdificio />
-              Instituições Cadastradas
-              <span className="adm-badge">{filtradas.length}</span>
-            </span>
-          </div>
-
-          {filtradas.length === 0 ? (
-            <div className="adm-vazio">
-              <div className="adm-vazio__icone"><IconeEdificio /></div>
-              <p>{busca ? "Nenhuma instituição encontrada." : "Nenhuma instituição cadastrada ainda."}</p>
-            </div>
-          ) : (
-            <div className="adm-tabela-wrap">
-              <table className="adm-tabela">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>CNPJ</th>
-                    <th>Email</th>
-                    <th>Endereço</th>
-                    <th>CEP</th>
-                    <th className="adm-th-acoes">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtradas.map(inst => (
-                    <tr key={inst.id}>
-                      <td className="adm-td-nome">{inst.nome}</td>
-                      <td className="adm-td-muted">{inst.cnpj}</td>
-                      <td className="adm-td-muted">{inst.email}</td>
-                      <td className="adm-td-muted">{inst.bairro}, {inst.numero} — {inst.uf}</td>
-                      <td className="adm-td-muted">{inst.cep}</td>
-                      <td>
-                        <div className="adm-acoes">
-                          <button
-                            className="adm-btn-icone adm-btn-editar"
-                            title="Editar"
-                            aria-label={`Editar ${inst.nome}`}
-                            type="button"
-                            onClick={() => setModalEditar(inst)}
-                          >
-                            <IconeEditar />
-                          </button>
-                          <button
-                            className="adm-btn-icone adm-btn-inativar"
-                            title="Inativar"
-                            aria-label={`Inativar ${inst.nome}`}
-                            type="button"
-                            onClick={() => setConfirmDelete(inst.id)}
-                          >
-                            <IconeInativar />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+          }
+        />
       </main>
 
-      {/* Modal de cadastro */}
-      <BcModal aberto={modalCadastro} onFechar={() => setModalCadastro(false)}>
+      <BcModal
+        aberto={modalCadastro}
+        onFechar={() => setModalCadastro(false)}
+      >
         <ModalCadastro
-          onFechar={() => setModalCadastro(false)}
-          onSucesso={() => { setModalCadastro(false); recarregarLista(); }}
+          onSucesso={() => {
+            setModalCadastro(false);
+            recarregarLista();
+          }}
           onToast={mostrarToast}
         />
       </BcModal>
 
-      {/* Modal de edição */}
-      <BcModal aberto={!!modalEditar} onFechar={() => setModalEditar(null)}>
+      <BcModal
+        aberto={!!modalEditar}
+        onFechar={() => setModalEditar(null)}
+      >
         {modalEditar && (
           <ModalEditar
             instituicao={modalEditar}
-            onFechar={() => setModalEditar(null)}
-            onSucesso={() => { setModalEditar(null); recarregarLista(); }}
+            onSucesso={() => {
+              setModalEditar(null);
+              recarregarLista();
+            }}
             onToast={mostrarToast}
           />
         )}
       </BcModal>
-
-      {/* Confirmação de exclusão */}
-      {confirmDelete && (
-        <div className="adm-confirm-overlay" onClick={() => setConfirmDelete(null)}>
-          <div className="adm-confirm" onClick={e => e.stopPropagation()}>
-            <div className="adm-confirm__icone adm-confirm__icone--inativar"><IconeInativar /></div>
-            <h3>Inativar instituição?</h3>
-            <p>A instituição deixará de aparecer como ativa na listagem.</p>
-            <div className="adm-confirm__acoes">
-              <button className="adm-confirm__cancelar" onClick={() => setConfirmDelete(null)}>
-                Cancelar
-              </button>
-              <button
-                className="adm-confirm__confirmar"
-                onClick={() => handleDeletar(confirmDelete)}
-                disabled={deletando}
-              >
-                {deletando ? "Inativando..." : "Sim, inativar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
