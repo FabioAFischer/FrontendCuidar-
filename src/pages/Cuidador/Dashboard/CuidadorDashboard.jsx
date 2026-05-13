@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
-import { IconeIdosos, IconeSair } from "../../../components/icons/Icons";
+import {
+  IconeCalendario,
+  IconeIdosos,
+  IconePerfil,
+  IconeRemedio,
+  IconeSair,
+  IconeSetaDireita,
+  IconeTelefone,
+} from "../../../components/icons/Icons";
 import { listarIdosos } from "../../../api/instituicaoApi";
 import "./CuidadorDashboard.css";
 
@@ -11,48 +19,6 @@ const CONTATOS_EMERGENCIA = [
   { nome: "Policia", telefone: "190", destaque: "azul" },
 ];
 
-function IconeCalendario() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  );
-}
-
-function IconeMedicacao() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m10.5 20.5 10-10a4.24 4.24 0 0 0-6-6l-10 10a4.24 4.24 0 0 0 6 6Z" />
-      <path d="m8.5 8.5 7 7" />
-    </svg>
-  );
-}
-
-function IconePerfil() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
-function IconeTelefone() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.11 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.91.32 1.79.6 2.63a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.26-1.26a2 2 0 0 1 2.11-.45c.84.28 1.72.48 2.63.6A2 2 0 0 1 22 16.92Z" />
-    </svg>
-  );
-}
-
-function IconeSetaDireita() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
 
 function formatarCPF(valor = "") {
   const numeros = String(valor).replace(/\D/g, "").slice(0, 11);
@@ -124,7 +90,7 @@ function AgendaEventCard({ event }) {
   return (
     <article className={`cuidador-agenda-card ${proximo ? "cuidador-agenda-card--soon" : ""}`}>
       <span className={`cuidador-agenda-card__icon cuidador-agenda-card__icon--${isMedicacao ? "medicacao" : "agenda"}`}>
-        {isMedicacao ? <IconeMedicacao /> : <IconeCalendario />}
+        {isMedicacao ? <IconeRemedio /> : <IconeCalendario />}
       </span>
       <div className="cuidador-agenda-card__content">
         <div className="cuidador-agenda-card__badges">
@@ -248,7 +214,7 @@ export default function CuidadorDashboard({ onLogout, onOpenRemedios }) {
           <QuickActionCard
             title="Medicacoes"
             description="Gerenciar medicacoes dos pacientes"
-            icon={<IconeMedicacao />}
+            icon={<IconeRemedio />}
             onClick={onOpenRemedios}
           />
           <QuickActionCard

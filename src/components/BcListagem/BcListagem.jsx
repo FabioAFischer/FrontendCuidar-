@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
+import {
+  IconeBusca,
+  IconeEditar,
+  IconeInativar,
+  IconeMais,
+  IconeSetaDireita,
+  IconeSetaEsquerda,
+  IconeVisualizar,
+} from "../icons/Icons";
 import "./BcListagem.css";
 
 const IconeBusca = () => (

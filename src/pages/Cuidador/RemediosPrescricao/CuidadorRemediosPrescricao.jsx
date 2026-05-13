@@ -7,7 +7,18 @@ import BcModal from "../../../components/BcModal/BcModal";
 import BcRemediosListagem from "../../../components/BcRemediosListagem/BcRemediosListagem";
 import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
-import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
+import {
+  IconeCalendario,
+  IconeCheck,
+  IconeEditar,
+  IconeIdosos,
+  IconeLixeira,
+  IconeMais,
+  IconeRemedio,
+  IconeSair,
+  IconeVisualizar,
+  IconeVoltar,
+} from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, inativarPrescricao, listarPrescricoesPorIdoso } from "../../../api/prescricaoApi";
 import { atualizarRemedio as atualizarRemedioApi, cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
@@ -15,80 +26,6 @@ import "./CuidadorRemediosPrescricao.css";
 
 const agenda = [
 ];
-
-function IconeRemedio() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m10.5 20.5 10-10a4.24 4.24 0 0 0-6-6l-10 10a4.24 4.24 0 0 0 6 6Z" />
-      <path d="m8.5 8.5 7 7" />
-    </svg>
-  );
-}
-
-function IconeUsuarios() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function IconeCalendario() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  );
-}
-
-function IconeMais() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
-
-function IconeEditar() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-  );
-}
-
-function IconeVisualizar() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function IconeLixeira() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </svg>
-  );
-}
-
-function IconeCheck() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
 
 function BotaoIcone({ children, tipo = "padrao", label, onClick }) {
   return (
@@ -594,7 +531,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           <section className="cuidador-remedios-centro">
             <div className="cuidador-remedios-card">
               <div className="cuidador-remedios-card__header">
-                <TituloSecao icone={<IconeUsuarios />}>Selecione um Idoso</TituloSecao>
+                <TituloSecao icone={<IconeIdosos />}>Selecione um Idoso</TituloSecao>
               </div>
 
               {carregandoIdosos ? (
