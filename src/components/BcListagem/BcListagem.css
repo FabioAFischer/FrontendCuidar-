@@ -344,3 +344,19 @@
     justify-content: center;
   }
 }
+
+.bc-listagem-toolbarFiltros {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bc-listagem-btnAtivar {
+  color: #16a34a;
+}
+
+.bc-listagem-btnAtivar:hover {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.2);
+}
