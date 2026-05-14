@@ -8,6 +8,7 @@ import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcSelect from "../../../components/BcSelect/BcSelect";
 import BcFormModal, { BcFormModalRow } from "../../../components/BcFormModal/BcFormModal";
+import SecaoRelatorio from "../../../components/SecaoRelatorio/Secaorelatorio";
 import {
   IconeEdificio,
   IconeOlhoAberto,
@@ -21,11 +22,27 @@ import {
   deletarInstituicao,
   reativarInstituicao,
 } from "../../../api/administradorApi";
+import { buscarDadosRelatorio } from "../../../api/relatorioApi";
+import { gerarRelatorioPDF } from "../../../utils/gerarRelatorioPDF";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
-import SecaoRelatorio from "../../../components/SecaoRelatorio/Secaorelatorio";
-import { buscarDadosRelatorio } from "../../../api/relatorioapi";
-import { gerarRelatorioPDF } from "../../../utils/Gerarrelatoriopdf";
+
+/* ── Ícones locais (apenas os que não estão em Icons.jsx) ── */
+const IconePessoa = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+  </svg>
+);
+const IconeIdoso = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="7" r="4" />
+    <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    <path d="M9 17l-1 4M15 17l1 4" />
+  </svg>
+);
 
 /* ── Helpers ── */
 function formatarCNPJ(v) {
@@ -111,11 +128,8 @@ function CamposEndereco({ form, onChange, buscandoCEP }) {
     <>
       <BcInput
         label={buscandoCEP ? "CEP (buscando...)" : "CEP"}
-        name="cep"
-        placeholder="00000-000"
-        value={form.cep}
-        onChange={onChange}
-        maxLength={9}
+        name="cep" placeholder="00000-000"
+        value={form.cep} onChange={onChange} maxLength={9}
       />
       <BcFormModalRow>
         <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} />
@@ -326,6 +340,9 @@ export default function Admindashboard({ onLogout }) {
   const [excluindo, setExcluindo]         = useState(false);
   const [modalCadastro, setModalCadastro] = useState(false);
   const [modalEditar, setModalEditar]     = useState(null);
+  const [dadosRelatorio, setDadosRelatorio] = useState({
+    instituicoes: [], cuidadores: [], idosos: [],
+  });
 
   const recarregarLista = useCallback(async () => {
     setCarregando(true);
@@ -353,9 +370,7 @@ export default function Admindashboard({ onLogout }) {
       i.nome?.toLowerCase().includes(busca.toLowerCase()) ||
       String(i.cnpj || "").includes(busca) ||
       String(i.email || "").toLowerCase().includes(busca.toLowerCase());
-
     const matchStatus = filtroStatus === "TODAS" ? true : i.status === filtroStatus;
-
     return matchBusca && matchStatus;
   });
 
@@ -375,6 +390,12 @@ export default function Admindashboard({ onLogout }) {
     } finally {
       setExcluindo(false);
     }
+  }
+
+  async function handleBaixarRelatorio() {
+    const dados = await buscarDadosRelatorio();
+    setDadosRelatorio(dados);
+    gerarRelatorioPDF(dados);
   }
 
   return (
@@ -405,6 +426,10 @@ export default function Admindashboard({ onLogout }) {
           excluindo={excluindo}
           onEditar={(inst) => setModalEditar(inst)}
           onExcluir={handleToggleStatus}
+          tituloConfirmacao="Alterar status da instituição?"
+          mensagemConfirmacao="Deseja alterar o status desta instituição?"
+          textoConfirmar="Confirmar"
+          textoCarregandoExcluir="Inativando..."
           filtrosToolbar={
             <BcSelect
               value={filtroStatus}
@@ -412,6 +437,17 @@ export default function Admindashboard({ onLogout }) {
               options={OPCOES_STATUS}
             />
           }
+        />
+
+        <SecaoRelatorio
+          titulo="Relatório Geral do Sistema"
+          subtitulo="Visão consolidada de instituições, cuidadores e idosos cadastrados."
+          cards={[
+            { icone: <IconeEdificio />, titulo: "Instituições", dados: dadosRelatorio.instituicoes },
+            { icone: <IconePessoa />,   titulo: "Cuidadores",   dados: dadosRelatorio.cuidadores },
+            { icone: <IconeIdoso />,    titulo: "Idosos",        dados: dadosRelatorio.idosos },
+          ]}
+          onBaixar={handleBaixarRelatorio}
         />
       </main>
 
