@@ -8,14 +8,16 @@ import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcSelect from "../../../components/BcSelect/BcSelect";
 import BcFormModal, { BcFormModalRow } from "../../../components/BcFormModal/BcFormModal";
-import {   IconeBusca,
+import {
+  IconeBusca,
   IconeEdificio,
   IconeEditar,
   IconeInativar,
   IconeMais,
   IconeOlhoAberto,
   IconeOlhoFechado,
-  IconeSair, } from "../../../components/icons/Icons";
+  IconeSair,
+} from "../../../components/icons/Icons";
 import {
   cadastrarInstituicao,
   listarInstituicoes,
@@ -26,37 +28,7 @@ import {
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
-/* ── Ícones ── */
-const IconeSair = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-  >
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-const IconeEdificio = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-  >
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <path d="M9 3v18M3 9h6M3 15h6M15 9h3M15 13h3M15 17h3" />
-  </svg>
-);
+/* Icons are imported from ../../../components/icons/Icons */
 
 /* ── Helpers ── */
 function formatarCNPJ(v) {
