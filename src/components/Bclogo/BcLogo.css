@@ -5,6 +5,10 @@
   gap: 10px;
 }
 
+.bc-logo-svg {
+  flex-shrink: 0;
+}
+
 .bc-logo-nome {
   font-weight: 700;
   color: #0d9e8a;
