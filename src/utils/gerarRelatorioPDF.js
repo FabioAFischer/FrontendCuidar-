@@ -1,26 +1,23 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-function formatarData(date) {
+function formatarData(isoString) {
+  const date = isoString ? new Date(isoString) : new Date();
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   }).format(date);
 }
 
-function contar(lista, status) {
-  return lista.filter(i => i.status === status).length;
-}
+export function gerarRelatorioPDF(dados) {
+  const { geradoEm, instituicoes, cuidadores, idosos } = dados;
 
-export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const agora = new Date();
-  const verde = [13, 158, 138];
-  const cinzaClaro = [245, 247, 250];
-  const cinzaTexto = [100, 110, 120];
-  const preto = [26, 35, 50];
 
-  let y = 0;
+  const verde      = [13, 158, 138];
+  const cinzaClaro = [245, 247, 250];
+  const preto      = [26, 35, 50];
+  const cinzaTexto = [100, 110, 120];
 
   // ── Cabeçalho ─────────────────────────────────────────────────
   doc.setFillColor(...verde);
@@ -34,11 +31,9 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Relatório Geral do Sistema", 14, 20);
+  doc.text(`Gerado em: ${formatarData(geradoEm)}`, 196, 20, { align: "right" });
 
-  doc.setFontSize(9);
-  doc.text(`Gerado em: ${formatarData(agora)}`, 196, 20, { align: "right" });
-
-  y = 38;
+  let y = 38;
 
   // ── Resumo Geral ───────────────────────────────────────────────
   doc.setTextColor(...preto);
@@ -51,28 +46,13 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
     startY: y,
     head: [["", "Total", "Ativos", "Inativos"]],
     body: [
-      [
-        "Instituições",
-        instituicoes.length,
-        contar(instituicoes, "ATIVO"),
-        contar(instituicoes, "INATIVO"),
-      ],
-      [
-        "Cuidadores",
-        cuidadores.length,
-        contar(cuidadores, "ATIVO"),
-        contar(cuidadores, "INATIVO"),
-      ],
-      [
-        "Idosos",
-        idosos.length,
-        contar(idosos, "ATIVO"),
-        contar(idosos, "INATIVO"),
-      ],
+      ["Instituições", instituicoes.total, instituicoes.ativas,  instituicoes.inativas],
+      ["Cuidadores",   cuidadores.total,   cuidadores.ativos,    cuidadores.inativos],
+      ["Idosos",       idosos.total,       idosos.ativos,        idosos.inativos],
     ],
     theme: "grid",
-    headStyles: { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 9 },
-    bodyStyles: { fontSize: 9, textColor: preto },
+    headStyles:          { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 9 },
+    bodyStyles:          { fontSize: 9, textColor: preto },
     columnStyles: {
       0: { fontStyle: "bold", cellWidth: 50 },
       1: { halign: "center", cellWidth: 30 },
@@ -95,34 +75,24 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
   autoTable(doc, {
     startY: y,
     head: [["#", "Nome", "CNPJ", "Email", "UF", "Status"]],
-    body: instituicoes.map((inst, i) => [
+    body: (instituicoes.lista || []).map((inst, i) => [
       i + 1,
-      inst.nome || "—",
-      inst.cnpj || "—",
+      inst.nome  || "—",
+      inst.cnpj  || "—",
       inst.email || "—",
-      inst.uf || "—",
+      inst.uf    || "—",
       inst.status || "—",
     ]),
     theme: "striped",
-    headStyles: { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: preto },
+    headStyles:          { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
+    bodyStyles:          { fontSize: 8, textColor: preto },
     columnStyles: {
-      0: { cellWidth: 8, halign: "center" },
+      0: { cellWidth: 8,  halign: "center" },
       4: { cellWidth: 12, halign: "center" },
       5: { cellWidth: 18, halign: "center" },
     },
     alternateRowStyles: { fillColor: cinzaClaro },
     margin: { left: 14, right: 14 },
-    didDrawCell: (data) => {
-      if (data.column.index === 5 && data.section === "body") {
-        const status = data.cell.raw;
-        if (status === "ATIVO") {
-          doc.setTextColor(10, 125, 110);
-        } else {
-          doc.setTextColor(224, 82, 82);
-        }
-      }
-    },
   });
 
   y = doc.lastAutoTable.finalY + 12;
@@ -138,20 +108,21 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Nome", "Email", "CPF", "Status"]],
-    body: cuidadores.map((c, i) => [
+    head: [["#", "Nome", "Email", "CPF", "Instituição", "Status"]],
+    body: (cuidadores.lista || []).map((c, i) => [
       i + 1,
-      c.nome || "—",
-      c.email || "—",
+      c.nome            || "—",
+      c.email           || "—",
       c.cpf ? c.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "—",
-      c.status || "—",
+      c.instituicaoNome || "—",
+      c.status          || "—",
     ]),
     theme: "striped",
-    headStyles: { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: preto },
+    headStyles:          { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
+    bodyStyles:          { fontSize: 8, textColor: preto },
     columnStyles: {
-      0: { cellWidth: 8, halign: "center" },
-      4: { cellWidth: 18, halign: "center" },
+      0: { cellWidth: 8,  halign: "center" },
+      5: { cellWidth: 18, halign: "center" },
     },
     alternateRowStyles: { fillColor: cinzaClaro },
     margin: { left: 14, right: 14 },
@@ -171,17 +142,17 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
   autoTable(doc, {
     startY: y,
     head: [["#", "Nome", "CPF", "Status"]],
-    body: idosos.map((id, i) => [
+    body: (idosos.lista || []).map((id, i) => [
       i + 1,
-      id.nome || "—",
+      id.nome  || "—",
       id.cpf ? id.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "—",
       id.status || "—",
     ]),
     theme: "striped",
-    headStyles: { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
-    bodyStyles: { fontSize: 8, textColor: preto },
+    headStyles:          { fillColor: verde, textColor: 255, fontStyle: "bold", fontSize: 8 },
+    bodyStyles:          { fontSize: 8, textColor: preto },
     columnStyles: {
-      0: { cellWidth: 8, halign: "center" },
+      0: { cellWidth: 8,  halign: "center" },
       3: { cellWidth: 18, halign: "center" },
     },
     alternateRowStyles: { fillColor: cinzaClaro },
@@ -196,12 +167,12 @@ export function gerarRelatorioPDF({ instituicoes, cuidadores, idosos }) {
     doc.setTextColor(...cinzaTexto);
     doc.setFont("helvetica", "normal");
     doc.text(
-      `BomCuidado — Relatório Geral do Sistema — ${formatarData(agora)}`,
-      14,
-      290
+      `BomCuidado — Relatório Geral do Sistema — ${formatarData(geradoEm)}`,
+      14, 290
     );
     doc.text(`Página ${i} de ${totalPaginas}`, 196, 290, { align: "right" });
   }
 
-  doc.save(`relatorio-bomcuidado-${agora.toISOString().slice(0, 10)}.pdf`);
+  const nomeArquivo = `relatorio-bomcuidado-${new Date().toISOString().slice(0, 10)}.pdf`;
+  doc.save(nomeArquivo);
 }
