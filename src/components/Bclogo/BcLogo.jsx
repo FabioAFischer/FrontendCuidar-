@@ -1,5 +1,5 @@
 import "./BcLogo.css";
-import { ReactComponent as LogoIcon } from "../../assets/logo.svg";
+import logo from "../../assets/logo.svg";
 
 const sizes = {
   sm: { icon: 28, text: 18 },
@@ -12,8 +12,9 @@ export default function BcLogo({ size = "md" }) {
 
   return (
     <div className="bc-logo">
-      <LogoIcon
-        className="bc-logo-svg"
+      <img
+        src={logo}
+        alt="BomCuidado"
         style={{
           width: s.icon,
           height: s.icon,
