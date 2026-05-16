@@ -27,7 +27,7 @@ import { gerarRelatorioPDF } from "../../../utils/gerarRelatorioPDF";
 import { cnpjValido } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
-/* ── Ícones locais (apenas os que não estão em Icons.jsx) ── */
+/* ── Ícones locais ── */
 const IconePessoa = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -330,19 +330,26 @@ const OPCOES_STATUS = [
   { value: "TODAS",   label: "Todas" },
 ];
 
+const RELATORIO_INICIAL = {
+  instituicoes: { total: 0, ativas: 0,  inativas: 0,  lista: [] },
+  cuidadores:   { total: 0, ativos: 0,  inativos: 0,  lista: [] },
+  idosos:       { total: 0, ativos: 0,  inativos: 0,  lista: [] },
+};
+
 /* ── Dashboard principal ── */
 export default function Admindashboard({ onLogout }) {
   const { toastProps, mostrarToast } = useBcToast();
-  const [instituicoes, setInstituicoes]   = useState([]);
-  const [busca, setBusca]                 = useState("");
-  const [filtroStatus, setFiltroStatus]   = useState("ATIVO");
-  const [carregando, setCarregando]       = useState(false);
-  const [excluindo, setExcluindo]         = useState(false);
-  const [modalCadastro, setModalCadastro] = useState(false);
-  const [modalEditar, setModalEditar]     = useState(null);
-  const [dadosRelatorio, setDadosRelatorio] = useState({
-    instituicoes: [], cuidadores: [], idosos: [],
-  });
+  const [instituicoes, setInstituicoes]     = useState([]);
+  const [busca, setBusca]                   = useState("");
+  const [filtroStatus, setFiltroStatus]     = useState("ATIVO");
+  const [carregando, setCarregando]         = useState(false);
+  const [excluindo, setExcluindo]           = useState(false);
+  const [modalCadastro, setModalCadastro]   = useState(false);
+  const [modalEditar, setModalEditar]       = useState(null);
+  const [dadosRelatorio, setDadosRelatorio] = useState(RELATORIO_INICIAL);
+  const [carregandoRel, setCarregandoRel]   = useState(false);
+  const [erroRel, setErroRel]               = useState("");
+  const [baixando, setBaixando]             = useState(false);
 
   const recarregarLista = useCallback(async () => {
     setCarregando(true);
@@ -361,9 +368,24 @@ export default function Admindashboard({ onLogout }) {
     }
   }, [mostrarToast]);
 
+  // Carrega dados do relatório automaticamente ao montar
+  const recarregarRelatorio = useCallback(async () => {
+    setCarregandoRel(true);
+    setErroRel("");
+    try {
+      const dados = await buscarDadosRelatorio();
+      setDadosRelatorio(dados);
+    } catch (err) {
+      setErroRel(err.message || "Erro ao carregar dados do relatório.");
+    } finally {
+      setCarregandoRel(false);
+    }
+  }, []);
+
   useEffect(() => {
     recarregarLista();
-  }, [recarregarLista]);
+    recarregarRelatorio();
+  }, [recarregarLista, recarregarRelatorio]);
 
   const filtradas = instituicoes.filter(i => {
     const matchBusca =
@@ -385,6 +407,7 @@ export default function Admindashboard({ onLogout }) {
         mostrarToast("sucesso", "Instituição reativada", `${inst.nome} foi reativada.`);
       }
       await recarregarLista();
+      await recarregarRelatorio(); // atualiza os cards após toggle
     } catch (err) {
       mostrarToast("erro", "Erro ao atualizar status", err.message);
     } finally {
@@ -393,9 +416,16 @@ export default function Admindashboard({ onLogout }) {
   }
 
   async function handleBaixarRelatorio() {
-    const dados = await buscarDadosRelatorio();
-    setDadosRelatorio(dados);
-    gerarRelatorioPDF(dados);
+    setBaixando(true);
+    try {
+      const dados = await buscarDadosRelatorio();
+      setDadosRelatorio(dados);
+      gerarRelatorioPDF(dados);
+    } catch (err) {
+      mostrarToast("erro", "Erro ao gerar relatório", err.message);
+    } finally {
+      setBaixando(false);
+    }
   }
 
   return (
@@ -442,10 +472,31 @@ export default function Admindashboard({ onLogout }) {
         <SecaoRelatorio
           titulo="Relatório Geral do Sistema"
           subtitulo="Visão consolidada de instituições, cuidadores e idosos cadastrados."
+          carregando={carregandoRel}
+          erro={erroRel}
+          baixando={baixando}
           cards={[
-            { icone: <IconeEdificio />, titulo: "Instituições", dados: dadosRelatorio.instituicoes },
-            { icone: <IconePessoa />,   titulo: "Cuidadores",   dados: dadosRelatorio.cuidadores },
-            { icone: <IconeIdoso />,    titulo: "Idosos",        dados: dadosRelatorio.idosos },
+            {
+              icone:    <IconeEdificio />,
+              titulo:   "Instituições",
+              total:    dadosRelatorio.instituicoes.total,
+              ativos:   dadosRelatorio.instituicoes.ativas,
+              inativos: dadosRelatorio.instituicoes.inativas,
+            },
+            {
+              icone:    <IconePessoa />,
+              titulo:   "Cuidadores",
+              total:    dadosRelatorio.cuidadores.total,
+              ativos:   dadosRelatorio.cuidadores.ativos,
+              inativos: dadosRelatorio.cuidadores.inativos,
+            },
+            {
+              icone:    <IconeIdoso />,
+              titulo:   "Idosos",
+              total:    dadosRelatorio.idosos.total,
+              ativos:   dadosRelatorio.idosos.ativos,
+              inativos: dadosRelatorio.idosos.inativos,
+            },
           ]}
           onBaixar={handleBaixarRelatorio}
         />
@@ -453,7 +504,7 @@ export default function Admindashboard({ onLogout }) {
 
       <BcModal aberto={modalCadastro} onFechar={() => setModalCadastro(false)}>
         <ModalCadastro
-          onSucesso={() => { setModalCadastro(false); recarregarLista(); }}
+          onSucesso={() => { setModalCadastro(false); recarregarLista(); recarregarRelatorio(); }}
           onToast={mostrarToast}
         />
       </BcModal>
@@ -462,7 +513,7 @@ export default function Admindashboard({ onLogout }) {
         {modalEditar && (
           <ModalEditar
             instituicao={modalEditar}
-            onSucesso={() => { setModalEditar(null); recarregarLista(); }}
+            onSucesso={() => { setModalEditar(null); recarregarLista(); recarregarRelatorio(); }}
             onToast={mostrarToast}
           />
         )}

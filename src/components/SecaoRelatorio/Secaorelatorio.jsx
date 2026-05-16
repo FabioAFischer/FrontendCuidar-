@@ -2,18 +2,20 @@
  * SecaoRelatorio — Seção de relatório reutilizável do BomCuidado
  *
  * Props:
- *   titulo      : string                        — título da seção
- *   subtitulo   : string                        — descrição abaixo do título
+ *   titulo      : string
+ *   subtitulo   : string
  *   cards       : Array<{
- *                   icone    : ReactNode,        — ícone do card
- *                   titulo   : string,           — label do card
- *                   dados    : Array<{ status }> — lista de itens com campo status
+ *                   icone    : ReactNode,
+ *                   titulo   : string,
+ *                   total    : number,
+ *                   ativos   : number,
+ *                   inativos : number,
  *                 }>
- *   onBaixar    : () => Promise<void>           — função chamada ao clicar no botão
- *   textoBotao? : string                        — texto do botão (default: "Baixar Relatório em PDF")
+ *   onBaixar    : () => Promise<void>
+ *   textoBotao? : string
+ *   carregando? : boolean
  */
 
-import { useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import "./Secaorelatorio.css";
 
@@ -26,20 +28,13 @@ const IconeDownload = () => (
   </svg>
 );
 
-function contar(lista, status) {
-  return lista.filter(i => i.status === status).length;
-}
-
-function CardResumo({ icone, titulo, dados = [] }) {
-  const ativos   = contar(dados, "ATIVO");
-  const inativos = contar(dados, "INATIVO");
-
+function CardResumo({ icone, titulo, total = 0, ativos = 0, inativos = 0 }) {
   return (
     <div className="sr-card">
       <div className="sr-card__icone">{icone}</div>
       <div className="sr-card__info">
         <span className="sr-card__titulo">{titulo}</span>
-        <span className="sr-card__total">{dados.length}</span>
+        <span className="sr-card__total">{total}</span>
         <div className="sr-card__detalhe">
           <span className="sr-card__ativo">↑ {ativos} ativos</span>
           <span className="sr-card__inativo">↓ {inativos} inativos</span>
@@ -55,25 +50,10 @@ export default function SecaoRelatorio({
   cards      = [],
   onBaixar,
   textoBotao = "Baixar Relatório em PDF",
+  carregando = false,
+  erro       = "",
+  baixando   = false,
 }) {
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro]             = useState("");
-  const [gerado, setGerado]         = useState(false);
-
-  async function handleBaixar() {
-    if (!onBaixar) return;
-    setErro("");
-    setCarregando(true);
-    try {
-      await onBaixar();
-      setGerado(true);
-    } catch (err) {
-      setErro(err.message || "Erro ao gerar relatório.");
-    } finally {
-      setCarregando(false);
-    }
-  }
-
   return (
     <section className="sr-wrap">
       <div className="sr-cabecalho">
@@ -93,17 +73,23 @@ export default function SecaoRelatorio({
               key={i}
               icone={card.icone}
               titulo={card.titulo}
-              dados={card.dados}
+              total={card.total}
+              ativos={card.ativos}
+              inativos={card.inativos}
             />
           ))}
         </div>
       )}
 
+      {carregando && (
+        <p className="sr-carregando">Carregando dados...</p>
+      )}
+
       {erro && <div className="sr-erro" role="alert">{erro}</div>}
 
-      <BcButton onClick={handleBaixar} loading={carregando}>
+      <BcButton onClick={onBaixar} loading={baixando} disabled={carregando}>
         <IconeDownload />
-        {carregando ? "Gerando relatório..." : textoBotao}
+        {baixando ? "Gerando relatório..." : textoBotao}
       </BcButton>
     </section>
   );
