@@ -13,25 +13,29 @@
   gap: 20px;
 }
 
+/* ── Badge de status ── */
+.bc-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.bc-status--ativo {
+  background: #e6f7f5;
+  color: #0a7d6e;
+}
+
+.bc-status--inativo {
+  background: #fef2f2;
+  color: #e05252;
+}
+
 @media (max-width: 640px) {
   .adm-main {
     padding: 16px 16px 40px;
   }
-}
-
-.adm-select-status {
-  min-width: 160px;
-  height: 42px;
-  border-radius: 10px;
-  border: 1.5px solid #e5e7eb;
-  background: #fff;
-  padding: 0 14px;
-  font-size: 14px;
-  color: #1a1a1a;
-  outline: none;
-  transition: border-color 0.18s;
-}
-
-.adm-select-status:focus {
-  border-color: #0d9e8a;
 }

@@ -419,3 +419,7 @@ export async function deletarIdoso(id) {
     fallback: "Erro ao deletar idoso.",
   });
 }
+
+export async function listarVinculos() { /* GET /vinculos */ }
+export async function criarVinculo({ cuidadorId, idosoId }) { /* POST /vinculos */ }
+export async function deletarVinculo(id) { /* DELETE /vinculos/:id */ }
