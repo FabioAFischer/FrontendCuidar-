@@ -13,17 +13,28 @@
 }
 
 .cuidador-consultas-voltar {
+  position: sticky;
+  top: 16px;
+  z-index: 20;
   width: fit-content;
+  min-height: 42px;
+  margin-bottom: -2px;
+  padding: 10px 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: none;
-  background: transparent;
+  border: 1.5px solid #d9e3e1;
+  border-radius: 12px;
+  background: #fff;
   color: #0d9e8a;
   cursor: pointer;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
+}
+
+.cuidador-consultas-voltar:hover {
+  background: #e6f7f5;
 }
 
 .cuidador-consultas-voltar svg,
