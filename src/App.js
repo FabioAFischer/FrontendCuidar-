@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAuthToken, logout } from "./api/authApi";
+import BcConfirmacao from "./components/BcConfirmacao/BcConfirmacao";
+import { IconeSair } from "./components/icons/Icons";
 import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
 import CuidadorConsultas from "./pages/Cuidador/Consultas/CuidadorConsultas";
@@ -67,6 +69,7 @@ function getRouteFromHash(hash) {
 
 export default function App() {
   const [tela, setTela] = useState(() => getRouteFromHash(window.location.hash));
+  const [confirmarSaida, setConfirmarSaida] = useState(false);
 
   useEffect(() => {
     if (!window.location.hash) {
@@ -85,8 +88,13 @@ export default function App() {
     window.location.hash = route;
   }
 
+  function solicitarLogout() {
+    setConfirmarSaida(true);
+  }
+
   function handleLogout() {
     logout();
+    setConfirmarSaida(false);
     navigateTo(ROUTES.login);
   }
 
@@ -133,12 +141,12 @@ export default function App() {
         return <LoginPage onLogin={handleLogin} />;
 
       case "dashboard-admin":
-        return <AdminDashboard onLogout={handleLogout} />;
+        return <AdminDashboard onLogout={solicitarLogout} />;
 
       case "area-cuidador":
         return (
           <CuidadorDashboard
-            onLogout={handleLogout}
+            onLogout={solicitarLogout}
             onOpenConsultas={() => navigateTo(ROUTES.cuidadorConsultas)}
             onOpenRemedios={() => navigateTo(ROUTES.cuidadorRemediosPrescricao)}
           />
@@ -147,7 +155,7 @@ export default function App() {
       case "cuidador-consultas":
         return (
           <CuidadorConsultas
-            onLogout={handleLogout}
+            onLogout={solicitarLogout}
             onBack={() => navigateTo(ROUTES.cuidador)}
           />
         );
@@ -155,13 +163,13 @@ export default function App() {
       case "cuidador-remedios-prescricao":
         return (
           <CuidadorRemediosPrescricao
-            onLogout={handleLogout}
+            onLogout={solicitarLogout}
             onBack={() => navigateTo(ROUTES.cuidador)}
           />
         );
 
       case "area-instituicao":
-        return <InstituicaoProfileHome onLogout={handleLogout} />;
+        return <InstituicaoProfileHome onLogout={solicitarLogout} />;
 
       default:
         return (
@@ -172,5 +180,18 @@ export default function App() {
     }
   }
 
-  return <div className="app-shell">{renderTela()}</div>;
+  return (
+    <div className="app-shell">
+      {renderTela()}
+      <BcConfirmacao
+        aberto={confirmarSaida}
+        titulo="Sair da conta?"
+        mensagem="Ao sair, sera necessario fazer login novamente para acessar a plataforma."
+        textoConfirmar="Sair"
+        icone={<IconeSair />}
+        onCancelar={() => setConfirmarSaida(false)}
+        onConfirmar={handleLogout}
+      />
+    </div>
+  );
 }
