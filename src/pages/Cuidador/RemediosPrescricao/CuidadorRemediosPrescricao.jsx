@@ -9,6 +9,7 @@ import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import {
   IconeCalendario,
+  IconeBusca,
   IconeCheck,
   IconeEditar,
   IconeIdosos,
@@ -115,6 +116,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [inativandoPrescricao, setInativandoPrescricao] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
+  const [buscaIdoso, setBuscaIdoso] = useState("");
   const [buscaRemedioPrescricao, setBuscaRemedioPrescricao] = useState("");
   const [sugestoesRemedioAbertas, setSugestoesRemedioAbertas] = useState(false);
   const [confirmacao, setConfirmacao] = useState(null);
@@ -138,6 +140,28 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   });
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
+  const idososFiltrados = useMemo(() => {
+    const termo = buscaIdoso.trim().toLowerCase();
+
+    if (!termo) {
+      return idosos;
+    }
+
+    return idosos.filter((idoso) => {
+      const nome = String(idoso.nome || "").toLowerCase();
+      const cpf = String(idoso.cpf || "").replace(/\D/g, "");
+      const cpfFormatado = formatarCpf(idoso.cpf).toLowerCase();
+      const telefone = formatarTelefone(idoso).toLowerCase();
+      const termoNumerico = termo.replace(/\D/g, "");
+
+      return (
+        nome.includes(termo) ||
+        cpfFormatado.includes(termo) ||
+        telefone.includes(termo) ||
+        (termoNumerico && cpf.includes(termoNumerico))
+      );
+    });
+  }, [buscaIdoso, idosos]);
   const remediosFiltradosPrescricao = useMemo(() => {
     const termo = buscaRemedioPrescricao.trim().toLowerCase();
 
@@ -534,6 +558,18 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                 <TituloSecao icone={<IconeIdosos />}>Selecione um Idoso</TituloSecao>
               </div>
 
+              {!carregandoIdosos && !erroIdosos && idosos.length > 0 ? (
+                <label className="cuidador-remedios-busca-idoso">
+                  <span><IconeBusca /></span>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome, CPF ou telefone..."
+                    value={buscaIdoso}
+                    onChange={(evento) => setBuscaIdoso(evento.target.value)}
+                  />
+                </label>
+              ) : null}
+
               {carregandoIdosos ? (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>Carregando idosos vinculados...</p>
@@ -543,9 +579,9 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                   <p>{erroIdosos}</p>
                   <small>Nao foi possivel carregar os idosos vinculados ao cuidador.</small>
                 </div>
-              ) : idosos.length > 0 ? (
+              ) : idosos.length > 0 && idososFiltrados.length > 0 ? (
                 <div className="cuidador-remedios-idosos">
-                  {idosos.map((idoso) => (
+                  {idososFiltrados.map((idoso) => (
                     <button
                       className={`cuidador-remedios-idoso ${Number(idosoSelecionadoId) === Number(idoso.id) ? "cuidador-remedios-idoso--selecionado" : ""}`}
                       type="button"
@@ -557,6 +593,11 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                       <span>{formatarTelefone(idoso)}</span>
                     </button>
                   ))}
+                </div>
+              ) : idosos.length > 0 ? (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>Nenhum idoso encontrado.</p>
+                  <small>Tente buscar por outro nome, CPF ou telefone.</small>
                 </div>
               ) : (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
