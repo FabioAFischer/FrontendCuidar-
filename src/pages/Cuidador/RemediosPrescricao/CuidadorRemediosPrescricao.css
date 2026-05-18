@@ -78,6 +78,46 @@
   gap: 12px;
 }
 
+.cuidador-remedios-busca-idoso {
+  position: relative;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.cuidador-remedios-busca-idoso span {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  display: inline-flex;
+  color: #667085;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.cuidador-remedios-busca-idoso input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px 0 44px;
+  border: 1.5px solid #dce6e5;
+  border-radius: 12px;
+  background: #fbfdfd;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.cuidador-remedios-busca-idoso input::placeholder {
+  color: #98a2b3;
+}
+
+.cuidador-remedios-busca-idoso input:focus {
+  border-color: #0d9e8a;
+  background: #fff;
+}
+
 .cuidador-remedios-titulo {
   display: flex;
   align-items: center;
