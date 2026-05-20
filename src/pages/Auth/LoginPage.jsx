@@ -52,14 +52,12 @@ const profileNames = {
 /* ══════════════════════════════════════════
    Modal 2FA
    ══════════════════════════════════════════ */
-function Modal2FA({ aberto, emailMascarado, rememberMe, perfil, onSucesso, onFechar }) {
-  const [emailCompleto, setEmailCompleto] = useState("");
+function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, onSucesso, onFechar }) {
   const [codigo, setCodigo]               = useState("");
   const [loading, setLoading]             = useState(false);
   const [erro, setErro]                   = useState("");
 
   function handleFechar() {
-    setEmailCompleto("");
     setCodigo("");
     setErro("");
     onFechar();
@@ -69,12 +67,11 @@ function Modal2FA({ aberto, emailMascarado, rememberMe, perfil, onSucesso, onFec
     e.preventDefault();
     setErro("");
 
-    if (!emailCompleto.trim()) { setErro("Informe seu email completo."); return; }
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
 
     setLoading(true);
     try {
-      const data = await verificar2fa({ email: emailCompleto, codigo, perfil, rememberMe });
+      const data = await verificar2fa({ identificador, codigo, perfil, rememberMe });
       onSucesso(data, perfil);
     } catch (err) {
       setErro(err.message);
@@ -92,19 +89,10 @@ function Modal2FA({ aberto, emailMascarado, rememberMe, perfil, onSucesso, onFec
           <p>
             Enviamos um código para{" "}
             <strong className="mrs-email-destaque">{emailMascarado}</strong>.
-            Confirme seu email e insira o código recebido.
+            Insira o código recebido.
           </p>
         </div>
         <form className="mrs-form" onSubmit={handleSubmit} noValidate>
-          <BcInput
-            label="Seu email completo"
-            name="twofa-email"
-            type="email"
-            placeholder="seuemail@exemplo.com"
-            value={emailCompleto}
-            onChange={e => { setEmailCompleto(e.target.value); setErro(""); }}
-            autoComplete="email"
-          />
           <BcInput
             label="Código de verificação"
             name="twofa-codigo"
@@ -346,6 +334,7 @@ export default function LoginPage({ onLogin }) {
   // estado 2FA
   const [modal2FA, setModal2FA]             = useState(false);
   const [twoFaEmail, setTwoFaEmail]         = useState("");
+  const [twoFaIdentificador, setTwoFaIdentificador] = useState("");
   const [twoFaPerfil, setTwoFaPerfil]       = useState("");
   const [twoFaRemember, setTwoFaRemember]   = useState(true);
 
@@ -382,6 +371,7 @@ export default function LoginPage({ onLogin }) {
       // Backend pediu 2FA — abre modal
       if (data.requer2fa) {
         setTwoFaEmail(data.email);
+        setTwoFaIdentificador(cpfCnpj);
         setTwoFaPerfil(profile);
         setTwoFaRemember(rememberMe);
         setModal2FA(true);
@@ -411,6 +401,7 @@ export default function LoginPage({ onLogin }) {
       <Modal2FA
         aberto={modal2FA}
         emailMascarado={twoFaEmail}
+        identificador={twoFaIdentificador}
         rememberMe={twoFaRemember}
         perfil={twoFaPerfil}
         onSucesso={handle2FASucesso}
