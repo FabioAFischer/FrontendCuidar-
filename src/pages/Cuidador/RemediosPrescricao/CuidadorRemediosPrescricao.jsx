@@ -10,7 +10,6 @@ import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import {
   IconeCalendario,
   IconeBusca,
-  IconeCheck,
   IconeEditar,
   IconeIdosos,
   IconeLixeira,
@@ -21,12 +20,10 @@ import {
   IconeVoltar,
 } from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
+import { cadastrarAlerta, cancelarAlerta, listarAlertasPorIdoso } from "../../../api/alertaApi";
 import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, inativarPrescricao, listarPrescricoesPorIdoso } from "../../../api/prescricaoApi";
 import { atualizarRemedio as atualizarRemedioApi, cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./CuidadorRemediosPrescricao.css";
-
-const agenda = [
-];
 
 function BotaoIcone({ children, tipo = "padrao", label, onClick }) {
   return (
@@ -83,6 +80,21 @@ function formatarData(valor) {
   return data.toLocaleDateString("pt-BR");
 }
 
+function formatarDataHora(valor) {
+  if (!valor) return "Sem data";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "Sem data";
+
+  return data.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function valorInputData(valor) {
   if (!valor) return "";
 
@@ -103,6 +115,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [remedios, setRemedios] = useState([]);
   const [idosos, setIdosos] = useState([]);
   const [prescricoes, setPrescricoes] = useState([]);
+  const [alertasRemedio, setAlertasRemedio] = useState([]);
   const [idosoSelecionadoId, setIdosoSelecionadoId] = useState(null);
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [erroIdosos, setErroIdosos] = useState("");
@@ -110,12 +123,15 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [erroRemedios, setErroRemedios] = useState("");
   const [carregandoPrescricoes, setCarregandoPrescricoes] = useState(false);
   const [erroListagemPrescricao, setErroListagemPrescricao] = useState("");
+  const [carregandoAlertasRemedio, setCarregandoAlertasRemedio] = useState(false);
+  const [erroAlertasRemedio, setErroAlertasRemedio] = useState("");
   const [salvandoRemedio, setSalvandoRemedio] = useState(false);
   const [salvandoPrescricao, setSalvandoPrescricao] = useState(false);
   const [inativandoRemedio, setInativandoRemedio] = useState(false);
   const [inativandoPrescricao, setInativandoPrescricao] = useState(false);
   const [modalRemedioAberto, setModalRemedioAberto] = useState(false);
   const [modalPrescricaoAberto, setModalPrescricaoAberto] = useState(false);
+  const [modalAlertaRemedioAberto, setModalAlertaRemedioAberto] = useState(false);
   const [buscaIdoso, setBuscaIdoso] = useState("");
   const [buscaRemedioPrescricao, setBuscaRemedioPrescricao] = useState("");
   const [sugestoesRemedioAbertas, setSugestoesRemedioAbertas] = useState(false);
@@ -126,6 +142,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   const [prescricaoEmVisualizacao, setPrescricaoEmVisualizacao] = useState(null);
   const [erroCadastroRemedio, setErroCadastroRemedio] = useState("");
   const [erroPrescricao, setErroPrescricao] = useState("");
+  const [erroAlertaRemedio, setErroAlertaRemedio] = useState("");
+  const [salvandoAlertaRemedio, setSalvandoAlertaRemedio] = useState(false);
   const [formRemedio, setFormRemedio] = useState({
     nome: "",
     observacao: "",
@@ -137,6 +155,9 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     dataFim: "",
     necessarioJejum: "false",
     instrucao: "",
+  });
+  const [formAlertaRemedio, setFormAlertaRemedio] = useState({
+    dataAgendada: "",
   });
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
@@ -180,27 +201,48 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
   }, []);
 
   useEffect(() => {
-    async function carregarPrescricoesDoIdoso() {
-      if (!idosoSelecionadoId) {
-        setPrescricoes([]);
-        return;
-      }
+    carregarPrescricoesDoIdoso();
+    carregarAlertasRemedioDoIdoso();
+  }, [idosoSelecionadoId]);
 
-      try {
-        setCarregandoPrescricoes(true);
-        setErroListagemPrescricao("");
-        const lista = await listarPrescricoesPorIdoso(idosoSelecionadoId);
-        setPrescricoes(Array.isArray(lista) ? lista : []);
-      } catch (erro) {
-        setErroListagemPrescricao(erro.message);
-        setPrescricoes([]);
-      } finally {
-        setCarregandoPrescricoes(false);
-      }
+  async function carregarPrescricoesDoIdoso() {
+    if (!idosoSelecionadoId) {
+      setPrescricoes([]);
+      return;
     }
 
-    carregarPrescricoesDoIdoso();
-  }, [idosoSelecionadoId]);
+    try {
+      setCarregandoPrescricoes(true);
+      setErroListagemPrescricao("");
+      const lista = await listarPrescricoesPorIdoso(idosoSelecionadoId);
+      setPrescricoes(Array.isArray(lista) ? lista : []);
+    } catch (erro) {
+      setErroListagemPrescricao(erro.message);
+      setPrescricoes([]);
+    } finally {
+      setCarregandoPrescricoes(false);
+    }
+  }
+
+  async function carregarAlertasRemedioDoIdoso() {
+    if (!idosoSelecionadoId) {
+      setAlertasRemedio([]);
+      return;
+    }
+
+    try {
+      setCarregandoAlertasRemedio(true);
+      setErroAlertasRemedio("");
+      const lista = await listarAlertasPorIdoso(idosoSelecionadoId);
+      const alertas = Array.isArray(lista) ? lista : [];
+      setAlertasRemedio(alertas.filter((alerta) => String(alerta.tipoAlerta || alerta.tipo || "").toUpperCase() === "REMEDIO"));
+    } catch (erro) {
+      setErroAlertasRemedio(erro.message);
+      setAlertasRemedio([]);
+    } finally {
+      setCarregandoAlertasRemedio(false);
+    }
+  }
 
   async function carregarIdosos() {
     try {
@@ -283,6 +325,67 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   function fecharVisualizacaoPrescricao() {
     setPrescricaoEmVisualizacao(null);
+  }
+
+  function abrirCadastroAlertaRemedio() {
+    setErroAlertaRemedio("");
+    setFormAlertaRemedio({ dataAgendada: "" });
+    setModalAlertaRemedioAberto(true);
+  }
+
+  function fecharCadastroAlertaRemedio() {
+    setModalAlertaRemedioAberto(false);
+    setErroAlertaRemedio("");
+    setFormAlertaRemedio({ dataAgendada: "" });
+  }
+
+  function atualizarAlertaRemedio(evento) {
+    const { name, value } = evento.target;
+    setFormAlertaRemedio((anterior) => ({ ...anterior, [name]: value }));
+  }
+
+  async function handleSalvarAlertaRemedio(evento) {
+    evento.preventDefault();
+
+    if (!idosoSelecionado) {
+      setErroAlertaRemedio("Selecione um idoso para criar o alerta.");
+      return;
+    }
+
+    if (!formAlertaRemedio.dataAgendada) {
+      setErroAlertaRemedio("Informe a data e horario do alerta.");
+      return;
+    }
+
+    try {
+      setSalvandoAlertaRemedio(true);
+      setErroAlertaRemedio("");
+
+      const alerta = await cadastrarAlerta({
+        idosoId: Number(idosoSelecionado.id),
+        tipoAlerta: "REMEDIO",
+        dataAgendada: formAlertaRemedio.dataAgendada,
+      });
+
+      setAlertasRemedio((anteriores) => [alerta, ...anteriores]);
+      fecharCadastroAlertaRemedio();
+      mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remedio foi cadastrado na agenda.");
+    } catch (erro) {
+      setErroAlertaRemedio(erro.message || "Erro ao cadastrar alerta.");
+      mostrarToast("erro", "Erro ao cadastrar alerta", erro.message || "Tente novamente.");
+    } finally {
+      setSalvandoAlertaRemedio(false);
+    }
+  }
+
+  async function removerAlertaRemedio(alerta) {
+    try {
+      await cancelarAlerta(alerta.id);
+      setAlertasRemedio((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(alerta.id)));
+      mostrarToast("sucesso", "Alerta cancelado", "O alerta foi removido da agenda.");
+    } catch (erro) {
+      mostrarToast("erro", "Erro ao cancelar alerta", erro.message || "Tente novamente.");
+    }
   }
 
   function abrirCadastroPrescricao() {
@@ -669,27 +772,32 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           <aside className="cuidador-remedios-card cuidador-remedios-card--fixo">
             <div className="cuidador-remedios-card__header">
               <TituloSecao icone={<IconeCalendario />}>Agenda</TituloSecao>
-              <BotaoIcone label="Adicionar evento"><IconeMais /></BotaoIcone>
+              <BotaoIcone label="Adicionar alerta de remedio" onClick={abrirCadastroAlertaRemedio}><IconeMais /></BotaoIcone>
             </div>
 
             <div className="cuidador-remedios-lista">
-              {agenda.length > 0 ? (
-                agenda.map((evento) => (
-                  <article className={`cuidador-remedios-agenda ${evento.status === "REALIZADO" ? "cuidador-remedios-agenda--realizado" : ""}`} key={`${evento.horario}-${evento.descricao}`}>
+              {carregandoAlertasRemedio ? (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>Carregando agenda...</p>
+                </div>
+              ) : erroAlertasRemedio ? (
+                <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
+                  <p>{erroAlertasRemedio}</p>
+                  <small>Nao foi possivel carregar os alertas deste idoso.</small>
+                </div>
+              ) : alertasRemedio.length > 0 ? (
+                alertasRemedio.map((alerta) => (
+                  <article className="cuidador-remedios-agenda" key={alerta.id}>
                     <div>
                       <div className="cuidador-remedios-agenda__badges">
-                        <span>{evento.tipo}</span>
-                        <span>{evento.status}</span>
+                        <span>Remedio</span>
+                        <span>{alerta.statusAlertas || alerta.status || "AGENDADO"}</span>
                       </div>
-                      <time>{evento.horario}</time>
-                      <p>{evento.descricao}</p>
+                      <time>{formatarDataHora(alerta.dataAgendada)}</time>
+                      <p>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</p>
                     </div>
                     <div className="cuidador-remedios-item__acoes">
-                      {evento.status === "AGENDADO" ? (
-                        <BotaoIcone tipo="sucesso" label="Marcar como realizado"><IconeCheck /></BotaoIcone>
-                      ) : null}
-                      <BotaoIcone label="Editar evento"><IconeEditar /></BotaoIcone>
-                      <BotaoIcone tipo="perigo" label="Excluir evento"><IconeLixeira /></BotaoIcone>
+                      <BotaoIcone tipo="perigo" label="Cancelar alerta" onClick={() => removerAlertaRemedio(alerta)}><IconeLixeira /></BotaoIcone>
                     </div>
                   </article>
                 ))
@@ -703,6 +811,33 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           </aside>
         </section>
       </main>
+
+      <BcModal aberto={modalAlertaRemedioAberto} onFechar={fecharCadastroAlertaRemedio}>
+        <BcFormModal
+          title="Novo Alerta de Remedio"
+          subtitle="Informe quando o cuidador deve ser lembrado"
+          error={erroAlertaRemedio}
+          onSubmit={handleSalvarAlertaRemedio}
+        >
+          <div className="cuidador-remedios-agenda-paciente">
+            <span>Idoso selecionado</span>
+            <strong>{idosoSelecionado?.nome || "Nenhum idoso selecionado"}</strong>
+            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Nao informado"}</small> : null}
+          </div>
+
+          <BcInput
+            label="Data e horario *"
+            name="dataAgendada"
+            type="datetime-local"
+            value={formAlertaRemedio.dataAgendada}
+            onChange={atualizarAlertaRemedio}
+          />
+
+          <BcButton type="submit" loading={salvandoAlertaRemedio}>
+            Cadastrar alerta
+          </BcButton>
+        </BcFormModal>
+      </BcModal>
 
       <BcModal aberto={modalRemedioAberto} onFechar={fecharCadastroRemedio}>
         <BcFormModal
