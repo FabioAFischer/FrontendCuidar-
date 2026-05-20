@@ -62,14 +62,15 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
   return data;
 }
 
-export async function verificar2fa({ email, codigo, perfil, rememberMe = true }) {
+export async function verificar2fa({ identificador, codigo, perfil, rememberMe = true }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
+  const identificadorNormalizado = somenteNumeros(identificador);
 
   const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email,
+      identificador: identificadorNormalizado,
       codigo,
       perfil: perfilBackend,
     }),
