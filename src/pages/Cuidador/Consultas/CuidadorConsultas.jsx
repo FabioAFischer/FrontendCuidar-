@@ -8,9 +8,16 @@ import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import { IconeSair, IconeVoltar } from "../../../components/icons/Icons";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
+import { atualizarAlerta, cadastrarAlerta, cancelarAlerta } from "../../../api/alertaApi";
 import "./CuidadorConsultas.css";
 
 const STORAGE_KEY = "bomcuidado_consultas_cuidador";
+
+const TIPOS_ALERTA = [
+  { value: "CONSULTA", label: "Consulta" },
+  { value: "EXAME", label: "Exame" },
+  { value: "OUTRO", label: "Outro" },
+];
 
 const STATUS = {
   pendente: { label: "Pendente", classe: "pendente" },
@@ -210,6 +217,7 @@ const formInicial = {
   idosoId: "",
   data: "",
   hora: "",
+  tipoAlerta: "CONSULTA",
   medico: "",
   especialidade: "",
   local: "",
@@ -238,6 +246,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
   const [consultaEmVisualizacao, setConsultaEmVisualizacao] = useState(null);
   const [consultaParaExcluir, setConsultaParaExcluir] = useState(null);
   const [erroFormulario, setErroFormulario] = useState("");
+  const [salvandoConsulta, setSalvandoConsulta] = useState(false);
   const [form, setForm] = useState(formInicial);
 
   useEffect(() => {
@@ -301,6 +310,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
       idosoId: String(consulta.idosoId || ""),
       data: consulta.data || "",
       hora: consulta.hora || "",
+      tipoAlerta: consulta.tipoAlerta || "CONSULTA",
       medico: consulta.medico || "",
       especialidade: consulta.especialidade || "",
       local: consulta.local || "",
@@ -326,13 +336,14 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
     if (!form.idosoId) return "Selecione um idoso.";
     if (!form.data) return "Informe a data da consulta.";
     if (!form.hora) return "Informe o horario da consulta.";
+    if (!form.tipoAlerta) return "Selecione o tipo do alerta.";
     if (!form.medico.trim()) return "Informe o nome do medico.";
     if (!form.especialidade.trim()) return "Informe a especialidade.";
     if (!form.local.trim()) return "Informe o local da consulta.";
     return "";
   }
 
-  function salvarConsulta(evento) {
+  async function salvarConsulta(evento) {
     evento.preventDefault();
 
     const erro = validarFormulario();
@@ -358,37 +369,73 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
       local: form.local.trim(),
       observacoes: form.observacoes.trim(),
       status: form.status,
+      tipoAlerta: form.tipoAlerta,
     };
 
-    if (consultaEmEdicao) {
-      setConsultas((anteriores) =>
-        anteriores.map((consulta) =>
-          consulta.id === consultaEmEdicao.id ? { ...consulta, ...dados } : consulta
-        )
-      );
-      mostrarToast("sucesso", "Consulta atualizada", "As alteracoes da consulta foram salvas.");
-    } else {
-      setConsultas((anteriores) => [
-        {
-          id: String(Date.now()),
-          ...dados,
-          lembreteEnviado: false,
-          criadoEm: new Date().toISOString(),
-        },
-        ...anteriores,
-      ]);
-      mostrarToast("sucesso", "Consulta cadastrada", "A consulta foi adicionada a agenda.");
-    }
+    const payloadAlerta = {
+      idosoId: Number(idoso.id),
+      tipoAlerta: form.tipoAlerta,
+      dataAgendada: form.data + "T" + form.hora + ":00",
+      ...(consultaEmEdicao ? { statusAlertas: "AGENDADO" } : {}),
+    };
 
-    fecharFormulario();
+    try {
+      setSalvandoConsulta(true);
+      setErroFormulario("");
+
+      let alertaSalvo = null;
+      if (consultaEmEdicao?.alertaId) {
+        alertaSalvo = await atualizarAlerta(consultaEmEdicao.alertaId, payloadAlerta);
+      } else {
+        alertaSalvo = await cadastrarAlerta(payloadAlerta);
+      }
+
+      if (consultaEmEdicao) {
+        setConsultas((anteriores) =>
+          anteriores.map((consulta) =>
+            consulta.id === consultaEmEdicao.id
+              ? { ...consulta, ...dados, alertaId: alertaSalvo?.id || consulta.alertaId }
+              : consulta
+          )
+        );
+        mostrarToast("sucesso", "Consulta atualizada", "As alteracoes da consulta foram salvas e o alerta foi atualizado.");
+      } else {
+        setConsultas((anteriores) => [
+          {
+            id: String(Date.now()),
+            ...dados,
+            alertaId: alertaSalvo?.id,
+            lembreteEnviado: false,
+            criadoEm: new Date().toISOString(),
+          },
+          ...anteriores,
+        ]);
+        mostrarToast("sucesso", "Alerta cadastrado", "O alerta foi cadastrado na agenda.");
+      }
+
+      fecharFormulario();
+    } catch (erroApi) {
+      setErroFormulario(erroApi.message || "Erro ao cadastrar alerta. Tente novamente.");
+      mostrarToast("erro", "Erro ao salvar alerta", erroApi.message || "Tente novamente.");
+    } finally {
+      setSalvandoConsulta(false);
+    }
   }
 
-  function excluirConsulta() {
+  async function excluirConsulta() {
     if (!consultaParaExcluir) return;
 
-    setConsultas((anteriores) => anteriores.filter((consulta) => consulta.id !== consultaParaExcluir.id));
-    setConsultaParaExcluir(null);
-    mostrarToast("sucesso", "Consulta excluida", "A consulta foi removida da agenda.");
+    try {
+      if (consultaParaExcluir.alertaId) {
+        await cancelarAlerta(consultaParaExcluir.alertaId);
+      }
+
+      setConsultas((anteriores) => anteriores.filter((consulta) => consulta.id !== consultaParaExcluir.id));
+      setConsultaParaExcluir(null);
+      mostrarToast("sucesso", "Alerta removido", "O alerta foi removido da agenda.");
+    } catch (erro) {
+      mostrarToast("erro", "Erro ao remover alerta", erro.message || "Tente novamente.");
+    }
   }
 
   function enviarLembrete(consultaSelecionada) {
@@ -525,6 +572,15 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
             </select>
           </div>
 
+          <div className="cuidador-consultas-campo">
+            <label htmlFor="consulta-tipo-alerta" className="bc-form-modal__label">Tipo de alerta *</label>
+            <select id="consulta-tipo-alerta" name="tipoAlerta" value={form.tipoAlerta} onChange={atualizarForm}>
+              {TIPOS_ALERTA.map((tipo) => (
+                <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+              ))}
+            </select>
+          </div>
+
           <BcInput label="Medico *" name="medico" placeholder="Dr. Nome do medico" value={form.medico} onChange={atualizarForm} />
 
           <div className="cuidador-consultas-form__linha">
@@ -554,7 +610,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
             onChange={atualizarForm}
           />
 
-          <BcButton type="submit">
+          <BcButton type="submit" loading={salvandoConsulta}>
             {consultaEmEdicao ? "Salvar alteracoes" : "Cadastrar consulta"}
           </BcButton>
         </BcFormModal>
