@@ -10,7 +10,7 @@ import {
   IconeSetaDireita,
   IconeTelefone,
 } from "../../../components/icons/Icons";
-import { listarIdosos } from "../../../api/instituicaoApi";
+import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import "./CuidadorDashboard.css";
 
 const CONTATOS_EMERGENCIA = [
@@ -178,7 +178,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
   useEffect(() => {
     setNomeCuidador(getNomeCuidador());
 
-    listarIdosos()
+    listarIdososDoCuidador()
       .then((lista) => {
         if (Array.isArray(lista) && lista.length > 0) {
           setIdosos(lista);
