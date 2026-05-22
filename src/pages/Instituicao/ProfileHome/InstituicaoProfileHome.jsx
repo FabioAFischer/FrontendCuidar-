@@ -58,7 +58,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   });
 
   const [formCuidador, setFormCuidador] = useState({
-    cpf: "", nome: "", email: "", senha: "", ddd: "", telefone: "", contatoId: null,
+    cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null,
   });
 
   const [formIdoso, setFormIdoso] = useState({
@@ -186,7 +186,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
         setCuidadorParaReativar(encontrado);
         setErroCuidador("");
         setFormCuidador((ant) => ({
-          ...ant, cpf: novoValor, nome: encontrado.nome || "", email: encontrado.email || "", senha: "",
+          ...ant, cpf: novoValor, nome: encontrado.nome || "", email: encontrado.email || "", senha: "", confirmarSenha: "",
           ddd: encontrado.contato?.ddd ? String(encontrado.contato.ddd) : "",
           telefone: encontrado.contato?.telefone ? formatarTelefone(String(encontrado.contato.telefone)) : "",
           contatoId: encontrado.contatoId || encontrado.contato?.id || null,
@@ -219,7 +219,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }
 
   function limparFormCuidador() {
-    setFormCuidador({ cpf: "", nome: "", email: "", senha: "", ddd: "", telefone: "", contatoId: null });
+    setFormCuidador({ cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null });
     setCuidadorParaReativar(null);
   }
 
@@ -233,7 +233,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setErroCuidador("");
     setCuidadorEmEdicao(cuidador);
     setFormCuidador({
-      cpf: formatarCPF(String(cuidador.cpf || "")), nome: cuidador.nome || "", email: cuidador.email || "", senha: "",
+      cpf: formatarCPF(String(cuidador.cpf || "")), nome: cuidador.nome || "", email: cuidador.email || "", senha: "", confirmarSenha: "",
       ddd: cuidador.contato?.ddd ? String(cuidador.contato.ddd) : "",
       telefone: cuidador.contato?.telefone ? formatarTelefone(String(cuidador.contato.telefone)) : "",
       contatoId: cuidador.contatoId || cuidador.contato?.id || null,
@@ -287,6 +287,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
+    if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
+    if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas nao coincidem.";
     if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
     if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
     return null;
@@ -505,6 +507,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
               name="senha" type="password"
               placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
               value={formCuidador.senha} onChange={atualizarCuidador}
+            />
+            <BcInput
+              label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
+              name="confirmarSenha" type="password"
+              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
+              value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
             />
             <div className="instituicao-modal__row">
               <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
