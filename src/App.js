@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
 import LoginPage from "./pages/Auth/LoginPage";
 import CuidadorConsultas from "./pages/Cuidador/Consultas/CuidadorConsultas";
 import CuidadorDashboard from "./pages/Cuidador/Dashboard/CuidadorDashboard";
+import CuidadorIdososVinculados from "./pages/Cuidador/IdososVinculados/CuidadorIdososVinculados";
 import CuidadorRemediosPrescricao from "./pages/Cuidador/RemediosPrescricao/CuidadorRemediosPrescricao";
 import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
 import "./styles/global.css";
@@ -15,6 +16,7 @@ const ROUTES = {
   login: "#/login",
   administrador: "#/administrador",
   cuidador: "#/cuidador",
+  cuidadorIdososVinculados: "#/cuidador/usuarios-vinculados",
   cuidadorConsultas: "#/cuidador/consultas",
   cuidadorRemediosPrescricao: "#/cuidador/remedios-prescricao",
   instituicao: "#/instituicao",
@@ -23,6 +25,7 @@ const ROUTES = {
 const ROUTE_PROFILE = {
   "dashboard-admin": "ADMINISTRADOR",
   "area-cuidador": "CUIDADOR",
+  "cuidador-idosos-vinculados": "CUIDADOR",
   "cuidador-consultas": "CUIDADOR",
   "cuidador-remedios-prescricao": "CUIDADOR",
   "area-instituicao": "INSTITUICAO",
@@ -51,6 +54,8 @@ function getRouteFromHash(hash) {
       return "dashboard-admin";
     case ROUTES.cuidador:
       return "area-cuidador";
+    case ROUTES.cuidadorIdososVinculados:
+      return "cuidador-idosos-vinculados";
     case ROUTES.cuidadorConsultas:
       return "cuidador-consultas";
     case ROUTES.cuidadorRemediosPrescricao:
@@ -147,8 +152,17 @@ export default function App() {
         return (
           <CuidadorDashboard
             onLogout={solicitarLogout}
+            onOpenIdososVinculados={() => navigateTo(ROUTES.cuidadorIdososVinculados)}
             onOpenConsultas={() => navigateTo(ROUTES.cuidadorConsultas)}
             onOpenRemedios={() => navigateTo(ROUTES.cuidadorRemediosPrescricao)}
+          />
+        );
+
+      case "cuidador-idosos-vinculados":
+        return (
+          <CuidadorIdososVinculados
+            onLogout={solicitarLogout}
+            onBack={() => navigateTo(ROUTES.cuidador)}
           />
         );
 
