@@ -1,0 +1,245 @@
+.cuidador-idosos-page {
+  min-height: 100vh;
+  background: #f0f4f4;
+}
+
+.cuidador-idosos-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cuidador-idosos-voltar {
+  width: fit-content;
+  min-height: 38px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid #d9e3e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #1a1a1a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.cuidador-idosos-voltar:hover {
+  background: #e6f7f5;
+  border-color: #0d9e8a;
+  color: #0d9e8a;
+}
+
+.cuidador-idosos-header {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid #e7ecef;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cuidador-idosos-header > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cuidador-idosos-header span,
+.cuidador-idosos-empty span {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #e6f7f5;
+  color: #0d9e8a;
+}
+
+.cuidador-idosos-header svg,
+.cuidador-idosos-empty svg {
+  width: 22px;
+  height: 22px;
+}
+
+.cuidador-idosos-header h1 {
+  margin: 0 0 4px;
+  color: #1a1a1a;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.cuidador-idosos-header p {
+  color: #667085;
+  font-size: 14px;
+}
+
+.cuidador-idosos-busca {
+  width: min(360px, 100%);
+  min-height: 44px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid #d9e3e1;
+  border-radius: 12px;
+  background: #f8fbfb;
+  color: #667085;
+}
+
+.cuidador-idosos-busca input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+}
+
+.cuidador-idosos-busca:focus-within {
+  border-color: #0d9e8a;
+  background: #fff;
+}
+
+.cuidador-idosos-alerta,
+.cuidador-idosos-empty {
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #e7ecef;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cuidador-idosos-alerta {
+  color: #b42318;
+  border-color: #f3b7b1;
+  background: #fff5f5;
+  font-weight: 700;
+}
+
+.cuidador-idosos-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cuidador-idosos-card {
+  min-height: 132px;
+  padding: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e7ecef;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cuidador-idosos-card__avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #0d9e8a;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cuidador-idosos-card__content {
+  min-width: 0;
+}
+
+.cuidador-idosos-card h3 {
+  margin: 0 0 12px;
+  color: #1a1a1a;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.cuidador-idosos-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cuidador-idosos-card dt {
+  margin-bottom: 3px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cuidador-idosos-card dd {
+  color: #344054;
+  font-size: 14px;
+}
+
+.cuidador-idosos-empty {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  color: #667085;
+}
+
+.cuidador-idosos-empty p {
+  color: #475467;
+  font-weight: 700;
+}
+
+.cuidador-idosos-empty small {
+  color: #667085;
+}
+
+@media (max-width: 760px) {
+  .cuidador-idosos-main {
+    padding: 24px 16px 36px;
+  }
+
+  .cuidador-idosos-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cuidador-idosos-header h1 {
+    font-size: 22px;
+  }
+
+  .cuidador-idosos-lista,
+  .cuidador-idosos-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-idosos-voltar,
+  .cuidador-idosos-busca {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .cuidador-idosos-card {
+    align-items: center;
+    padding: 18px;
+  }
+}

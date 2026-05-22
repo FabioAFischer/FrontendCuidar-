@@ -162,7 +162,7 @@ function EmergencyContacts() {
   );
 }
 
-export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRemedios }) {
+export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRemedios, onOpenIdososVinculados }) {
   const [nomeCuidador, setNomeCuidador] = useState(getNomeCuidador);
   const [idosos, setIdosos] = useState([]);
   const [agendaEvents] = useState([]);
@@ -231,7 +231,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
               <h2 id="idosos-titulo">Idosos</h2>
               <p>Pacientes vinculados ao seu acompanhamento.</p>
             </div>
-            <button type="button" className="cuidador-outline-button">
+            <button type="button" className="cuidador-outline-button" onClick={onOpenIdososVinculados}>
               <IconeIdosos />
               Ver Todos
             </button>
