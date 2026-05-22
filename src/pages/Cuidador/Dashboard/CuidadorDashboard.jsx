@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
+import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import {
   IconeCalendario,
+  IconeCheck,
   IconeIdosos,
   IconePerfil,
   IconeRemedio,
@@ -10,6 +12,7 @@ import {
   IconeSetaDireita,
   IconeTelefone,
 } from "../../../components/icons/Icons";
+import { atualizarAlerta, listarAlertas } from "../../../api/alertaApi";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import "./CuidadorDashboard.css";
 
@@ -53,6 +56,29 @@ function isEventoProximo(dataAgendada) {
   return diferencaHoras >= 0 && diferencaHoras <= 24;
 }
 
+function getTipoAlerta(evento) {
+  return String(evento.tipoAlerta || evento.tipo || "OUTRO").toUpperCase();
+}
+
+function getStatusAlerta(evento) {
+  return String(evento.statusAlertas || evento.status || "PENDENTE").toUpperCase();
+}
+
+function isMedicacao(evento) {
+  const tipo = getTipoAlerta(evento);
+  return tipo === "REMEDIO" || tipo === "MEDICACAO";
+}
+
+function isPendente(evento) {
+  const status = getStatusAlerta(evento);
+  return status === "PENDENTE" || status === "AGENDADO";
+}
+
+function formatarStatusAgenda(status) {
+  if (status === "PENDENTE" || status === "AGENDADO") return "Pendente";
+  return status.charAt(0) + status.slice(1).toLowerCase();
+}
+
 function QuickActionCard({ icon, title, description, onClick }) {
   return (
     <button type="button" className="cuidador-action-card" onClick={onClick}>
@@ -81,30 +107,45 @@ function PatientCard({ idoso }) {
   );
 }
 
-function AgendaEventCard({ event }) {
+function AgendaEventCard({ event, confirming, onConfirm }) {
   const data = new Date(event.dataAgendada);
   const proximo = isEventoProximo(event.dataAgendada);
-  const tipo = String(event.tipo || "OUTRO").toUpperCase();
-  const isMedicacao = tipo === "REMEDIO" || tipo === "MEDICACAO";
+  const tipo = getTipoAlerta(event);
+  const medicacao = isMedicacao(event);
+  const status = getStatusAlerta(event);
 
   return (
     <article className={`cuidador-agenda-card ${proximo ? "cuidador-agenda-card--soon" : ""}`}>
-      <span className={`cuidador-agenda-card__icon cuidador-agenda-card__icon--${isMedicacao ? "medicacao" : "agenda"}`}>
-        {isMedicacao ? <IconeRemedio /> : <IconeCalendario />}
+      <span className={`cuidador-agenda-card__icon cuidador-agenda-card__icon--${medicacao ? "medicacao" : "agenda"}`}>
+        {medicacao ? <IconeRemedio /> : <IconeCalendario />}
       </span>
       <div className="cuidador-agenda-card__content">
         <div className="cuidador-agenda-card__badges">
-          <span>{isMedicacao ? "Remedio" : tipo === "CONSULTA" ? "Consulta" : tipo === "EXAME" ? "Exame" : "Agenda"}</span>
+          <span>{medicacao ? "Remedio" : tipo === "CONSULTA" ? "Consulta" : tipo === "EXAME" ? "Exame" : "Agenda"}</span>
           {proximo && <span className="cuidador-agenda-card__soon">Proximo</span>}
         </div>
         <h3>{event.idosoNome || "Idoso nao identificado"}</h3>
         {event.descricao && <p>{event.descricao}</p>}
-        <small>{event.status || "Pendente"}</small>
+        {medicacao && <p>Confirme quando o idoso tomar o remedio prescrito.</p>}
+        <small>{formatarStatusAgenda(status)}</small>
       </div>
       <time className="cuidador-agenda-card__date" dateTime={event.dataAgendada}>
         <strong>{data.toLocaleDateString("pt-BR")}</strong>
         <span>{data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
       </time>
+      {medicacao ? (
+        <button
+          type="button"
+          className="cuidador-agenda-card__confirm"
+          onClick={() => onConfirm(event)}
+          disabled={confirming}
+          title="Confirmar tomada do remedio"
+          aria-label={`Confirmar que ${event.idosoNome || "o idoso"} tomou o remedio`}
+        >
+          <IconeCheck />
+          <span>{confirming ? "Confirmando..." : "Confirmar tomada"}</span>
+        </button>
+      ) : null}
     </article>
   );
 }
@@ -163,9 +204,13 @@ function EmergencyContacts() {
 }
 
 export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRemedios, onOpenIdososVinculados }) {
+  const { toastProps, mostrarToast } = useBcToast();
   const [nomeCuidador, setNomeCuidador] = useState(getNomeCuidador);
   const [idosos, setIdosos] = useState([]);
-  const [agendaEvents] = useState([]);
+  const [agendaEvents, setAgendaEvents] = useState([]);
+  const [carregandoAgendas, setCarregandoAgendas] = useState(true);
+  const [erroAgendas, setErroAgendas] = useState("");
+  const [confirmandoAgendaId, setConfirmandoAgendaId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 5;
@@ -177,18 +222,77 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
 
   useEffect(() => {
     setNomeCuidador(getNomeCuidador());
-
-    listarIdososDoCuidador()
-      .then((lista) => {
-        if (Array.isArray(lista) && lista.length > 0) {
-          setIdosos(lista);
-        }
-      })
-      .catch(() => null);
+    carregarDadosDoCuidador();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [agendaEvents.length]);
+
+  async function carregarDadosDoCuidador() {
+    try {
+      setCarregandoAgendas(true);
+      setErroAgendas("");
+
+      const [listaIdosos, listaAlertas] = await Promise.all([
+        listarIdososDoCuidador(),
+        listarAlertas(),
+      ]);
+
+      const idososVinculados = Array.isArray(listaIdosos) ? listaIdosos : [];
+      const idsVinculados = new Set(idososVinculados.map((idoso) => Number(idoso.id)));
+      const nomesPorIdoso = idososVinculados.reduce((mapa, idoso) => {
+        mapa[Number(idoso.id)] = idoso.nome;
+        return mapa;
+      }, {});
+
+      const alertasPendentes = (Array.isArray(listaAlertas) ? listaAlertas : [])
+        .filter((alerta) =>
+          idsVinculados.has(Number(alerta.idosoId)) &&
+          isPendente(alerta)
+        )
+        .map((alerta) => ({
+          ...alerta,
+          tipo: alerta.tipoAlerta || alerta.tipo,
+          status: alerta.statusAlertas || alerta.status,
+          idosoNome: alerta.idosoNome || nomesPorIdoso[Number(alerta.idosoId)],
+        }))
+        .sort((a, b) => new Date(a.dataAgendada).getTime() - new Date(b.dataAgendada).getTime());
+
+      setIdosos(idososVinculados);
+      setAgendaEvents(alertasPendentes);
+    } catch (erro) {
+      setErroAgendas(erro.message || "Nao foi possivel carregar as agendas pendentes.");
+      setAgendaEvents([]);
+    } finally {
+      setCarregandoAgendas(false);
+    }
+  }
+
+  async function confirmarTomadaRemedio(evento) {
+    try {
+      setConfirmandoAgendaId(evento.id);
+
+      await atualizarAlerta(evento.id, {
+        idosoId: evento.idosoId,
+        tipoAlerta: evento.tipoAlerta || evento.tipo || "REMEDIO",
+        dataAgendada: evento.dataAgendada,
+        statusAlertas: "REALIZADO",
+      });
+
+      setAgendaEvents((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(evento.id)));
+      mostrarToast("sucesso", "Medicacao confirmada", "A agenda foi marcada como realizada.");
+    } catch (erro) {
+      mostrarToast("erro", "Erro ao confirmar medicacao", erro.message || "Tente novamente.");
+    } finally {
+      setConfirmandoAgendaId(null);
+    }
+  }
 
   return (
     <div className="cuidador-page">
+      <BcToast {...toastProps} />
+
       <BcTopbar
         title="Painel do Cuidador"
         subtitle="Acompanhamento de idosos e agenda"
@@ -261,11 +365,25 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
             {agendaEvents.length > 0 && <span className="cuidador-badge">{agendaEvents.length}</span>}
           </div>
 
-          {agendaEvents.length > 0 ? (
+          {carregandoAgendas ? (
+            <div className="cuidador-empty">
+              <p>Carregando agendas pendentes...</p>
+            </div>
+          ) : erroAgendas ? (
+            <div className="cuidador-empty">
+              <p>{erroAgendas}</p>
+              <small>Nao foi possivel buscar os alertas de remedio agora.</small>
+            </div>
+          ) : agendaEvents.length > 0 ? (
             <>
               <div className="cuidador-agenda-list">
                 {currentEvents.map((event) => (
-                  <AgendaEventCard key={event.id} event={event} />
+                  <AgendaEventCard
+                    key={event.id}
+                    event={event}
+                    confirming={Number(confirmandoAgendaId) === Number(event.id)}
+                    onConfirm={confirmarTomadaRemedio}
+                  />
                 ))}
               </div>
               <PaginationControls

@@ -250,7 +250,7 @@
 .cuidador-agenda-card {
   padding: 16px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 14px;
   align-items: flex-start;
 }
@@ -302,6 +302,10 @@
   font-size: 16px;
 }
 
+.cuidador-agenda-card__content {
+  min-width: 0;
+}
+
 .cuidador-agenda-card small {
   display: inline-block;
   margin-top: 8px;
@@ -324,6 +328,40 @@
 
 .cuidador-agenda-card__date span {
   color: #667085;
+}
+
+.cuidador-agenda-card__confirm {
+  min-height: 38px;
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 10px;
+  background: #0d9e8a;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.cuidador-agenda-card__confirm:hover:not(:disabled) {
+  background: #0a7d6e;
+  transform: translateY(-1px);
+}
+
+.cuidador-agenda-card__confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.cuidador-agenda-card__confirm svg {
+  width: 16px;
+  height: 16px;
 }
 
 .cuidador-pagination {
@@ -478,9 +516,14 @@
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .cuidador-agenda-card__date {
+  .cuidador-agenda-card__date,
+  .cuidador-agenda-card__confirm {
     grid-column: 2;
     align-items: flex-start;
+  }
+
+  .cuidador-agenda-card__confirm {
+    width: fit-content;
   }
 
   .cuidador-pagination div,
