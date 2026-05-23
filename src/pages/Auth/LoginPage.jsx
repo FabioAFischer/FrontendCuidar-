@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import BcInput from "../../components/Bcinput/BcInput";
 import BcLogo from "../../components/Bclogo/BcLogo";
 import BcButton from "../../components/Bcbutton/BcButton";
@@ -19,13 +19,11 @@ import {
   enviarIdentificador,
   verificarCodigo,
   definirNovaSenha,
+  reenviarCodigo2FA,
 } from "../../api/recuperarSenhaApi";
-import {
-  formatarCpfCnpj,
-} from "../../utils/validacaoDocumento";
+import { formatarCpfCnpj } from "../../utils/validacaoDocumento";
 import "./LoginPage.css";
 
-/* ── Ícones ── */
 /* ── Validação de senha ── */
 function validarSenha(senha) {
   if (senha.length < 8)             return "Mínimo de 8 caracteres.";
@@ -49,26 +47,69 @@ const profileNames = {
   administrador: "Administrador",
 };
 
+const TIMER_SEGUNDOS = 30;
+
 /* ══════════════════════════════════════════
    Modal 2FA
    ══════════════════════════════════════════ */
 function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, onSucesso, onFechar }) {
-  const [codigo, setCodigo]               = useState("");
-  const [loading, setLoading]             = useState(false);
-  const [erro, setErro]                   = useState("");
+  const [codigo, setCodigo]           = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [reenviando, setReenviando]   = useState(false);
+  const [erro, setErro]               = useState("");
+  const [sucesso, setSucesso]         = useState("");
+  const [timer, setTimer]             = useState(TIMER_SEGUNDOS);
+  const intervalRef                   = useRef(null);
 
-  function handleFechar() {
+  // Inicia o timer quando o modal abre
+  useEffect(() => {
+    if (!aberto) return;
+
+    setTimer(TIMER_SEGUNDOS);
     setCodigo("");
     setErro("");
+    setSucesso("");
+
+    intervalRef.current = setInterval(() => {
+      setTimer(t => {
+        if (t <= 1) {
+          clearInterval(intervalRef.current);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalRef.current);
+  }, [aberto]);
+
+  function reiniciarTimer() {
+    clearInterval(intervalRef.current);
+    setTimer(TIMER_SEGUNDOS);
+    intervalRef.current = setInterval(() => {
+      setTimer(t => {
+        if (t <= 1) {
+          clearInterval(intervalRef.current);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  }
+
+  function handleFechar() {
+    clearInterval(intervalRef.current);
+    setCodigo("");
+    setErro("");
+    setSucesso("");
     onFechar();
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
-
+    setSucesso("");
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
-
     setLoading(true);
     try {
       const data = await verificar2fa({ identificador, codigo, perfil, rememberMe });
@@ -79,6 +120,23 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
       setLoading(false);
     }
   }
+
+  async function handleReenviar() {
+    setErro("");
+    setSucesso("");
+    setReenviando(true);
+    try {
+      await reenviarCodigo2FA({ identificador, perfil });
+      setSucesso("Código reenviado!");
+      reiniciarTimer();
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setReenviando(false);
+    }
+  }
+
+  const podeReenviar = timer === 0 && !reenviando;
 
   return (
     <BcModal aberto={aberto} onFechar={handleFechar}>
@@ -99,12 +157,32 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
             type="text"
             placeholder="000000"
             value={codigo}
-            onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
+            onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); setSucesso(""); }}
             autoComplete="one-time-code"
             maxLength={6}
             error={erro}
           />
+
+          {sucesso && (
+            <p className="mrs-sucesso-inline">{sucesso}</p>
+          )}
+
           <BcButton type="submit" loading={loading}>Confirmar acesso</BcButton>
+
+          <BcButton
+            type="button"
+            variant="ghost"
+            onClick={handleReenviar}
+            loading={reenviando}
+            disabled={!podeReenviar}
+          >
+            {timer > 0
+              ? `Reenviar código em ${timer}s`
+              : reenviando
+              ? "Reenviando..."
+              : "Reenviar código"}
+          </BcButton>
+
           <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
         </form>
       </div>
@@ -332,19 +410,16 @@ export default function LoginPage({ onLogin }) {
   const [modalRecuperar, setModalRecuperar] = useState(false);
 
   // estado 2FA
-  const [modal2FA, setModal2FA]             = useState(false);
-  const [twoFaEmail, setTwoFaEmail]         = useState("");
+  const [modal2FA, setModal2FA]                     = useState(false);
+  const [twoFaEmail, setTwoFaEmail]                 = useState("");
   const [twoFaIdentificador, setTwoFaIdentificador] = useState("");
-  const [twoFaPerfil, setTwoFaPerfil]       = useState("");
-  const [twoFaRemember, setTwoFaRemember]   = useState(true);
+  const [twoFaPerfil, setTwoFaPerfil]               = useState("");
+  const [twoFaRemember, setTwoFaRemember]           = useState(true);
 
   function handleCpfCnpjChange(event) {
     const valorFormatado = formatarCpfCnpj(event.target.value);
     setCpfCnpj(valorFormatado);
-
-    if (error) {
-      setError("");
-    }
+    if (error) setError("");
   }
 
   function validateForm() {
@@ -368,7 +443,6 @@ export default function LoginPage({ onLogin }) {
         rememberMe,
       });
 
-      // Backend pediu 2FA — abre modal
       if (data.requer2fa) {
         setTwoFaEmail(data.email);
         setTwoFaIdentificador(cpfCnpj);
@@ -378,7 +452,6 @@ export default function LoginPage({ onLogin }) {
         return;
       }
 
-      // Login direto (sem 2FA)
       mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
       if (onLogin) onLogin(profile, data);
     } catch (err) {
