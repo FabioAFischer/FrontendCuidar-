@@ -27,3 +27,16 @@ export function verificarCodigo(email, codigo) {
 export function definirNovaSenha(email, novaSenha) {
   return request("/auth/nova-senha", { email, novaSenha });
 }
+
+export function reenviarCodigo2FA({ identificador, perfil }) {
+  const PERFIL_BACKEND = {
+    administrador: "ADMINISTRADOR",
+    instituicao:   "INSTITUICAO",
+    cuidador:      "CUIDADOR",
+  };
+
+  return request("/auth/reenviar-codigo", {
+    identificador,
+    perfil: PERFIL_BACKEND[perfil] || perfil,
+  });
+}
