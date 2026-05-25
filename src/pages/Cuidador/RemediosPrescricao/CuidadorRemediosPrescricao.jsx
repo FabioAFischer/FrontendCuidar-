@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import BcButton from "../../../components/Bcbutton/BcButton";
 import BcConfirmacao from "../../../components/BcConfirmacao/BcConfirmacao";
 import BcFormModal, { BcFormModalTextarea } from "../../../components/BcFormModal/BcFormModal";
@@ -195,17 +195,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     );
   }, [buscaRemedioPrescricao, remedios]);
 
-  useEffect(() => {
-    carregarRemedios();
-    carregarIdosos();
-  }, []);
-
-  useEffect(() => {
-    carregarPrescricoesDoIdoso();
-    carregarAlertasRemedioDoIdoso();
-  }, [idosoSelecionadoId]);
-
-  async function carregarPrescricoesDoIdoso() {
+  const carregarPrescricoesDoIdoso = useCallback(async () => {
     if (!idosoSelecionadoId) {
       setPrescricoes([]);
       return;
@@ -222,9 +212,9 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     } finally {
       setCarregandoPrescricoes(false);
     }
-  }
+  }, [idosoSelecionadoId]);
 
-  async function carregarAlertasRemedioDoIdoso() {
+  const carregarAlertasRemedioDoIdoso = useCallback(async () => {
     if (!idosoSelecionadoId) {
       setAlertasRemedio([]);
       return;
@@ -242,7 +232,17 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     } finally {
       setCarregandoAlertasRemedio(false);
     }
-  }
+  }, [idosoSelecionadoId]);
+
+  useEffect(() => {
+    carregarRemedios();
+    carregarIdosos();
+  }, []);
+
+  useEffect(() => {
+    carregarPrescricoesDoIdoso();
+    carregarAlertasRemedioDoIdoso();
+  }, [carregarPrescricoesDoIdoso, carregarAlertasRemedioDoIdoso]);
 
   async function carregarIdosos() {
     try {
