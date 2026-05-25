@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "./authApi";
+import { getAuthHeaders, getAuthToken } from "./authApi";
 import { API_BASE_URL } from "./env";
 
 async function getErrorMessage(response, fallback) {
@@ -16,6 +16,10 @@ async function getErrorMessage(response, fallback) {
 }
 
 async function requestApi(path, { method = "GET", dados, fallback } = {}) {
+  if (!getAuthToken()) {
+    throw new Error("Sua sessao expirou ou o login nao foi encontrado.");
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: getAuthHeaders(),
