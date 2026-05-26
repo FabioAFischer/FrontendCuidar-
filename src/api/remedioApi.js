@@ -1,17 +1,5 @@
-import { getAuthHeaders } from "./authApi";
+import { getAuthHeaders, getAuthToken } from "./authApi";
 import { API_BASE_URL } from "./env";
-
-const MOCK_TOKEN = "mock-cuidador-token";
-const MOCK_REMEDIOS_KEY = "remediosMockados";
-const MOCK_PRESCRICOES_KEY = "prescricoesMockadas";
-
-function getAuthTokenAtual() {
-  return localStorage.getItem("token") || sessionStorage.getItem("token");
-}
-
-function usandoCuidadorMockado() {
-  return getAuthTokenAtual() === MOCK_TOKEN;
-}
 
 async function getErrorMessage(response, fallback) {
   const erro = await response.json().catch(() => ({}));
@@ -28,6 +16,10 @@ async function getErrorMessage(response, fallback) {
 }
 
 async function requestApi(path, { method = "GET", dados, fallback } = {}) {
+  if (!getAuthToken()) {
+    throw new Error("Sua sessao expirou ou o login nao foi encontrado.");
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: getAuthHeaders(),
@@ -54,29 +46,7 @@ function normalizarRemedio(dados) {
   };
 }
 
-function listarRemediosMockados() {
-  const dados = JSON.parse(localStorage.getItem(MOCK_REMEDIOS_KEY) || "[]");
-  return Array.isArray(dados) ? dados : [];
-}
-
-function salvarRemediosMockados(remedios) {
-  localStorage.setItem(MOCK_REMEDIOS_KEY, JSON.stringify(remedios));
-}
-
-function listarPrescricoesMockadas() {
-  const dados = JSON.parse(localStorage.getItem(MOCK_PRESCRICOES_KEY) || "[]");
-  return Array.isArray(dados) ? dados : [];
-}
-
-function salvarPrescricoesMockadas(prescricoes) {
-  localStorage.setItem(MOCK_PRESCRICOES_KEY, JSON.stringify(prescricoes));
-}
-
 export async function listarRemedios(page = 0, size = 100) {
-  if (usandoCuidadorMockado()) {
-    return listarRemediosMockados().slice(page * size, page * size + size);
-  }
-
   const data = await requestApi(`/remedio/listar_todas?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar remedios.",
   });
@@ -85,34 +55,12 @@ export async function listarRemedios(page = 0, size = 100) {
 }
 
 export async function buscarRemedioPorId(id) {
-  if (usandoCuidadorMockado()) {
-    const remedio = listarRemediosMockados().find((item) => Number(item.id) === Number(id));
-
-    if (!remedio) {
-      throw new Error("Remedio nao encontrado.");
-    }
-
-    return remedio;
-  }
-
   return requestApi(`/remedio/listar/${id}`, {
     fallback: "Remedio nao encontrado.",
   });
 }
 
 export async function cadastrarRemedio(dados) {
-  if (usandoCuidadorMockado()) {
-    const remedios = listarRemediosMockados();
-    const remedio = {
-      ...normalizarRemedio(dados),
-      id: Date.now(),
-      status: "ATIVO",
-    };
-
-    salvarRemediosMockados([remedio, ...remedios]);
-    return remedio;
-  }
-
   return requestApi("/remedio/cadastrar", {
     method: "POST",
     dados: normalizarRemedio(dados),
@@ -121,21 +69,6 @@ export async function cadastrarRemedio(dados) {
 }
 
 export async function atualizarRemedio(id, dados) {
-  if (usandoCuidadorMockado()) {
-    const remedios = listarRemediosMockados();
-    const remedioAtualizado = {
-      ...normalizarRemedio(dados),
-      id: Number(id),
-      status: dados.status || "ATIVO",
-    };
-
-    salvarRemediosMockados(
-      remedios.map((remedio) => Number(remedio.id) === Number(id) ? remedioAtualizado : remedio)
-    );
-
-    return remedioAtualizado;
-  }
-
   return requestApi(`/remedio/atualizar/${id}`, {
     method: "PUT",
     dados: normalizarRemedio(dados),
@@ -144,22 +77,6 @@ export async function atualizarRemedio(id, dados) {
 }
 
 export async function inativarRemedio(id) {
-  if (usandoCuidadorMockado()) {
-    const remedios = listarRemediosMockados();
-    const prescricoes = listarPrescricoesMockadas();
-
-    salvarRemediosMockados(remedios.filter((remedio) => Number(remedio.id) !== Number(id)));
-    salvarPrescricoesMockadas(
-      prescricoes.map((prescricao) =>
-        Number(prescricao.remedioId) === Number(id)
-          ? { ...prescricao, status: "INATIVO" }
-          : prescricao
-      )
-    );
-
-    return null;
-  }
-
   return requestApi(`/remedio/deletar/${id}`, {
     method: "DELETE",
     fallback: "Erro ao deletar remedio.",
