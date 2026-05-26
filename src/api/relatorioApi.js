@@ -1,6 +1,7 @@
 import { getAuthHeaders } from "./authApi";
+import { API_BASE_URL } from "./env";
 
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = API_BASE_URL;
 
 export async function buscarDadosRelatorio() {
   const res = await fetch(`${BASE_URL}/admin/relatorio`, {

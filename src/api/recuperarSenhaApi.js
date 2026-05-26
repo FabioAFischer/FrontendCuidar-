@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:8080/api";
+import { API_BASE_URL } from "./env";
+
+const BASE_URL = API_BASE_URL;
 
 async function request(path, body) {
   const res = await fetch(`${BASE_URL}${path}`, {
