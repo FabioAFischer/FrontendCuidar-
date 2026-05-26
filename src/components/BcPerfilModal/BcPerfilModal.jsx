@@ -1,10 +1,3 @@
-/**
- * BcPerfilModal — Modal de perfil do usuário
- *
- * Props:
- *   aberto   : boolean
- *   onFechar : fn
- */
 import { useState, useEffect } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import BcModal from "../BcModal/BcModal";
@@ -16,37 +9,22 @@ import {
   verificarCodigo,
   definirNovaSenha,
 } from "../../api/recuperarSenhaApi";
+import {
+  IconeCadeado,
+  IconeCodigo,
+  IconeSucesso,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
+} from "../icons/Icons";
 import "./BcPerfilModal.css";
 
-/* ── Ícones ── */
-const IconeOlhoAberto = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-const IconeOlhoFechado = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-);
+/* ── Ícone chave (local, não existe em Icons.js) ── */
 const IconeChave = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <circle cx="7.5" cy="15.5" r="5.5" />
     <path d="m21 2-9.6 9.6" />
     <path d="m15.5 7.5 3 3L22 7l-3-3" />
-  </svg>
-);
-const IconeSucesso = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="m8 12 3 3 5-5" />
   </svg>
 );
 
@@ -97,7 +75,6 @@ function validarSenha(senha) {
   return null;
 }
 
-/* ── Campos de informação ── */
 function CampoInfo({ label, valor }) {
   if (!valor) return null;
   return (
@@ -111,26 +88,30 @@ function CampoInfo({ label, valor }) {
 /* ══════════════════════════════════════════
    Fluxo de redefinição de senha (3 passos)
    ══════════════════════════════════════════ */
-const PASSOS_SENHA = ["identificador", "codigo", "nova-senha"];
+const PASSOS_SENHA = ["nova-senha", "codigo"];
 
 function RedefinirSenha({ onVoltar, onConcluir }) {
-  const [passo, setPasso]                   = useState("identificador");
-  const [loading, setLoading]               = useState(false);
-  const [erro, setErro]                     = useState("");
-  const [identificador, setIdentificador]   = useState("");
+  const [passo, setPasso]               = useState("nova-senha");
+  const [loading, setLoading]           = useState(false);
+  const [erro, setErro]                 = useState("");
+  const [novaSenha, setNovaSenha]       = useState("");
+  const [confirmar, setConfirmar]       = useState("");
+  const [showNova, setShowNova]         = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+  const [codigo, setCodigo]             = useState("");
   const [emailMascarado, setEmailMascarado] = useState("");
-  const [emailCompleto, setEmailCompleto]   = useState("");
-  const [codigo, setCodigo]                 = useState("");
-  const [emailVerificado, setEmailVerificado] = useState("");
-  const [novaSenha, setNovaSenha]           = useState("");
-  const [confirmar, setConfirmar]           = useState("");
-  const [showNova, setShowNova]             = useState(false);
-  const [showConfirmar, setShowConfirmar]   = useState(false);
 
-  async function handleEnviarIdentificador(e) {
+  const identificador = localStorage.getItem("usuarioIdentificador")
+    || sessionStorage.getItem("usuarioIdentificador") || "";
+  const email = localStorage.getItem("usuarioEmail")
+    || sessionStorage.getItem("usuarioEmail") || "";
+
+  async function handleSolicitarCodigo(e) {
     e.preventDefault();
     setErro("");
-    if (!identificador.trim()) { setErro("Informe seu CPF ou CNPJ."); return; }
+    const erroSenha = validarSenha(novaSenha);
+    if (erroSenha) { setErro(erroSenha); return; }
+    if (novaSenha !== confirmar) { setErro("As senhas não coincidem."); return; }
     setLoading(true);
     try {
       const data = await enviarIdentificador(identificador);
@@ -140,29 +121,14 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
     finally { setLoading(false); }
   }
 
-  async function handleVerificarCodigo(e) {
+  async function handleConfirmarCodigo(e) {
     e.preventDefault();
     setErro("");
-    if (!emailCompleto.trim()) { setErro("Informe seu email completo."); return; }
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
     setLoading(true);
     try {
-      const data = await verificarCodigo(emailCompleto, codigo);
-      setEmailVerificado(data.email);
-      setPasso("nova-senha");
-    } catch (err) { setErro(err.message); }
-    finally { setLoading(false); }
-  }
-
-  async function handleDefinirSenha(e) {
-    e.preventDefault();
-    setErro("");
-    const erroSenha = validarSenha(novaSenha);
-    if (erroSenha) { setErro(erroSenha); return; }
-    if (novaSenha !== confirmar) { setErro("As senhas não coincidem."); return; }
-    setLoading(true);
-    try {
-      await definirNovaSenha(emailVerificado, novaSenha);
+      await verificarCodigo(email, codigo);
+      await definirNovaSenha(email, novaSenha);
       setPasso("sucesso");
     } catch (err) { setErro(err.message); }
     finally { setLoading(false); }
@@ -185,67 +151,23 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
 
   return (
     <div className="bcp-redefinir">
+
       <div className="bcp-redefinir__passos">
         {PASSOS_SENHA.map((_, i) => (
           <div key={i} className={`bcp-redefinir__dot ${i <= passoAtual ? "bcp-redefinir__dot--ativo" : ""}`} />
         ))}
       </div>
 
-      {passo === "identificador" && (
-        <>
-          <h3>Redefinir senha</h3>
-          <p className="bcp-redefinir__desc">Informe seu CPF ou CNPJ para receber o código de verificação.</p>
-          <form className="bcp-redefinir__form" onSubmit={handleEnviarIdentificador} noValidate>
-            <BcInput
-              label="CPF ou CNPJ" name="rp-identificador" type="text"
-              placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              value={identificador}
-              onChange={e => { setIdentificador(e.target.value); setErro(""); }}
-              autoComplete="off" error={erro}
-            />
-            <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={onVoltar}>Voltar</BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Enviar código</BcButton>
-            </div>
-          </form>
-        </>
-      )}
-
-      {passo === "codigo" && (
-        <>
-          <h3>Digite o código</h3>
-          <p className="bcp-redefinir__desc">
-            Enviamos um código para{" "}
-            <strong className="bcp-email-destaque">{emailMascarado}</strong>.
-            Confirme seu email e insira o código.
-          </p>
-          <form className="bcp-redefinir__form" onSubmit={handleVerificarCodigo} noValidate>
-            <BcInput
-              label="Email completo" name="rp-email" type="email"
-              placeholder="seuemail@exemplo.com"
-              value={emailCompleto}
-              onChange={e => { setEmailCompleto(e.target.value); setErro(""); }}
-              autoComplete="email"
-            />
-            <BcInput
-              label="Código de verificação" name="rp-codigo" type="text"
-              placeholder="000000" value={codigo}
-              onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
-              autoComplete="one-time-code" maxLength={6} error={erro}
-            />
-            <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={() => { setPasso("identificador"); setErro(""); setCodigo(""); setEmailCompleto(""); }}>Voltar</BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Verificar</BcButton>
-            </div>
-          </form>
-        </>
-      )}
-
       {passo === "nova-senha" && (
         <>
-          <h3>Nova senha</h3>
-          <p className="bcp-redefinir__desc">Crie uma senha forte com maiúscula, minúscula, número e símbolo.</p>
-          <form className="bcp-redefinir__form" onSubmit={handleDefinirSenha} noValidate>
+          <div className="bcp-redefinir__header">
+            <div className="bcp-redefinir__header-icone"><IconeCadeado /></div>
+            <h3>Nova senha</h3>
+            <p className="bcp-redefinir__desc">
+              Crie uma senha forte com pelo menos 8 caracteres, maiúscula, minúscula, número e símbolo.
+            </p>
+          </div>
+          <form className="bcp-redefinir__form" onSubmit={handleSolicitarCodigo} noValidate>
             <BcInput
               label="Nova senha" name="rp-nova"
               type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
@@ -278,12 +200,41 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
             />
             {erro && <div className="bcp-erro" role="alert">{erro}</div>}
             <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={() => { setPasso("codigo"); setErro(""); }}>Voltar</BcButton>
+              <BcButton variant="ghost" onClick={onVoltar}>Voltar</BcButton>
+              <BcButton type="submit" loading={loading} fullWidth={false}>Continuar</BcButton>
+            </div>
+          </form>
+        </>
+      )}
+
+      {passo === "codigo" && (
+        <>
+          <div className="bcp-redefinir__header">
+            <div className="bcp-redefinir__header-icone"><IconeCodigo /></div>
+            <h3>Confirmar alteração</h3>
+            <p className="bcp-redefinir__desc">
+              Enviamos um código para{" "}
+              <strong className="bcp-email-destaque">{emailMascarado}</strong>.
+              Insira o código para confirmar a troca de senha.
+            </p>
+          </div>
+          <form className="bcp-redefinir__form" onSubmit={handleConfirmarCodigo} noValidate>
+            <BcInput
+              label="Código de verificação" name="rp-codigo" type="text"
+              placeholder="000000" value={codigo}
+              onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
+              autoComplete="one-time-code" maxLength={6} error={erro}
+            />
+            <div className="bcp-redefinir__acoes">
+              <BcButton variant="ghost" onClick={() => { setPasso("nova-senha"); setErro(""); setCodigo(""); }}>
+                Voltar
+              </BcButton>
               <BcButton type="submit" loading={loading} fullWidth={false}>Salvar senha</BcButton>
             </div>
           </form>
         </>
       )}
+
     </div>
   );
 }
@@ -292,10 +243,10 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
    BcPerfilModal
    ══════════════════════════════════════════ */
 export default function BcPerfilModal({ aberto, onFechar }) {
-  const [dados, setDados]               = useState(null);
-  const [carregando, setCarregando]     = useState(false);
-  const [erro, setErro]                 = useState("");
-  const [redefinindo, setRedefinindo]   = useState(false);
+  const [dados, setDados]             = useState(null);
+  const [carregando, setCarregando]   = useState(false);
+  const [erro, setErro]               = useState("");
+  const [redefinindo, setRedefinindo] = useState(false);
 
   const perfil = localStorage.getItem("perfil") || sessionStorage.getItem("perfil");
   const nome   = localStorage.getItem("usuarioNome") || sessionStorage.getItem("usuarioNome") || "";
@@ -321,7 +272,6 @@ export default function BcPerfilModal({ aberto, onFechar }) {
     <BcModal aberto={aberto} onFechar={handleFechar}>
       <div className="bcp-wrap">
 
-        {/* ── Cabeçalho do perfil ── */}
         <div className="bcp-header">
           <div className="bcp-header__avatar">{inicial(nome)}</div>
           <div className="bcp-header__info">
@@ -330,15 +280,14 @@ export default function BcPerfilModal({ aberto, onFechar }) {
           </div>
         </div>
 
-        {/* ── Conteúdo ── */}
         {carregando && <p className="bcp-carregando">Carregando dados...</p>}
         {erro && <div className="bcp-erro" role="alert">{erro}</div>}
 
         {!carregando && !redefinindo && dados && (
           <>
             <div className="bcp-campos">
-              <CampoInfo label="Nome"     valor={dados.nome} />
-              <CampoInfo label="Email"    valor={dados.email} />
+              <CampoInfo label="Nome"  valor={dados.nome} />
+              <CampoInfo label="Email" valor={dados.email} />
               {perfil === "INSTITUICAO" && (
                 <>
                   <CampoInfo label="CNPJ"   valor={formatarCNPJ(dados.cnpj)} />
@@ -359,11 +308,7 @@ export default function BcPerfilModal({ aberto, onFechar }) {
               <CampoInfo label="Status" valor={dados.status} />
             </div>
 
-            <button
-              type="button"
-              className="bcp-btn-redefinir"
-              onClick={() => setRedefinindo(true)}
-            >
+            <button type="button" className="bcp-btn-redefinir" onClick={() => setRedefinindo(true)}>
               <IconeChave />
               Redefinir senha
             </button>
