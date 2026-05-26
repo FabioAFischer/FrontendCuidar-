@@ -1,6 +1,6 @@
 import { useState } from "react";
 import BcLogo from "../Bclogo/BcLogo";
-import BcPerfilModal from "../Bcperfilmodal/BcPerfilModal";
+import BcPerfilModal from "../BcPerfilModal/BcPerfilModal";
 import "./BcTopbar.css";
 
 function inicial(nome = "") {
