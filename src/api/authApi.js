@@ -24,6 +24,24 @@ function salvarSessao(data, rememberMe) {
   }
 }
 
+const LOGIN_TIMEOUT_MS = 8000;
+
+async function fetchComTimeout(url, options, timeoutMs = LOGIN_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (erro) {
+    if (erro.name === "AbortError") {
+      throw new Error("A API demorou demais para responder. Verifique se o backend esta online.");
+    }
+    throw erro;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
@@ -31,7 +49,7 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}/auth/login`, {
+    response = await fetchComTimeout(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -40,8 +58,8 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
         perfil: perfilBackend,
       }),
     });
-  } catch {
-    throw new Error("Falha ao logar.");
+  } catch (erro) {
+    throw new Error(erro.message || "Falha ao logar.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -66,7 +84,7 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
 
-  const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
+  const response = await fetchComTimeout(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
