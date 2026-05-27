@@ -20,7 +20,7 @@ import {
   listarIdosos,
   reativarCuidador,
 } from "../../../api/instituicaoApi";
-import { buscarDadosRelatorioInstituicao } from "../../../api/relatorioInstituicaoApi";
+import { buscarDadosRelatorioInstituicao } from "../../../api/relatorioinstituicaoapi";
 import { gerarRelatorioInstituicaoPDF } from "../../../utils/gerarRelatorioInstituicaoPDF";
 import {
   IconeCuidadores,
