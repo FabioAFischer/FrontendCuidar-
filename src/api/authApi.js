@@ -11,17 +11,15 @@ function getStorage(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
 
-function salvarSessao(data, rememberMe) {
+function salvarSessao(data, rememberMe, identificador) {
   const storage = getStorage(rememberMe);
   storage.setItem("token", data.token);
   storage.setItem("tokenTipo", data.tipo || "Bearer");
   storage.setItem("perfil", data.perfil);
   storage.setItem("usuarioId", String(data.id));
   storage.setItem("usuarioNome", data.nome);
-
-  if (data.email) {
-    storage.setItem("usuarioEmail", data.email);
-  }
+  if (data.email) storage.setItem("usuarioEmail", data.email);
+  if (identificador) storage.setItem("usuarioIdentificador", identificador);
 }
 
 export async function login({ identificador, senha, perfil, rememberMe = true }) {
@@ -57,7 +55,7 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
     };
   }
 
-  salvarSessao(data, rememberMe);
+  salvarSessao(data, rememberMe, identificadorNormalizado);
 
   return data;
 }
@@ -82,7 +80,7 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
     throw new Error(data.message || "Erro ao verificar codigo.");
   }
 
-  salvarSessao(data, rememberMe);
+  salvarSessao(data, rememberMe, identificadorNormalizado);
   return data;
 }
 
@@ -108,6 +106,7 @@ export function logout() {
   localStorage.removeItem("usuarioId");
   localStorage.removeItem("usuarioNome");
   localStorage.removeItem("usuarioEmail");
+  localStorage.removeItem("usuarioIdentificador");
 
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("tokenTipo");
@@ -115,4 +114,5 @@ export function logout() {
   sessionStorage.removeItem("usuarioId");
   sessionStorage.removeItem("usuarioNome");
   sessionStorage.removeItem("usuarioEmail");
+  sessionStorage.removeItem("usuarioIdentificador");
 }
