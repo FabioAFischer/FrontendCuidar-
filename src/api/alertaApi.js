@@ -51,6 +51,10 @@ function normalizarAlerta(dados) {
     alerta.statusAlertas = dados.statusAlertas;
   }
 
+  if (dados.prescricaoId) {
+    alerta.prescricaoId = Number(dados.prescricaoId);
+  }
+
   return alerta;
 }
 
