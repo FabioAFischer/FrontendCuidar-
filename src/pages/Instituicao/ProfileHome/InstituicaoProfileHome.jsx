@@ -6,6 +6,7 @@ import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
+import SecaoRelatorio from "../../../components/SecaoRelatorio/Secaorelatorio";
 import ModalGerenciarCuidadores from "../../../components/Modalgerenciarcuidadores/Modalgerenciarcuidadores";
 import {
   atualizarCuidador as atualizarCuidadorApi,
@@ -19,6 +20,8 @@ import {
   listarIdosos,
   reativarCuidador,
 } from "../../../api/instituicaoApi";
+import { buscarDadosRelatorioInstituicao } from "../../../api/relatorioinstituicaoapi";
+import { gerarRelatorioInstituicaoPDF } from "../../../utils/gerarRelatorioInstituicaoPDF";
 import {
   IconeCuidadores,
   IconeIdosos,
@@ -26,6 +29,28 @@ import {
 } from "../../../components/icons/Icons";
 import { cpfValido, somenteNumeros } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
+
+/* ── Ícones locais para os cards ── */
+const IconePessoa = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+  </svg>
+);
+const IconeIdosoCard = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+    <circle cx="12" cy="7" r="4" />
+    <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    <path d="M9 17l-1 4M15 17l1 4" />
+  </svg>
+);
+
+const RELATORIO_INICIAL = {
+  cuidadores: { total: 0, ativos: 0, inativos: 0, lista: [] },
+  idosos:     { total: 0, ativos: 0, inativos: 0, lista: [] },
+};
 
 export default function InstituicaoProfileHome({ onLogout }) {
   const { toastProps, mostrarToast } = useBcToast();
@@ -49,9 +74,13 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [excluindoIdoso, setExcluindoIdoso]             = useState(false);
   const [erroCuidador, setErroCuidador]                 = useState("");
   const [erroIdoso, setErroIdoso]                       = useState("");
+  const [idosoGerenciar, setIdosoGerenciar]             = useState(null);
 
-  // Modal de gerenciar cuidadores do idoso
-  const [idosoGerenciar, setIdosoGerenciar] = useState(null);
+  // Relatório
+  const [dadosRelatorio, setDadosRelatorio]   = useState(RELATORIO_INICIAL);
+  const [carregandoRel, setCarregandoRel]     = useState(false);
+  const [erroRel, setErroRel]                 = useState("");
+  const [baixando, setBaixando]               = useState(false);
 
   const [consultaCpfIdoso, setConsultaCpfIdoso] = useState({
     carregando: false, consultado: false, idoso: null,
@@ -67,36 +96,38 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   const carregarCuidadores = useCallback(async () => {
     try {
-      setCarregandoCuidadores(true);
-      setErroCuidador("");
-      const lista = await listarCuidadores();
-      setCuidadores(lista);
+      setCarregandoCuidadores(true); setErroCuidador("");
+      setCuidadores(await listarCuidadores());
     } catch (erro) {
       setErroCuidador(erro.message);
       mostrarToast("erro", "Erro ao carregar cuidadores", erro.message);
-    } finally {
-      setCarregandoCuidadores(false);
-    }
+    } finally { setCarregandoCuidadores(false); }
   }, [mostrarToast]);
 
   const carregarIdosos = useCallback(async () => {
     try {
-      setCarregandoIdosos(true);
-      setErroIdoso("");
-      const lista = await listarIdosos();
-      setIdosos(lista);
+      setCarregandoIdosos(true); setErroIdoso("");
+      setIdosos(await listarIdosos());
     } catch (erro) {
       setErroIdoso(erro.message);
       mostrarToast("erro", "Erro ao carregar idosos", erro.message);
-    } finally {
-      setCarregandoIdosos(false);
-    }
+    } finally { setCarregandoIdosos(false); }
   }, [mostrarToast]);
+
+  const carregarRelatorio = useCallback(async () => {
+    setCarregandoRel(true); setErroRel("");
+    try {
+      setDadosRelatorio(await buscarDadosRelatorioInstituicao());
+    } catch (err) {
+      setErroRel(err.message || "Erro ao carregar dados do relatório.");
+    } finally { setCarregandoRel(false); }
+  }, []);
 
   useEffect(() => {
     carregarCuidadores();
     carregarIdosos();
-  }, [carregarCuidadores, carregarIdosos]);
+    carregarRelatorio();
+  }, [carregarCuidadores, carregarIdosos, carregarRelatorio]);
 
   useEffect(() => {
     const instituicaoId = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
@@ -112,9 +143,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       setIdosoParaReativar(null);
       return;
     }
-
     let cancelado = false;
-
     async function verificarCpfIdoso() {
       try {
         setConsultaCpfIdoso({ carregando: true, consultado: false, idoso: null });
@@ -146,7 +175,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
         }
       }
     }
-
     verificarCpfIdoso();
     return () => { cancelado = true; };
   }, [formIdoso.cpf, idosoEmEdicao, modalIdosoAberto]);
@@ -178,7 +206,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (name === "cpf") novoValor = formatarCPF(value);
     if (name === "ddd") novoValor = value.replace(/\D/g, "").slice(0, 2);
     if (name === "telefone") novoValor = formatarTelefone(value);
-
     if (name === "cpf") {
       const cpfDigitado = somenteNumeros(novoValor);
       const encontrado = cuidadoresInativos.find((c) => somenteNumeros(c.cpf) === cpfDigitado);
@@ -230,8 +257,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }
 
   function abrirEdicaoCuidador(cuidador) {
-    setErroCuidador("");
-    setCuidadorEmEdicao(cuidador);
+    setErroCuidador(""); setCuidadorEmEdicao(cuidador);
     setFormCuidador({
       cpf: formatarCPF(String(cuidador.cpf || "")), nome: cuidador.nome || "", email: cuidador.email || "", senha: "", confirmarSenha: "",
       ddd: cuidador.contato?.ddd ? String(cuidador.contato.ddd) : "",
@@ -241,10 +267,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setModalCuidadorAberto(true);
   }
 
-  function abrirCadastroIdoso() {
-    setErroIdoso(""); setIdosoEmEdicao(null); limparFormIdoso(); setModalIdosoAberto(true);
-  }
-
+  function abrirCadastroIdoso() { setErroIdoso(""); setIdosoEmEdicao(null); limparFormIdoso(); setModalIdosoAberto(true); }
   function abrirEdicaoIdoso(idoso) {
     setErroIdoso(""); setIdosoEmEdicao(idoso); setIdosoParaReativar(null);
     setFormIdoso({
@@ -255,22 +278,11 @@ export default function InstituicaoProfileHome({ onLogout }) {
     });
     setModalIdosoAberto(true);
   }
+  function fecharModalIdoso() { setModalIdosoAberto(false); setIdosoEmEdicao(null); setIdosoParaReativar(null); setErroIdoso(""); limparFormIdoso(); }
+  function abrirCadastroCuidador() { setErroCuidador(""); setCuidadorEmEdicao(null); limparFormCuidador(); setModalCuidadorAberto(true); }
+  function fecharModalCuidador() { setErroCuidador(""); setModalCuidadorAberto(false); setCuidadorEmEdicao(null); limparFormCuidador(); }
 
-  function fecharModalIdoso() {
-    setModalIdosoAberto(false); setIdosoEmEdicao(null); setIdosoParaReativar(null); setErroIdoso(""); limparFormIdoso();
-  }
-
-  function abrirCadastroCuidador() {
-    setErroCuidador(""); setCuidadorEmEdicao(null); limparFormCuidador(); setModalCuidadorAberto(true);
-  }
-
-  function fecharModalCuidador() {
-    setErroCuidador(""); setModalCuidadorAberto(false); setCuidadorEmEdicao(null); limparFormCuidador();
-  }
-
-  function emailValido(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
+  function emailValido(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
   function validarIdoso() {
     const s = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
@@ -337,12 +349,11 @@ export default function InstituicaoProfileHome({ onLogout }) {
       }
       fecharModalCuidador();
       await carregarCuidadores();
+      await carregarRelatorio();
     } catch (erro) {
       setErroCuidador(erro.message);
       mostrarToast("erro", cuidadorEmEdicao ? "Erro ao atualizar cuidador" : cuidadorParaReativar ? "Erro ao reativar cuidador" : "Erro ao cadastrar cuidador", erro.message);
-    } finally {
-      setSalvandoCuidador(false);
-    }
+    } finally { setSalvandoCuidador(false); }
   }
 
   async function handleExcluirCuidador(cuidador) {
@@ -351,13 +362,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
       await deletarCuidador(cuidador.id);
       guardarCuidadorInativo(cuidador);
       await carregarCuidadores();
+      await carregarRelatorio();
       mostrarToast("sucesso", "Cuidador desativado", `${cuidador.nome} foi removido da listagem.`);
     } catch (erro) {
       setErroCuidador(erro.message);
       mostrarToast("erro", "Erro ao desativar cuidador", erro.message);
-    } finally {
-      setExcluindoCuidador(false);
-    }
+    } finally { setExcluindoCuidador(false); }
   }
 
   async function handleCadastrarIdoso(evento) {
@@ -378,12 +388,11 @@ export default function InstituicaoProfileHome({ onLogout }) {
       }
       fecharModalIdoso();
       await carregarIdosos();
+      await carregarRelatorio();
     } catch (erro) {
       setErroIdoso(erro.message);
       mostrarToast("erro", idosoEmEdicao ? "Erro ao atualizar idoso" : idosoParaReativar ? "Erro ao reativar idoso" : "Erro ao cadastrar idoso", erro.message);
-    } finally {
-      setSalvandoIdoso(false);
-    }
+    } finally { setSalvandoIdoso(false); }
   }
 
   async function handleExcluirIdoso(idoso) {
@@ -391,13 +400,23 @@ export default function InstituicaoProfileHome({ onLogout }) {
       setExcluindoIdoso(true); setErroIdoso("");
       await deletarIdoso(idoso.id);
       await carregarIdosos();
+      await carregarRelatorio();
       mostrarToast("sucesso", "Idoso desativado", `${idoso.nome} foi removido da listagem.`);
     } catch (erro) {
       setErroIdoso(erro.message);
       mostrarToast("erro", "Erro ao desativar idoso", erro.message);
-    } finally {
-      setExcluindoIdoso(false);
-    }
+    } finally { setExcluindoIdoso(false); }
+  }
+
+  async function handleBaixarRelatorio() {
+    setBaixando(true);
+    try {
+      const dados = await buscarDadosRelatorioInstituicao();
+      setDadosRelatorio(dados);
+      gerarRelatorioInstituicaoPDF(dados);
+    } catch (err) {
+      mostrarToast("erro", "Erro ao gerar relatório", err.message);
+    } finally { setBaixando(false); }
   }
 
   return (
@@ -481,6 +500,32 @@ export default function InstituicaoProfileHome({ onLogout }) {
             />
           </div>
         </div>
+
+        {/* ── Relatório ── */}
+        <SecaoRelatorio
+          titulo="Relatório da Instituição"
+          subtitulo="Visão consolidada de cuidadores e idosos cadastrados."
+          carregando={carregandoRel}
+          erro={erroRel}
+          baixando={baixando}
+          cards={[
+            {
+              icone:    <IconePessoa />,
+              titulo:   "Cuidadores",
+              total:    dadosRelatorio.cuidadores.total,
+              ativos:   dadosRelatorio.cuidadores.ativos,
+              inativos: dadosRelatorio.cuidadores.inativos,
+            },
+            {
+              icone:    <IconeIdosoCard />,
+              titulo:   "Idosos",
+              total:    dadosRelatorio.idosos.total,
+              ativos:   dadosRelatorio.idosos.ativos,
+              inativos: dadosRelatorio.idosos.inativos,
+            },
+          ]}
+          onBaixar={handleBaixarRelatorio}
+        />
       </main>
 
       {/* Modal gerenciar cuidadores do idoso */}
