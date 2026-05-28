@@ -157,6 +157,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     instrucao: "",
   });
   const [formAlertaRemedio, setFormAlertaRemedio] = useState({
+    prescricaoId: "",
     dataAgendada: "",
   });
 
@@ -329,14 +330,14 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
   function abrirCadastroAlertaRemedio() {
     setErroAlertaRemedio("");
-    setFormAlertaRemedio({ dataAgendada: "" });
+    setFormAlertaRemedio({ prescricaoId: "", dataAgendada: "" });
     setModalAlertaRemedioAberto(true);
   }
 
   function fecharCadastroAlertaRemedio() {
     setModalAlertaRemedioAberto(false);
     setErroAlertaRemedio("");
-    setFormAlertaRemedio({ dataAgendada: "" });
+    setFormAlertaRemedio({ prescricaoId: "", dataAgendada: "" });
   }
 
   function atualizarAlertaRemedio(evento) {
@@ -357,12 +358,18 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       return;
     }
 
+    if (!formAlertaRemedio.prescricaoId) {
+      setErroAlertaRemedio("Selecione a prescricao do remedio.");
+      return;
+    }
+
     try {
       setSalvandoAlertaRemedio(true);
       setErroAlertaRemedio("");
 
       const alerta = await cadastrarAlerta({
         idosoId: Number(idosoSelecionado.id),
+        prescricaoId: Number(formAlertaRemedio.prescricaoId),
         tipoAlerta: "REMEDIO",
         dataAgendada: formAlertaRemedio.dataAgendada,
       });
@@ -794,7 +801,8 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                         <span>{alerta.statusAlertas || alerta.status || "AGENDADO"}</span>
                       </div>
                       <time>{formatarDataHora(alerta.dataAgendada)}</time>
-                      <p>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</p>
+                      <p>{alerta.remedioNome || "Remedio prescrito"}</p>
+                      <small>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</small>
                     </div>
                     <div className="cuidador-remedios-item__acoes">
                       <BotaoIcone tipo="perigo" label="Cancelar alerta" onClick={() => removerAlertaRemedio(alerta)}><IconeLixeira /></BotaoIcone>
@@ -823,6 +831,27 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             <span>Idoso selecionado</span>
             <strong>{idosoSelecionado?.nome || "Nenhum idoso selecionado"}</strong>
             {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Nao informado"}</small> : null}
+          </div>
+
+          <div className="cuidador-remedios-campo">
+            <label htmlFor="alerta-prescricao" className="bc-form-modal__label">Prescricao *</label>
+            <select
+              id="alerta-prescricao"
+              name="prescricaoId"
+              className="cuidador-remedios-select"
+              value={formAlertaRemedio.prescricaoId}
+              onChange={atualizarAlertaRemedio}
+              disabled={prescricoes.length === 0}
+            >
+              <option value="">
+                {prescricoes.length === 0 ? "Nenhuma prescricao disponivel" : "Selecione uma prescricao"}
+              </option>
+              {prescricoes.map((prescricao) => (
+                <option key={prescricao.id} value={prescricao.id}>
+                  {prescricao.remedioNome || "Remedio"} - {prescricao.dosagem || "Sem dosagem"} - {prescricao.intervalo || "-"}h
+                </option>
+              ))}
+            </select>
           </div>
 
           <BcInput

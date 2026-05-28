@@ -45,3 +45,9 @@
   color: #5d7474;
   line-height: 1.7;
 }
+.role-placeholder__acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

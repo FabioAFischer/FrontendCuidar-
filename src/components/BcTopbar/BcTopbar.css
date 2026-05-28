@@ -38,6 +38,37 @@
   color: #5f6b79;
 }
 
+/* ── Grupo de ações (avatar + sair) ── */
+.bc-topbar__acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Avatar ── */
+.bc-topbar__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9e8a, #26b8a4);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.bc-topbar__avatar:hover {
+  opacity: 0.85;
+  transform: scale(1.06);
+}
+
+/* ── Botão de ação (sair) ── */
 .bc-topbar__action {
   display: inline-flex;
   align-items: center;
@@ -81,7 +112,15 @@
     font-size: 17px;
   }
 
-  .bc-topbar__action {
+  .bc-topbar__acoes {
     width: 100%;
+  }
+
+  .bc-topbar__action {
+    flex: 1;
+  }
+
+  .bc-topbar__avatar {
+    flex-shrink: 0;
   }
 }
