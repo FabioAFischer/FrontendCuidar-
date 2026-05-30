@@ -164,6 +164,7 @@
 
 .cuidador-idosos-card__content {
   min-width: 0;
+  flex: 1;
 }
 
 .cuidador-idosos-card h3 {
@@ -190,6 +191,55 @@
 .cuidador-idosos-card dd {
   color: #344054;
   font-size: 14px;
+}
+
+.cuidador-idosos-card__senha {
+  min-height: 38px;
+  margin-top: 16px;
+  padding: 8px 12px;
+  border: 1.5px solid #0d9e8a;
+  border-radius: 10px;
+  background: #fff;
+  color: #0d9e8a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  transition: background 0.18s, color 0.18s;
+}
+
+.cuidador-idosos-card__senha:hover {
+  background: #0d9e8a;
+  color: #fff;
+}
+
+.cuidador-idosos-senha-modal__senha {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #d9e3e1;
+  border-radius: 12px;
+  background: #f8fbfb;
+}
+
+.cuidador-idosos-senha-modal__senha span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cuidador-idosos-senha-modal__senha strong {
+  color: #0d9e8a;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.cuidador-idosos-senha-modal__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .cuidador-idosos-empty {
