@@ -459,7 +459,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onEditar={abrirEdicaoCuidador}
               onExcluir={handleExcluirCuidador}
               tituloConfirmacao="Desativar cuidador?"
-              mensagemConfirmacao="O cuidador sera removido da listagem, mas podera ser reativado ao cadastrar o mesmo CPF."
+              mensagemConfirmacao="O cuidador será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, desativar"
               textoCarregandoExcluir="Desativando..."
               excluindo={excluindoCuidador}
@@ -478,7 +478,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
                 { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCPF(String(i.cpf || "")) },
                 { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
                   render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
-                { chave: "observacoes", titulo: "Observacoes", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
+                { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
               ]}
               busca={buscaIdoso}
               placeholderBusca="Buscar por nome ou CPF..."
@@ -493,7 +493,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onEditar={abrirEdicaoIdoso}
               onExcluir={handleExcluirIdoso}
               tituloConfirmacao="Desativar idoso?"
-              mensagemConfirmacao="O idoso sera removido da listagem, mas podera ser reativado ao cadastrar o mesmo CPF."
+              mensagemConfirmacao="O idoso será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, desativar"
               textoCarregandoExcluir="Desativando..."
               excluindo={excluindoIdoso}
