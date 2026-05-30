@@ -166,7 +166,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             return;
           }
           setIdosoParaReativar(null);
-          if (statusIdoso === "ATIVO") setErroIdoso("CPF ja cadastrado para um idoso ativo.");
+          if (statusIdoso === "ATIVO") setErroIdoso("CPF já cadastrado para um idoso ativo.");
         }
       } catch (erro) {
         if (!cancelado) {
@@ -241,8 +241,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!consultaCpfIdoso.idoso) return "CPF ainda nao cadastrado.";
     const s = String(consultaCpfIdoso.idoso.status || "").toUpperCase();
     return s === "INATIVO"
-      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativacao."
-      : "CPF ja cadastrado para um idoso ativo.";
+      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativação."
+      : "CPF já cadastrado para um idoso ativo.";
   }
 
   function limparFormCuidador() {
@@ -286,23 +286,23 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   function validarIdoso() {
     const s = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
-    if (!idosoEmEdicao && s === "ATIVO") return "CPF ja cadastrado para um idoso ativo.";
+    if (!idosoEmEdicao && s === "ATIVO") return "CPF já cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
-    if (!cpfValido(formIdoso.cpf)) return "CPF invalido.";
-    if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
-    if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
+    if (!cpfValido(formIdoso.cpf)) return "CPF inválido.";
+    if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
+    if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
     return null;
   }
 
   function validarCuidador() {
-    if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
+    if (!cpfValido(formCuidador.cpf)) return "CPF inválido.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
-    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
+    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
-    if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas nao coincidem.";
-    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
-    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
+    if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas não coincidem.";
+    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
+    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
     return null;
   }
 
