@@ -564,7 +564,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
             </div>
             <BcButton type="submit" loading={salvandoCuidador}>
-              {cuidadorEmEdicao ? "Salvar alteracoes" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
+              {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
             </BcButton>
           </form>
         </section>
@@ -586,7 +586,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} />
           </BcFormModalRow>
           <BcButton type="submit" loading={salvandoIdoso}>
-            {idosoEmEdicao ? "Salvar alteracoes" : idosoParaReativar ? "Reativar" : "Cadastrar"}
+            {idosoEmEdicao ? "Salvar alterações" : idosoParaReativar ? "Reativar" : "Cadastrar"}
           </BcButton>
         </BcFormModal>
       </BcModal>
