@@ -34,6 +34,21 @@ async function requestApi(path, { method = "GET", dados, fallback } = {}) {
   return response.json().catch(() => null);
 }
 
+export async function obterSenhaAcessoIdoso(idosoId, senhaCuidador) {
+  const response = await fetch(`${API_BASE_URL}/idoso/${idosoId}/senha-acesso`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ senha: senhaCuidador }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({}));
+    throw new Error(erro.message || "Erro ao obter senha de acesso do idoso.");
+  }
+
+  return response.json().catch(() => null);
+}
+
 function conteudoPaginado(data) {
   return Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 }
