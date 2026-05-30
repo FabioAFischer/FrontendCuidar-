@@ -4,8 +4,8 @@ import "./BcConfirmacao.css";
 
 export default function BcConfirmacao({
   aberto,
-  titulo = "Confirmar acao?",
-  mensagem = "Esta acao nao pode ser desfeita.",
+  titulo = "Confirmar ação?",
+  mensagem = "Esta ação não pode ser desfeita.",
   textoCancelar = "Cancelar",
   textoConfirmar = "Confirmar",
   textoCarregando = "Processando...",

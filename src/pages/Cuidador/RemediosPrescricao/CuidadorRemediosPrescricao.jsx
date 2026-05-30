@@ -893,7 +893,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           />
 
           <BcButton type="submit" loading={salvandoRemedio}>
-            {remedioEmEdicao ? "Salvar alteracoes" : "Cadastrar"}
+            {remedioEmEdicao ? "Salvar alterações" : "Cadastrar"}
           </BcButton>
         </BcFormModal>
       </BcModal>
@@ -1078,7 +1078,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           />
 
           <BcButton type="submit" loading={salvandoPrescricao} disabled={inativandoPrescricao}>
-            {prescricaoEmEdicao ? "Salvar alteracoes" : "Criar prescricao"}
+            {prescricaoEmEdicao ? "Salvar alterações" : "Criar prescrição"}
           </BcButton>
         </BcFormModal>
       </BcModal>
