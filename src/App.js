@@ -188,7 +188,7 @@ export default function App() {
       default:
         return (
           <div className="app-fallback">
-            Tela nao encontrada.
+            Tela não encontrada.
           </div>
         );
     }
@@ -200,7 +200,7 @@ export default function App() {
       <BcConfirmacao
         aberto={confirmarSaida}
         titulo="Sair da conta?"
-        mensagem="Ao sair, sera necessario fazer login novamente para acessar a plataforma."
+        mensagem="Ao sair, será necessário fazer login novamente para acessar a plataforma."
         textoConfirmar="Sair"
         icone={<IconeSair />}
         onCancelar={() => setConfirmarSaida(false)}

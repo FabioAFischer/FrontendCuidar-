@@ -166,7 +166,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             return;
           }
           setIdosoParaReativar(null);
-          if (statusIdoso === "ATIVO") setErroIdoso("CPF ja cadastrado para um idoso ativo.");
+          if (statusIdoso === "ATIVO") setErroIdoso("CPF já cadastrado para um idoso ativo.");
         }
       } catch (erro) {
         if (!cancelado) {
@@ -241,8 +241,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!consultaCpfIdoso.idoso) return "CPF ainda nao cadastrado.";
     const s = String(consultaCpfIdoso.idoso.status || "").toUpperCase();
     return s === "INATIVO"
-      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativacao."
-      : "CPF ja cadastrado para um idoso ativo.";
+      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativação."
+      : "CPF já cadastrado para um idoso ativo.";
   }
 
   function limparFormCuidador() {
@@ -286,23 +286,23 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
   function validarIdoso() {
     const s = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
-    if (!idosoEmEdicao && s === "ATIVO") return "CPF ja cadastrado para um idoso ativo.";
+    if (!idosoEmEdicao && s === "ATIVO") return "CPF já cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
-    if (!cpfValido(formIdoso.cpf)) return "CPF invalido.";
-    if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
-    if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
+    if (!cpfValido(formIdoso.cpf)) return "CPF inválido.";
+    if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
+    if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
     return null;
   }
 
   function validarCuidador() {
-    if (!cpfValido(formCuidador.cpf)) return "CPF invalido.";
+    if (!cpfValido(formCuidador.cpf)) return "CPF inválido.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
-    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail valido.";
+    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
-    if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas nao coincidem.";
-    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD invalido.";
-    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone invalido.";
+    if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas não coincidem.";
+    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
+    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
     return null;
   }
 
@@ -459,7 +459,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onEditar={abrirEdicaoCuidador}
               onExcluir={handleExcluirCuidador}
               tituloConfirmacao="Desativar cuidador?"
-              mensagemConfirmacao="O cuidador sera removido da listagem, mas podera ser reativado ao cadastrar o mesmo CPF."
+              mensagemConfirmacao="O cuidador será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, desativar"
               textoCarregandoExcluir="Desativando..."
               excluindo={excluindoCuidador}
@@ -478,7 +478,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
                 { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCPF(String(i.cpf || "")) },
                 { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
                   render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
-                { chave: "observacoes", titulo: "Observacoes", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
+                { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
               ]}
               busca={buscaIdoso}
               placeholderBusca="Buscar por nome ou CPF..."
@@ -493,7 +493,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               onEditar={abrirEdicaoIdoso}
               onExcluir={handleExcluirIdoso}
               tituloConfirmacao="Desativar idoso?"
-              mensagemConfirmacao="O idoso sera removido da listagem, mas podera ser reativado ao cadastrar o mesmo CPF."
+              mensagemConfirmacao="O idoso será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, desativar"
               textoCarregandoExcluir="Desativando..."
               excluindo={excluindoIdoso}
@@ -564,7 +564,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
             </div>
             <BcButton type="submit" loading={salvandoCuidador}>
-              {cuidadorEmEdicao ? "Salvar alteracoes" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
+              {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
             </BcButton>
           </form>
         </section>
@@ -586,7 +586,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} />
           </BcFormModalRow>
           <BcButton type="submit" loading={salvandoIdoso}>
-            {idosoEmEdicao ? "Salvar alteracoes" : idosoParaReativar ? "Reativar" : "Cadastrar"}
+            {idosoEmEdicao ? "Salvar alterações" : idosoParaReativar ? "Reativar" : "Cadastrar"}
           </BcButton>
         </BcFormModal>
       </BcModal>

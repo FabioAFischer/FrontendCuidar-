@@ -611,7 +611,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
           />
 
           <BcButton type="submit" loading={salvandoConsulta}>
-            {consultaEmEdicao ? "Salvar alteracoes" : "Cadastrar consulta"}
+            {consultaEmEdicao ? "Salvar alterações" : "Cadastrar consulta"}
           </BcButton>
         </BcFormModal>
       </BcModal>

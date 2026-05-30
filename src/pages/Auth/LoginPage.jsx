@@ -36,14 +36,14 @@ function validarSenha(senha) {
 
 /* ── Dados de perfil ── */
 const profileDescriptions = {
-  cuidador:      "Acesse sua rotina, oportunidades e informacoes de atendimento.",
+  cuidador:      "Acesse sua rotina, oportunidades e informações de atendimento.",
   instituicao:   "Gerencie equipes, cadastros e demandas institucionais.",
-  administrador: "Controle cadastros, indicadores e configuracoes da plataforma.",
+  administrador: "Controle cadastros, indicadores e configurações da plataforma.",
 };
 
 const profileNames = {
   cuidador:      "Cuidador",
-  instituicao:   "Instituicao",
+  instituicao:   "Instituição",
   administrador: "Administrador",
 };
 
@@ -455,7 +455,7 @@ export default function LoginPage({ onLogin }) {
       mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
       if (onLogin) onLogin(profile, data);
     } catch (err) {
-      mostrarToast("erro", "Falha no login", err.message || "Nao foi possivel fazer login.");
+      mostrarToast("erro", "Falha no login", err.message || "Não foi possível fazer login.");
     } finally {
       setLoadingProfile("");
     }
@@ -488,12 +488,12 @@ export default function LoginPage({ onLogin }) {
 
       <section className="login-page__hero">
         <div className="login-page__hero-content">
-          <div className="login-page__eyebrow">Plataforma de cuidado e gestao</div>
+          <div className="login-page__eyebrow">Plataforma de cuidado e gestão</div>
           <BcLogo size="lg" />
           <h1>Acesso seguro para quem cuida, organiza e acompanha.</h1>
           <p>
-            Entre com sua conta para acessar rotinas assistenciais, gestao
-            institucional e paineis administrativos em um so ambiente.
+            Entre com sua conta para acessar rotinas assistenciais, gestão
+            institucional e painéis administrativos em um só ambiente.
           </p>
           <div className="login-page__highlights" aria-label="Diferenciais da plataforma">
             <article className="login-highlight">
@@ -506,15 +506,15 @@ export default function LoginPage({ onLogin }) {
             <article className="login-highlight">
               <span className="login-highlight__icon" aria-hidden="true">[]</span>
               <div>
-                <strong>Gestao institucional</strong>
-                <p>Organizacao de cadastros, equipes e processos de forma clara.</p>
+                <strong>Gestão institucional</strong>
+                <p>Organização de cadastros, equipes e processos de forma clara.</p>
               </div>
             </article>
             <article className="login-highlight">
               <span className="login-highlight__icon" aria-hidden="true">OK</span>
               <div>
                 <strong>Acesso por perfil</strong>
-                <p>Fluxo preparado para cuidador, instituicao e administrador.</p>
+                <p>Fluxo preparado para cuidador, instituição e administrador.</p>
               </div>
             </article>
           </div>
