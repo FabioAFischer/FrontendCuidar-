@@ -235,6 +235,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setFormIdoso((ant) => ({ ...ant, [name]: novoValor }));
   }
 
+  /*
   function getHintCpfIdoso() {
     if (consultaCpfIdoso.carregando) return "Verificando CPF...";
     if (!consultaCpfIdoso.consultado) return null;
@@ -245,6 +246,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
       : "CPF já cadastrado para um idoso ativo.";
   }
 
+  */
   function limparFormCuidador() {
     setFormCuidador({ cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null });
     setCuidadorParaReativar(null);
@@ -578,7 +580,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
           error={erroIdoso}
           onSubmit={handleCadastrarIdoso}
         >
-          <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formIdoso.cpf} onChange={atualizarIdoso} inputMode="numeric" maxLength={14} hint={getHintCpfIdoso()} />
+          <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formIdoso.cpf} onChange={atualizarIdoso} inputMode="numeric" maxLength={14} />
           <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formIdoso.nome} onChange={atualizarIdoso} />
           <BcFormModalTextarea id="observacoes" label="Observações" name="observacoes" placeholder="Observações importantes sobre o idoso..." value={formIdoso.observacoes} onChange={atualizarIdoso} />
           <BcFormModalRow>
