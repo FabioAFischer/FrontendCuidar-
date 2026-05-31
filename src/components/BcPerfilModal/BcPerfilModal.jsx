@@ -291,6 +291,7 @@ export default function BcPerfilModal({ aberto, onFechar }) {
               {perfil === "INSTITUICAO" && (
                 <>
                   <CampoInfo label="CNPJ"   valor={formatarCNPJ(dados.cnpj)} />
+                  <CampoInfo label="Rua"    valor={dados.rua} />
                   <CampoInfo label="Bairro" valor={dados.bairro} />
                   <CampoInfo label="UF"     valor={dados.uf} />
                   <CampoInfo label="CEP"    valor={formatarCEP(dados.cep)} />
