@@ -125,7 +125,7 @@ export default function BcListagem({
                   ))}
                   {temAcoes ? (
                     <th className="bc-listagem-thAcoes">
-                      <span className="bc-listagem-acoesCabecalho">Acoes</span>
+                      <span className="bc-listagem-acoesCabecalho">Ações</span>
                     </th>
                   ) : null}
                 </tr>
