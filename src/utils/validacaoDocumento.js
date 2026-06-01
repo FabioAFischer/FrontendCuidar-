@@ -86,3 +86,39 @@ export function cnpjValido(cnpj = "") {
     segundoDigito === Number(numeros[13])
   );
 }
+
+/**
+ * Valida número de celular brasileiro (9 dígitos + DDD)
+ * Padrão ANATEL:
+ * - DDD: 2 dígitos (11 a 99)
+ * - Número: 9 dígitos (começa com 9, segundo dígito 6-9)
+ * 
+ * Exemplos válidos: (48) 99789-7890 | 48 99789-7890 | 4899789-7890
+ * Exemplo inválido: 48 90789-7890 (falta o 9, tem apenas 8 dígitos)
+ */
+export function celularValido(ddd = "", telefone = "") {
+  const dddNumeros = somenteNumeros(String(ddd));
+  const telNumeros = somenteNumeros(String(telefone));
+
+  // DDD deve ter 2 dígitos
+  if (dddNumeros.length !== 2) {
+    return false;
+  }
+
+  // Celular deve ter exatamente 9 dígitos
+  if (telNumeros.length !== 9) {
+    return false;
+  }
+
+  // Primeiro dígito deve ser 9
+  if (telNumeros[0] !== "9") {
+    return false;
+  }
+
+  // Segundo dígito deve ser 6, 7, 8 ou 9 (padrão ANATEL para celular)
+  if (!/[6-9]/.test(telNumeros[1])) {
+    return false;
+  }
+
+  return true;
+}
