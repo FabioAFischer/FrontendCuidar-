@@ -27,7 +27,7 @@ import {
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
-import { cpfValido, somenteNumeros } from "../../../utils/validacaoDocumento";
+import { cpfValido, somenteNumeros, celularValido } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 /* ── Ícones locais para os cards ── */
@@ -291,8 +291,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!idosoEmEdicao && s === "ATIVO") return "CPF já cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
     if (!cpfValido(formIdoso.cpf)) return "CPF inválido.";
-    if (formIdoso.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
-    if (formIdoso.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
+    if (!celularValido(formIdoso.ddd, formIdoso.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
     return null;
   }
 
@@ -303,8 +302,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
     if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas não coincidem.";
-    if (formCuidador.ddd.replace(/\D/g, "").length < 2) return "DDD inválido.";
-    if (formCuidador.telefone.replace(/\D/g, "").length < 8) return "Telefone inválido.";
+    if (!celularValido(formCuidador.ddd, formCuidador.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
     return null;
   }
 
@@ -563,7 +561,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             />
             <div className="instituicao-modal__row">
               <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
-              <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
+              <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
             </div>
             <BcButton type="submit" loading={salvandoCuidador}>
               {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
@@ -585,7 +583,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
           <BcFormModalTextarea id="observacoes" label="Observações" name="observacoes" placeholder="Observações importantes sobre o idoso..." value={formIdoso.observacoes} onChange={atualizarIdoso} />
           <BcFormModalRow>
             <BcInput label="DDD *" name="ddd" placeholder="11" value={formIdoso.ddd} onChange={atualizarIdoso} maxLength={2} />
-            <BcInput label="Telefone *" name="telefone" placeholder="90000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} />
+            <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} />
           </BcFormModalRow>
           <BcButton type="submit" loading={salvandoIdoso}>
             {idosoEmEdicao ? "Salvar alterações" : idosoParaReativar ? "Reativar" : "Cadastrar"}
