@@ -72,6 +72,7 @@ function validar(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
   if (!cnpjValido(form.cnpj))                    return "CNPJ inválido.";
   if (!form.email.trim())                         return "Informe o email.";
+  if (!form.rua.trim())                           return "Informe a rua.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
   if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
   if (!form.numero.trim())                        return "Informe o número.";
@@ -84,7 +85,7 @@ function validar(form, exigirSenha = false) {
 }
 
 const FORM_INICIAL = {
-  nome: "", cnpj: "", email: "", bairro: "", uf: "", numero: "", cep: "",
+  nome: "", cnpj: "", email: "", rua: "", bairro: "", uf: "", numero: "", cep: "",
   senha: "", confirmarSenha: "",
 };
 
@@ -103,8 +104,9 @@ function useViaCEP(cep, setForm, onToast) {
         if (data) {
           setForm(prev => ({
             ...prev,
-            bairro: data.bairro || prev.bairro,
-            uf:     data.uf     || prev.uf,
+            rua:    data.logradouro || prev.rua,
+            bairro: data.bairro     || prev.bairro,
+            uf:     data.uf         || prev.uf,
           }));
         } else {
           onToast?.("aviso", "CEP não encontrado", "Verifique o CEP e preencha o endereço manualmente.");
@@ -131,9 +133,10 @@ function CamposEndereco({ form, onChange, buscandoCEP }) {
         name="cep" placeholder="00000-000"
         value={form.cep} onChange={onChange} maxLength={9}
       />
+      <BcInput label="Rua" name="rua" placeholder="Nome da rua" value={form.rua} onChange={onChange} />
       <BcFormModalRow>
-        <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} />
         <BcInput label="Número" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} />
+        <BcInput label="UF" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} />
       </BcFormModalRow>
       <BcInput label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} />
     </>
@@ -171,6 +174,7 @@ function ModalCadastro({ onSucesso, onToast }) {
         cnpj:   form.cnpj.replace(/\D/g, ""),
         email:  form.email,
         senha:  form.senha,
+        rua:    form.rua,
         bairro: form.bairro,
         uf:     form.uf,
         numero: form.numero,
@@ -241,6 +245,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
     nome:   instituicao.nome   || "",
     cnpj:   formatarCNPJ(String(instituicao.cnpj || "")),
     email:  instituicao.email  || "",
+    rua:    instituicao.rua    || "",
     bairro: instituicao.bairro || "",
     uf:     instituicao.uf     || "",
     numero: String(instituicao.numero || ""),
@@ -271,6 +276,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
         nome:   form.nome,
         cnpj:   form.cnpj.replace(/\D/g, ""),
         email:  form.email,
+        rua:    form.rua,
         bairro: form.bairro,
         uf:     form.uf,
         numero: form.numero,
