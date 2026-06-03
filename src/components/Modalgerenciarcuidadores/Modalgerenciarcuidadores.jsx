@@ -36,10 +36,12 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
   const [vinculos, setVinculos]         = useState([]);
   const [carregando, setCarregando]     = useState(false);
   const [salvando, setSalvando]         = useState(false);
-  // set de cuidadorId com vínculo ativo
+  // set de cuidadorId com vínculo ativo (do servidor)
   const [vinculados, setVinculados]     = useState(new Set());
   // mapa cuidadorId → vinculoId (para deletar)
   const [mapaVinculos, setMapaVinculos] = useState({});
+  // seleções locais (estado local antes de confirmar)
+  const [selecoesLocais, setSelecoesLocais] = useState(new Set());
 
   const carregarVinculos = useCallback(async () => {
     if (!idoso?.id) return;
@@ -52,6 +54,8 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
       lista.forEach((v) => { mapa[Number(v.cuidadorId)] = v.id; });
       setVinculados(ids);
       setMapaVinculos(mapa);
+      // Inicializa seleções locais com os vínculos atuais
+      setSelecoesLocais(new Set(ids));
     } catch (err) {
       mostrarToast("erro", "Erro ao carregar vínculos", err.message);
     } finally {
@@ -63,27 +67,71 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
     if (aberto) carregarVinculos();
   }, [aberto, carregarVinculos]);
 
-  async function handleToggle(cuidador) {
+  function handleToggleLocal(cuidador) {
     const cuidadorId = Number(cuidador.id);
+    setSelecoesLocais((ant) => {
+      const nova = new Set(ant);
+      if (nova.has(cuidadorId)) {
+        nova.delete(cuidadorId);
+      } else {
+        nova.add(cuidadorId);
+      }
+      return nova;
+    });
+  }
+
+  async function handleConcluir() {
     setSalvando(true);
     try {
-      if (vinculados.has(cuidadorId)) {
-        const vinculoId = mapaVinculos[cuidadorId];
-        await deletarVinculo(vinculoId);
-        mostrarToast("sucesso", "Vínculo removido", `${cuidador.nome} foi desvinculado de ${idoso.nome}.`);
-      } else {
-        await criarVinculo({ cuidadorId, idosoId: idoso.id });
-        mostrarToast("sucesso", "Vínculo criado", `${cuidador.nome} foi vinculado a ${idoso.nome}.`);
+      // Calcula diferenças
+      const adicionados = Array.from(selecoesLocais).filter((id) => !vinculados.has(id));
+      const removidos = Array.from(vinculados).filter((id) => !selecoesLocais.has(id));
+
+      // Se não há mudanças, apenas fecha
+      if (adicionados.length === 0 && removidos.length === 0) {
+        onFechar();
+        return;
       }
+
+      // Cria novos vínculos
+      for (const cuidadorId of adicionados) {
+        await criarVinculo({ cuidadorId, idosoId: idoso.id });
+      }
+
+      // Remove vínculos
+      for (const cuidadorId of removidos) {
+        const vinculoId = mapaVinculos[cuidadorId];
+        if (vinculoId) {
+          await deletarVinculo(vinculoId);
+        }
+      }
+
+      // Recarrega os vínculos
       await carregarVinculos();
+
+      // Mostra um único toast com o resumo
+      let mensagem = "";
+      if (adicionados.length > 0 && removidos.length > 0) {
+        mensagem = `${adicionados.length} cuidador(es) vinculado(s) e ${removidos.length} desvinculado(s) com sucesso.`;
+      } else if (adicionados.length > 0) {
+        mensagem = `${adicionados.length} cuidador(es) vinculado(s) com sucesso.`;
+      } else if (removidos.length > 0) {
+        mensagem = `${removidos.length} cuidador(es) desvinculado(s) com sucesso.`;
+      }
+
+      if (mensagem) {
+        mostrarToast("sucesso", "Vínculos atualizados", mensagem);
+      }
+
+      onFechar();
     } catch (err) {
-      mostrarToast("erro", "Erro ao atualizar vínculo", err.message);
+      mostrarToast("erro", "Erro ao atualizar vínculos", err.message);
     } finally {
       setSalvando(false);
     }
   }
 
-  const totalAutorizados = vinculados.size;
+  const totalAutorizados = selecoesLocais.size;
 
   return (
     <>
@@ -121,7 +169,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
               <p className="mgc-vazio">Nenhum cuidador cadastrado na instituição.</p>
             ) : (
               cuidadores.map((c) => {
-                const ativo = vinculados.has(Number(c.id));
+                const ativo = selecoesLocais.has(Number(c.id));
                 return (
                   <label
                     key={c.id}
@@ -132,7 +180,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
                       className="mgc-item__check"
                       checked={ativo}
                       disabled={salvando}
-                      onChange={() => handleToggle(c)}
+                      onChange={() => handleToggleLocal(c)}
                     />
                     <div className="mgc-item__avatar">{inicial(c.nome)}</div>
                     <div className="mgc-item__info">
@@ -155,7 +203,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
             <p className="mgc-footer__info">
               {totalAutorizados} cuidador(es) autorizado(s)
             </p>
-            <BcButton onClick={onFechar} fullWidth={false}>
+            <BcButton onClick={handleConcluir} fullWidth={false} loading={salvando}>
               Concluir
             </BcButton>
           </div>
