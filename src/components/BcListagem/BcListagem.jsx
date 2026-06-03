@@ -212,10 +212,10 @@ export default function BcListagem({
 
       <BcConfirmacao
         aberto={Boolean(itemParaExcluir)}
-        titulo={itemParaExcluir?.status === "ATIVO" ? "Inativar instituição?" : "Ativar instituição?"}
-        mensagem={itemParaExcluir?.status === "ATIVO" ? "A instituição será marcada como inativa." : "A instituição será reativada."}
-        textoConfirmar={itemParaExcluir?.status === "ATIVO" ? "Sim, inativar" : "Sim, ativar"}
-        textoCarregando={itemParaExcluir?.status === "ATIVO" ? "Inativando..." : "Ativando..."}
+        titulo={itemParaExcluir?.status === "ATIVO" ? tituloConfirmacao : "Ativar registro?"}
+        mensagem={itemParaExcluir?.status === "ATIVO" ? mensagemConfirmacao : "O registro será reativado."}
+        textoConfirmar={itemParaExcluir?.status === "ATIVO" ? textoConfirmar : "Sim, ativar"}
+        textoCarregando={itemParaExcluir?.status === "ATIVO" ? textoCarregandoExcluir : "Ativando..."}
         carregando={excluindo}
         icone={itemParaExcluir?.status === "ATIVO" ? <IconeInativar /> : <IconeAtivar />}
         onCancelar={() => setItemParaExcluir(null)}
