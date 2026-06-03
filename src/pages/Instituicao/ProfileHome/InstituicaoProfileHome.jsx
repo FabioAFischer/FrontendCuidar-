@@ -458,10 +458,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
               erro={modalCuidadorAberto ? "" : erroCuidador}
               onEditar={abrirEdicaoCuidador}
               onExcluir={handleExcluirCuidador}
-              tituloConfirmacao="Desativar cuidador?"
-              mensagemConfirmacao="O cuidador será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
-              textoConfirmar="Sim, desativar"
-              textoCarregandoExcluir="Desativando..."
+              tituloConfirmacao="Inativar cuidador?"
+              mensagemConfirmacao="O cuidador será inativado na listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
+              textoConfirmar="Sim, inativar"
+              textoCarregandoExcluir="Inativando..."
               excluindo={excluindoCuidador}
               itensPorPagina={10}
             />
