@@ -87,29 +87,42 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
       const adicionados = Array.from(selecoesLocais).filter((id) => !vinculados.has(id));
       const removidos = Array.from(vinculados).filter((id) => !selecoesLocais.has(id));
 
+      // Se não há mudanças, apenas fecha
+      if (adicionados.length === 0 && removidos.length === 0) {
+        onFechar();
+        return;
+      }
+
       // Cria novos vínculos
       for (const cuidadorId of adicionados) {
-        const cuidador = cuidadores.find((c) => Number(c.id) === cuidadorId);
         await criarVinculo({ cuidadorId, idosoId: idoso.id });
-        if (cuidador) {
-          mostrarToast("sucesso", "Vínculo criado", `${cuidador.nome} foi vinculado a ${idoso.nome}.`);
-        }
       }
 
       // Remove vínculos
       for (const cuidadorId of removidos) {
         const vinculoId = mapaVinculos[cuidadorId];
-        const cuidador = cuidadores.find((c) => Number(c.id) === cuidadorId);
         if (vinculoId) {
           await deletarVinculo(vinculoId);
-          if (cuidador) {
-            mostrarToast("sucesso", "Vínculo removido", `${cuidador.nome} foi desvinculado de ${idoso.nome}.`);
-          }
         }
       }
 
       // Recarrega os vínculos
       await carregarVinculos();
+
+      // Mostra um único toast com o resumo
+      let mensagem = "";
+      if (adicionados.length > 0 && removidos.length > 0) {
+        mensagem = `${adicionados.length} cuidador(es) vinculado(s) e ${removidos.length} desvinculado(s) com sucesso.`;
+      } else if (adicionados.length > 0) {
+        mensagem = `${adicionados.length} cuidador(es) vinculado(s) com sucesso.`;
+      } else if (removidos.length > 0) {
+        mensagem = `${removidos.length} cuidador(es) desvinculado(s) com sucesso.`;
+      }
+
+      if (mensagem) {
+        mostrarToast("sucesso", "Vínculos atualizados", mensagem);
+      }
+
       onFechar();
     } catch (err) {
       mostrarToast("erro", "Erro ao atualizar vínculos", err.message);
