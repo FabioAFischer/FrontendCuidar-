@@ -548,36 +548,35 @@ export default function InstituicaoProfileHome({ onLogout }) {
 
       {/* Modal cadastro/edição de cuidador */}
       <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
-        <section className="instituicao-modal instituicao-modal--cuidador">
-          <div className="instituicao-modal__header">
-            <h2>{cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}</h2>
-          </div>
-          <form className="instituicao-modal__form" onSubmit={handleCadastrarCuidador}>
-            {erroCuidador ? <div className="instituicao-modal__error" role="alert">{erroCuidador}</div> : null}
-            <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
-            <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
-            <BcInput label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
-            <BcInput
-              label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
-              name="senha" type="password"
-              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
-              value={formCuidador.senha} onChange={atualizarCuidador}
-            />
-            <BcInput
-              label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
-              name="confirmarSenha" type="password"
-              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
-              value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
-            />
-            <div className="instituicao-modal__row">
-              <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
-              <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
-            </div>
-            <BcButton type="submit" loading={salvandoCuidador}>
-              {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
-            </BcButton>
-          </form>
-        </section>
+        <BcFormModal
+          title={cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}
+          subtitle={cuidadorEmEdicao ? "Atualize os dados abaixo" : cuidadorParaReativar ? "Confira os dados antes de reativar" : "Preencha os dados para cadastrar"}
+          error={erroCuidador}
+          onSubmit={handleCadastrarCuidador}
+        >
+          <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
+          <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
+          <BcInput label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
+          <BcInput
+            label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
+            name="senha" type="password"
+            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
+            value={formCuidador.senha} onChange={atualizarCuidador}
+          />
+          <BcInput
+            label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
+            name="confirmarSenha" type="password"
+            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
+            value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
+          />
+          <BcFormModalRow>
+            <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
+            <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
+          </BcFormModalRow>
+          <BcButton type="submit" loading={salvandoCuidador}>
+            {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
+          </BcButton>
+        </BcFormModal>
       </BcModal>
 
       {/* Modal cadastro/edição de idoso */}
