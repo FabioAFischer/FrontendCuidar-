@@ -8,6 +8,7 @@ import BcTopbar from "../../../components/BcTopbar/BcTopbar";
 import BcToast, { useBcToast } from "../../../components/BcToast/BcToast";
 import SecaoRelatorio from "../../../components/SecaoRelatorio/Secaorelatorio";
 import ModalGerenciarCuidadores from "../../../components/Modalgerenciarcuidadores/Modalgerenciarcuidadores";
+import ModalEmergencia from "../../../components/ModalEmergencia/ModalEmergencia";
 import {
   atualizarCuidador as atualizarCuidadorApi,
   atualizarIdoso as atualizarIdosoApi,
@@ -30,7 +31,6 @@ import {
 import { cpfValido, somenteNumeros, celularValido } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
-/* ── Ícones locais para os cards ── */
 const IconePessoa = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -44,6 +44,14 @@ const IconeIdosoCard = () => (
     <circle cx="12" cy="7" r="4" />
     <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
     <path d="M9 17l-1 4M15 17l1 4" />
+  </svg>
+);
+
+/* Ícone de telefone/emergência para o botão da tabela */
+const IconeTelefoneEmergencia = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z" />
   </svg>
 );
 
@@ -75,12 +83,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
   const [erroCuidador, setErroCuidador]                 = useState("");
   const [erroIdoso, setErroIdoso]                       = useState("");
   const [idosoGerenciar, setIdosoGerenciar]             = useState(null);
+  const [idosoEmergencia, setIdosoEmergencia]           = useState(null);
 
-  // Relatório
-  const [dadosRelatorio, setDadosRelatorio]   = useState(RELATORIO_INICIAL);
-  const [carregandoRel, setCarregandoRel]     = useState(false);
-  const [erroRel, setErroRel]                 = useState("");
-  const [baixando, setBaixando]               = useState(false);
+  const [dadosRelatorio, setDadosRelatorio] = useState(RELATORIO_INICIAL);
+  const [carregandoRel, setCarregandoRel]   = useState(false);
+  const [erroRel, setErroRel]               = useState("");
+  const [baixando, setBaixando]             = useState(false);
 
   const [consultaCpfIdoso, setConsultaCpfIdoso] = useState({
     carregando: false, consultado: false, idoso: null,
@@ -235,18 +243,6 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setFormIdoso((ant) => ({ ...ant, [name]: novoValor }));
   }
 
-  /*
-  function getHintCpfIdoso() {
-    if (consultaCpfIdoso.carregando) return "Verificando CPF...";
-    if (!consultaCpfIdoso.consultado) return null;
-    if (!consultaCpfIdoso.idoso) return "CPF ainda nao cadastrado.";
-    const s = String(consultaCpfIdoso.idoso.status || "").toUpperCase();
-    return s === "INATIVO"
-      ? "Idoso inativo encontrado. Os dados foram preenchidos para reativação."
-      : "CPF já cadastrado para um idoso ativo.";
-  }
-
-  */
   function limparFormCuidador() {
     setFormCuidador({ cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null });
     setCuidadorParaReativar(null);
@@ -419,6 +415,31 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally { setBaixando(false); }
   }
 
+  /* ── Colunas dos idosos com botão de emergência ── */
+  const colunasIdosos = [
+    { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
+    { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCPF(String(i.cpf || "")) },
+    { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
+      render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
+    { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
+    {
+      chave: "_emergencia",
+      titulo: "Emergência",
+      className: "bc-listagem-tdMuted",
+      render: (i) => (
+        <button
+          type="button"
+          className="iph-btn-emergencia"
+          onClick={(e) => { e.stopPropagation(); setIdosoEmergencia(i); }}
+          title="Gerenciar contato de emergência"
+        >
+          <IconeTelefoneEmergencia />
+          Emergência
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="instituicao-home">
       <BcToast {...toastProps} />
@@ -473,13 +494,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               titulo="Idosos Cadastrados"
               iconeTitulo={<IconeIdosos />}
               itens={idososFiltrados}
-              colunas={[
-                { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
-                { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCPF(String(i.cpf || "")) },
-                { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
-                  render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
-                { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
-              ]}
+              colunas={colunasIdosos}
               busca={buscaIdoso}
               placeholderBusca="Buscar por nome ou CPF..."
               onBuscaChange={setBuscaIdoso}
@@ -509,20 +524,8 @@ export default function InstituicaoProfileHome({ onLogout }) {
           erro={erroRel}
           baixando={baixando}
           cards={[
-            {
-              icone:    <IconePessoa />,
-              titulo:   "Cuidadores",
-              total:    dadosRelatorio.cuidadores.total,
-              ativos:   dadosRelatorio.cuidadores.ativos,
-              inativos: dadosRelatorio.cuidadores.inativos,
-            },
-            {
-              icone:    <IconeIdosoCard />,
-              titulo:   "Idosos",
-              total:    dadosRelatorio.idosos.total,
-              ativos:   dadosRelatorio.idosos.ativos,
-              inativos: dadosRelatorio.idosos.inativos,
-            },
+            { icone: <IconePessoa />, titulo: "Cuidadores", total: dadosRelatorio.cuidadores.total, ativos: dadosRelatorio.cuidadores.ativos, inativos: dadosRelatorio.cuidadores.inativos },
+            { icone: <IconeIdosoCard />, titulo: "Idosos", total: dadosRelatorio.idosos.total, ativos: dadosRelatorio.idosos.ativos, inativos: dadosRelatorio.idosos.inativos },
           ]}
           onBaixar={handleBaixarRelatorio}
         />
@@ -536,38 +539,44 @@ export default function InstituicaoProfileHome({ onLogout }) {
         cuidadores={cuidadores}
       />
 
+      {/* Modal emergência */}
+      <ModalEmergencia
+        aberto={!!idosoEmergencia}
+        onFechar={() => setIdosoEmergencia(null)}
+        idoso={idosoEmergencia}
+      />
+
       {/* Modal cadastro/edição de cuidador */}
       <BcModal aberto={modalCuidadorAberto} onFechar={fecharModalCuidador}>
-        <section className="instituicao-modal instituicao-modal--cuidador">
-          <div className="instituicao-modal__header">
-            <h2>{cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}</h2>
-          </div>
-          <form className="instituicao-modal__form" onSubmit={handleCadastrarCuidador}>
-            {erroCuidador ? <div className="instituicao-modal__error" role="alert">{erroCuidador}</div> : null}
-            <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
-            <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
-            <BcInput label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
-            <BcInput
-              label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
-              name="senha" type="password"
-              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
-              value={formCuidador.senha} onChange={atualizarCuidador}
-            />
-            <BcInput
-              label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
-              name="confirmarSenha" type="password"
-              placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
-              value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
-            />
-            <div className="instituicao-modal__row">
-              <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
-              <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
-            </div>
-            <BcButton type="submit" loading={salvandoCuidador}>
-              {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
-            </BcButton>
-          </form>
-        </section>
+        <BcFormModal
+          title={cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}
+          subtitle={cuidadorEmEdicao ? "Atualize os dados abaixo" : cuidadorParaReativar ? "Confira os dados antes de reativar" : "Preencha os dados para cadastrar"}
+          error={erroCuidador}
+          onSubmit={handleCadastrarCuidador}
+        >
+          <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
+          <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
+          <BcInput label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
+          <BcInput
+            label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
+            name="senha" type="password"
+            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
+            value={formCuidador.senha} onChange={atualizarCuidador}
+          />
+          <BcInput
+            label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
+            name="confirmarSenha" type="password"
+            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
+            value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
+          />
+          <BcFormModalRow>
+            <BcInput label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
+            <BcInput label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
+          </BcFormModalRow>
+          <BcButton type="submit" loading={salvandoCuidador}>
+            {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
+          </BcButton>
+        </BcFormModal>
       </BcModal>
 
       {/* Modal cadastro/edição de idoso */}
