@@ -367,7 +367,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
       medico: form.medico.trim(),
       especialidade: form.especialidade.trim(),
       local: form.local.trim(),
-      observacoes: form.observacoes.trim(),
+      observacoes: form.observacoes,
       status: form.status,
       tipoAlerta: form.tipoAlerta,
     };
