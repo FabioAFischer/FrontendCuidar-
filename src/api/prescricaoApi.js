@@ -43,7 +43,7 @@ function normalizarPrescricao(dados) {
     idosoId: Number(dados.idosoId),
     dataFim: dados.dataFim || null,
     necessarioJejum: Boolean(dados.necessarioJejum),
-    instrucao: dados.instrucao?.trim() || "",
+    instrucao: dados.instrucao || "",
     intervalo: Number(dados.intervalo),
     dosagem: dados.dosagem?.trim(),
   };

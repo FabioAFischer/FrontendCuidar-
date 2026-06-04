@@ -41,7 +41,7 @@ function normalizarRemedio(dados) {
   return {
     id: dados.id,
     nome: dados.nome?.trim(),
-    observacao: dados.observacao?.trim() || "",
+    observacao: dados.observacao || "",
     status: dados.status || "ATIVO",
   };
 }
