@@ -273,3 +273,10 @@ export async function deletarVinculo(id) {
     fallback: "Erro ao deletar vínculo.",
   });
 }
+
+export async function definirVinculoEmergencia(vinculoId) {
+  return requestApi(`/vinculo/${vinculoId}/emergencia`, {
+    method: "PUT",
+    fallback: "Erro ao definir vínculo de emergência.",
+  });
+}

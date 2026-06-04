@@ -36,4 +36,38 @@
     gap: 24px;
   }
 
+  .bcmodal-content:has(.instituicao-modal) {
+    max-width: 100%;
+  }
+
+  .instituicao-modal {
+    padding: 22px 18px 18px;
+  }
+
+  .instituicao-modal__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Botão de emergência inline na tabela ── */
+.iph-btn-emergencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fff1f1;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.iph-btn-emergencia:hover {
+  background: #fee2e2;
+  border-color: #e05252;
 }
