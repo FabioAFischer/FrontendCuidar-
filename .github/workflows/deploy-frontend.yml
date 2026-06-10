@@ -3,7 +3,7 @@ name: Build and Deploy Frontend
 on:
   push:
     branches:
-      - homolog
+      - main
   workflow_dispatch:
 
 permissions:
