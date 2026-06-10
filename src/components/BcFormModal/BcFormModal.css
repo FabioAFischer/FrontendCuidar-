@@ -1,0 +1,107 @@
+.bcmodal-content:has(.bc-form-modal) {
+  max-width: 440px;
+}
+
+.bc-form-modal {
+  padding: 28px 24px 32px;
+}
+
+.bc-form-modal__header {
+  text-align: center;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bc-form-modal__header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0d9e8a;
+  margin: 0;
+}
+
+.bc-form-modal__header p {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.bc-form-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bc-form-modal__row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+}
+
+.bc-form-modal__error {
+  font-size: 13px;
+  color: #e05252;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+
+.bc-form-modal__icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.15s;
+  line-height: 0;
+}
+
+.bc-form-modal__icon-button:hover {
+  color: #0d9e8a;
+}
+
+.bc-form-modal__match {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bc-form-modal__textareaGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.bc-form-modal__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.bc-form-modal__textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 2px solid #c9ebe4;
+  background: #f2f2f2;
+  color: #1a1a1a;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.bc-form-modal__textarea::placeholder {
+  color: #aaa;
+}
+
+.bc-form-modal__textarea:focus {
+  border-color: #0d9e8a;
+  background: #fff;
+}

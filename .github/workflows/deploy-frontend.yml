@@ -1,0 +1,61 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Baixar código do frontend
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Buildar e publicar imagem do frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            REACT_APP_API_URL=http://144.22.199.87:8080/api
+          tags: ghcr.io/fabioafischer/frontendcuidar:homolog
+
+      - name: Deploy na Oracle
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          port: ${{ secrets.ORACLE_PORT }}
+          command_timeout: 10m
+          script: |
+            set -e
+
+            cd /opt/bomcuidado
+
+            echo "Baixando imagem nova do frontend..."
+            docker compose pull frontend
+
+            echo "Subindo frontend..."
+            docker compose up -d frontend
+
+            echo "Limpando imagens antigas..."
+            docker image prune -f
+
+            echo "Status:"
+            docker ps

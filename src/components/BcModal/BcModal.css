@@ -1,0 +1,75 @@
+.bcmodal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  padding: 16px;
+  animation: bcmodal-fade-in 0.18s ease;
+}
+
+.bcmodal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+  animation: bcmodal-slide-up 0.22s ease;
+}
+
+.bcmodal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bcmodal-content::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 16px; /* afasta das bordas arredondadas */
+}
+
+.bcmodal-content::-webkit-scrollbar-thumb {
+  background: #b8c0cc;
+  border-radius: 999px;
+}
+
+.bcmodal-content::-webkit-scrollbar-thumb:hover {
+  background: #8f9aaa;
+}
+
+.bcmodal-fechar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f2f2f2;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  z-index: 10;
+  transition: background 0.15s, color 0.15s;
+}
+.bcmodal-fechar:hover {
+  background: #e0e0e0;
+  color: #111;
+}
+
+@keyframes bcmodal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes bcmodal-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
