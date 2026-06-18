@@ -19,6 +19,7 @@ import {
   IconeVisualizar,
   IconeVoltar,
 } from "../../../components/icons/Icons";
+import { somenteNumeros, cpfValido } from "../../../utils/validacaoDocumento";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import { cadastrarAlerta, cancelarAlerta, listarAlertasPorIdoso } from "../../../api/alertaApi";
 import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, inativarPrescricao, listarPrescricoesPorIdoso } from "../../../api/prescricaoApi";
@@ -171,10 +172,13 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
     return idosos.filter((idoso) => {
       const nome = String(idoso.nome || "").toLowerCase();
-      const cpf = String(idoso.cpf || "").replace(/\D/g, "");
+      const cpf = somenteNumeros(idoso.cpf);
       const cpfFormatado = formatarCpf(idoso.cpf).toLowerCase();
       const telefone = formatarTelefone(idoso).toLowerCase();
-      const termoNumerico = termo.replace(/\D/g, "");
+      const termoNumerico = somenteNumeros(termo);
+
+      // If user typed a full CPF, validate it; if invalid, don't match by CPF
+      if (termoNumerico.length === 11 && !cpfValido(termoNumerico)) return nome.includes(termo) || telefone.includes(termo) || cpfFormatado.includes(termo);
 
       return (
         nome.includes(termo) ||
