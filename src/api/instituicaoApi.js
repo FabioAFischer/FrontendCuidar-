@@ -1,9 +1,6 @@
 import { getAuthHeaders } from "./authApi";
 import { API_BASE_URL } from "./env";
-
-function somenteNumeros(valor = "") {
-  return String(valor).replace(/\D/g, "");
-}
+import { somenteNumeros } from "../utils/validacaoDocumento";
 
 function getInstituicaoId() {
   return Number(localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId"));

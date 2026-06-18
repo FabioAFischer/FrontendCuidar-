@@ -28,7 +28,7 @@ import {
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
-import { cpfValido, somenteNumeros, celularValido } from "../../../utils/validacaoDocumento";
+import { cpfDisponivel, cpfValido, somenteNumeros, celularValido } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 const IconePessoa = () => (
@@ -216,7 +216,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (name === "telefone") novoValor = formatarTelefone(value);
     if (name === "cpf") {
       const cpfDigitado = somenteNumeros(novoValor);
-      const encontrado = cuidadoresInativos.find((c) => somenteNumeros(c.cpf) === cpfDigitado);
+      const encontrado = cuidadoresInativos.find((c) => !cpfDisponivel(cpfDigitado, [c]));
       if (cpfDigitado.length === 11 && encontrado) {
         setCuidadorParaReativar(encontrado);
         setErroCuidador("");
@@ -287,12 +287,14 @@ export default function InstituicaoProfileHome({ onLogout }) {
     if (!idosoEmEdicao && s === "ATIVO") return "CPF já cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
     if (!cpfValido(formIdoso.cpf)) return "CPF inválido.";
+    if (!idosoEmEdicao && !cpfDisponivel(formIdoso.cpf, cuidadores)) return "CPF já está em uso por um cuidador.";
     if (!celularValido(formIdoso.ddd, formIdoso.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
     return null;
   }
 
   function validarCuidador() {
     if (!cpfValido(formCuidador.cpf)) return "CPF inválido.";
+    if (!cuidadorEmEdicao && !cuidadorParaReativar && !cpfDisponivel(formCuidador.cpf, cuidadores, idosos)) return "CPF já está em uso.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
