@@ -31,6 +31,28 @@ export function documentoRepetido(documento = "") {
   return numeros.length > 0 && /^(\d)\1+$/.test(numeros);
 }
 
+export const MENSAGEM_CPF_EM_USO = "CPF já está em uso";
+
+export function cpfEmUso(cpf = "", ...colecoes) {
+  const cpfLimpo = somenteNumeros(cpf);
+
+  if (!cpfLimpo) {
+    return false;
+  }
+
+  return colecoes
+    .flat()
+    .filter(Boolean)
+    .some((item) => {
+      const cpfItem = typeof item === "string" ? item : item.cpf;
+      return somenteNumeros(cpfItem) === cpfLimpo;
+    });
+}
+
+export function cpfDisponivel(cpf = "", ...colecoes) {
+  return !cpfEmUso(cpf, ...colecoes);
+}
+
 export function cpfValido(cpf = "") {
   const numeros = somenteNumeros(cpf);
 
