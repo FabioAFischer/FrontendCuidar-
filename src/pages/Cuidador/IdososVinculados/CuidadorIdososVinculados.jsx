@@ -10,6 +10,7 @@ import {
   IconeSair,
   IconeSetaEsquerda,
 } from "../../../components/icons/Icons";
+import { somenteNumeros, cpfValido } from "../../../utils/validacaoDocumento";
 import { listarIdososDoCuidador, obterSenhaAcessoIdoso } from "../../../api/instituicaoApi";
 import "./CuidadorIdososVinculados.css";
 
@@ -113,13 +114,17 @@ export default function CuidadorIdososVinculados({ onBack, onLogout }) {
 
   const idososFiltrados = useMemo(() => {
     const termo = normalizarBusca(busca);
-    const cpfBusca = busca.replace(/\D/g, "");
+    const cpfBusca = somenteNumeros(busca);
 
     if (!termo && !cpfBusca) return idosos;
 
     return idosos.filter((idoso) => {
       const nome = normalizarBusca(idoso.nome);
-      const cpf = String(idoso.cpf || "").replace(/\D/g, "");
+      const cpf = somenteNumeros(idoso.cpf);
+
+      // If user typed a full CPF, validate it; if invalid, don't match by CPF
+      if (cpfBusca.length === 11 && !cpfValido(cpfBusca)) return nome.includes(termo);
+
       return nome.includes(termo) || (cpfBusca && cpf.includes(cpfBusca));
     });
   }, [busca, idosos]);
