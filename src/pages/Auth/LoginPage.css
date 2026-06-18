@@ -184,6 +184,18 @@
   cursor: pointer;
 }
 
+/* Ensure the password-toggle shows only the text label and no SVG/icon overlapping it */
+.login-form__password-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  line-height: 1;
+}
+.login-form__password-toggle svg {
+  display: none !important;
+}
+
 .login-form__row {
   display: flex;
   align-items: center;
