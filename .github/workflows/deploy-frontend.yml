@@ -32,7 +32,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            REACT_APP_API_URL=http://144.22.199.87:8080/api
+            REACT_APP_API_URL=http://bomcuidado.duckdns.org:8080/api
           tags: ghcr.io/fabioafischer/frontendcuidar:homolog
 
       - name: Deploy na Oracle
