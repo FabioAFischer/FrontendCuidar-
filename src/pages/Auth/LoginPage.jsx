@@ -404,7 +404,7 @@ export default function LoginPage({ onLogin }) {
   const [cpfCnpj, setCpfCnpj]               = useState("");
   const [password, setPassword]             = useState("");
   const [showPassword, setShowPassword]     = useState(false);
-  const [rememberMe, setRememberMe]         = useState(true);
+  const [rememberMe, setRememberMe]         = useState(false);
   const [error, setError]                   = useState("");
   const [loadingProfile, setLoadingProfile] = useState("");
   const [modalRecuperar, setModalRecuperar] = useState(false);
@@ -414,7 +414,7 @@ export default function LoginPage({ onLogin }) {
   const [twoFaEmail, setTwoFaEmail]                 = useState("");
   const [twoFaIdentificador, setTwoFaIdentificador] = useState("");
   const [twoFaPerfil, setTwoFaPerfil]               = useState("");
-  const [twoFaRemember, setTwoFaRemember]           = useState(true);
+  const [twoFaRemember, setTwoFaRemember]           = useState(false);
 
   function handleCpfCnpjChange(event) {
     const valorFormatado = formatarCpfCnpj(event.target.value);
