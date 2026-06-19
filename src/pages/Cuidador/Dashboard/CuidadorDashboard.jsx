@@ -12,6 +12,7 @@ import {
   IconeSetaDireita,
   IconeTelefone,
 } from "../../../components/icons/Icons";
+import { somenteNumeros } from "../../../utils/validacaoDocumento";
 import { atualizarAlerta, listarAlertas } from "../../../api/alertaApi";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import "./CuidadorDashboard.css";
@@ -24,7 +25,7 @@ const CONTATOS_EMERGENCIA = [
 
 
 function formatarCPF(valor = "") {
-  const numeros = String(valor).replace(/\D/g, "").slice(0, 11);
+  const numeros = somenteNumeros(valor).slice(0, 11);
   return numeros
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
