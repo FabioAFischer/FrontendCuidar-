@@ -46,7 +46,7 @@ export async function login({ identificador, senha, perfil, rememberMe = false }
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}/auth/login`, {
+    response = await fetchComTimeout(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,8 +55,8 @@ export async function login({ identificador, senha, perfil, rememberMe = false }
         perfil: perfilBackend,
       }),
     });
-  } catch {
-    throw new Error("Falha ao logar.");
+  } catch (erro) {
+    throw new Error(erro.message || "Falha ao logar.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -81,7 +81,7 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
 
-  const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
+  const response = await fetchComTimeout(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
