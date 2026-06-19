@@ -7,12 +7,29 @@ const PERFIL_BACKEND = {
   cuidador: "CUIDADOR",
 };
 
+const SESSION_KEYS = [
+  "token",
+  "tokenTipo",
+  "perfil",
+  "usuarioId",
+  "usuarioNome",
+  "usuarioEmail",
+  "usuarioIdentificador",
+];
+
+function limparStorage(storage) {
+  SESSION_KEYS.forEach((key) => storage.removeItem(key));
+}
+
 function getStorage(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
 
 function salvarSessao(data, rememberMe, identificador) {
   const storage = getStorage(rememberMe);
+  const storageAlternativo = rememberMe ? sessionStorage : localStorage;
+
+  limparStorage(storageAlternativo);
   storage.setItem("token", data.token);
   storage.setItem("tokenTipo", data.tipo || "Bearer");
   storage.setItem("perfil", data.perfil);
@@ -22,7 +39,7 @@ function salvarSessao(data, rememberMe, identificador) {
   if (identificador) storage.setItem("usuarioIdentificador", identificador);
 }
 
-export async function login({ identificador, senha, perfil, rememberMe = true }) {
+export async function login({ identificador, senha, perfil, rememberMe = false }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
 
@@ -60,7 +77,7 @@ export async function login({ identificador, senha, perfil, rememberMe = true })
   return data;
 }
 
-export async function verificar2fa({ identificador, codigo, perfil, rememberMe = true }) {
+export async function verificar2fa({ identificador, codigo, perfil, rememberMe = false }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
 
@@ -85,7 +102,9 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
 }
 
 export function getAuthToken() {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const tokenLocal = localStorage.getItem("token");
+  const tokenSessao = sessionStorage.getItem("token");
+  const token = tokenLocal || tokenSessao;
 
   if (token && tokenInvalidoOuExpirado(token)) {
     logout();
@@ -107,21 +126,8 @@ export function getAuthHeaders() {
 }
 
 export function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("tokenTipo");
-  localStorage.removeItem("perfil");
-  localStorage.removeItem("usuarioId");
-  localStorage.removeItem("usuarioNome");
-  localStorage.removeItem("usuarioEmail");
-  localStorage.removeItem("usuarioIdentificador");
-
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("tokenTipo");
-  sessionStorage.removeItem("perfil");
-  sessionStorage.removeItem("usuarioId");
-  sessionStorage.removeItem("usuarioNome");
-  sessionStorage.removeItem("usuarioEmail");
-  sessionStorage.removeItem("usuarioIdentificador");
+  limparStorage(localStorage);
+  limparStorage(sessionStorage);
 }
 
 function tokenInvalidoOuExpirado(token) {
