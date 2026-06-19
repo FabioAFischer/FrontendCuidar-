@@ -25,6 +25,22 @@ function getStorage(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
 
+async function fetchComTimeout(url, options = {}, timeout = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function salvarSessao(data, rememberMe, identificador) {
   const storage = getStorage(rememberMe);
   const storageAlternativo = rememberMe ? sessionStorage : localStorage;
@@ -46,7 +62,7 @@ export async function login({ identificador, senha, perfil, rememberMe = false }
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}/auth/login`, {
+    response = await fetchComTimeout(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -81,7 +97,7 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
   const identificadorNormalizado = somenteNumeros(identificador);
 
-  const response = await fetch(`${API_BASE_URL}/auth/verificar-2fa`, {
+  const response = await fetchComTimeout(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
