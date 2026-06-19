@@ -103,7 +103,14 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
 }
 
 export function getAuthToken() {
-  return localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  if (token && tokenInvalidoOuExpirado(token)) {
+    logout();
+    return null;
+  }
+
+  return token;
 }
 
 export function getAuthHeaders() {
@@ -133,4 +140,36 @@ export function logout() {
   sessionStorage.removeItem("usuarioNome");
   sessionStorage.removeItem("usuarioEmail");
   sessionStorage.removeItem("usuarioIdentificador");
+}
+
+function tokenInvalidoOuExpirado(token) {
+  const payload = decodificarPayloadJwt(token);
+
+  if (!payload?.exp) {
+    return true;
+  }
+
+  return payload.exp * 1000 <= Date.now();
+}
+
+function decodificarPayloadJwt(token) {
+  try {
+    const payloadBase64 = token.split(".")[1];
+
+    if (!payloadBase64) {
+      return null;
+    }
+
+    const base64 = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+        .join("")
+    );
+
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
