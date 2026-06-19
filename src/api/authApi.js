@@ -71,8 +71,8 @@ export async function login({ identificador, senha, perfil, rememberMe = false }
         perfil: perfilBackend,
       }),
     });
-  } catch {
-    throw new Error("Falha ao logar.");
+  } catch (erro) {
+    throw new Error(erro.message || "Falha ao logar.");
   }
 
   const data = await response.json().catch(() => ({}));
