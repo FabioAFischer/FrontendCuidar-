@@ -14,12 +14,12 @@ import {
   IconeSeguranca,
   IconeSucesso,
 } from "../../components/icons/Icons";
-import { login as loginUsuario, verificar2fa } from "../../api/authApi";
+import { autenticarUsuario as autenticarUsuarioNoSistema, validarCodigoDoisFatores } from "../../api/authApi";
 import {
   enviarIdentificador,
   verificarCodigo,
   definirNovaSenha,
-  reenviarCodigo2FA,
+  reenviarCodigoDoisFatores,
 } from "../../api/recuperarSenhaApi";
 import { formatarCpfCnpj } from "../../utils/validacaoDocumento";
 import "./LoginPage.css";
@@ -52,7 +52,7 @@ const TIMER_SEGUNDOS = 30;
 /* ══════════════════════════════════════════
    Modal 2FA
    ══════════════════════════════════════════ */
-function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, onSucesso, onFechar }) {
+function ModalDoisFatores({ aberto, emailMascarado, identificador, rememberMe, perfil, onSucesso, onFechar }) {
   const [codigo, setCodigo]           = useState("");
   const [loading, setLoading]         = useState(false);
   const [reenviando, setReenviando]   = useState(false);
@@ -83,7 +83,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
     return () => clearInterval(intervalRef.current);
   }, [aberto]);
 
-  function reiniciarTimer() {
+  function reiniciarTemporizadorCodigo() {
     clearInterval(intervalRef.current);
     setTimer(TIMER_SEGUNDOS);
     intervalRef.current = setInterval(() => {
@@ -97,7 +97,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
     }, 1000);
   }
 
-  function handleFechar() {
+  function aoFecharModal() {
     clearInterval(intervalRef.current);
     setCodigo("");
     setErro("");
@@ -105,14 +105,14 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
     onFechar();
   }
 
-  async function handleSubmit(e) {
+  async function aoEnviarFormulario(e) {
     e.preventDefault();
     setErro("");
     setSucesso("");
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
     setLoading(true);
     try {
-      const data = await verificar2fa({ identificador, codigo, perfil, rememberMe });
+      const data = await validarCodigoDoisFatores({ identificador, codigo, perfil, rememberMe });
       onSucesso(data, perfil);
     } catch (err) {
       setErro(err.message);
@@ -121,14 +121,14 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
     }
   }
 
-  async function handleReenviar() {
+  async function aoReenviarCodigo() {
     setErro("");
     setSucesso("");
     setReenviando(true);
     try {
-      await reenviarCodigo2FA({ identificador, perfil });
+      await reenviarCodigoDoisFatores({ identificador, perfil });
       setSucesso("Código reenviado!");
-      reiniciarTimer();
+      reiniciarTemporizadorCodigo();
     } catch (err) {
       setErro(err.message);
     } finally {
@@ -139,7 +139,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
   const podeReenviar = timer === 0 && !reenviando;
 
   return (
-    <BcModal aberto={aberto} onFechar={handleFechar}>
+    <BcModal aberto={aberto} onFechar={aoFecharModal}>
       <div className="mrs-wrap">
         <div className="mrs-header">
           <div className="mrs-header__icone"><IconeSeguranca /></div>
@@ -150,7 +150,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
             Insira o código recebido.
           </p>
         </div>
-        <form className="mrs-form" onSubmit={handleSubmit} noValidate>
+        <form className="mrs-form" onSubmit={aoEnviarFormulario} noValidate>
           <BcInput
             label="Código de verificação"
             name="twofa-codigo"
@@ -172,7 +172,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
           <BcButton
             type="button"
             variant="ghost"
-            onClick={handleReenviar}
+            onClick={aoReenviarCodigo}
             loading={reenviando}
             disabled={!podeReenviar}
           >
@@ -183,7 +183,7 @@ function Modal2FA({ aberto, emailMascarado, identificador, rememberMe, perfil, o
               : "Reenviar código"}
           </BcButton>
 
-          <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
+          <BcButton variant="ghost" onClick={aoFecharModal}>Cancelar</BcButton>
         </form>
       </div>
     </BcModal>
@@ -209,16 +209,16 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
   const [showNova, setShowNova]               = useState(false);
   const [showConfirmar, setShowConfirmar]     = useState(false);
 
-  function resetar() {
+  function limparFluxoRecuperacaoSenha() {
     setPasso("identificador"); setLoading(false); setErro("");
     setIdentificador(""); setEmailMascarado(""); setEmailCompleto("");
     setCodigo(""); setEmailVerificado(""); setNovaSenha("");
     setConfirmar(""); setShowNova(false); setShowConfirmar(false);
   }
 
-  function handleFechar() { resetar(); onFechar(); }
+  function aoFecharModal() { limparFluxoRecuperacaoSenha(); onFechar(); }
 
-  async function handleEnviarIdentificador(e) {
+  async function aoEnviarIdentificadorRecuperacao(e) {
     e.preventDefault();
     setErro("");
     if (!identificador.trim()) { setErro("Informe seu CPF ou CNPJ cadastrado."); return; }
@@ -234,7 +234,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
     }
   }
 
-  async function handleVerificarCodigo(e) {
+  async function aoVerificarCodigoRecuperacao(e) {
     e.preventDefault();
     setErro("");
     if (!emailCompleto.trim()) { setErro("Informe seu email completo."); return; }
@@ -251,7 +251,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
     }
   }
 
-  async function handleDefinirSenha(e) {
+  async function aoDefinirNovaSenhaRecuperacao(e) {
     e.preventDefault();
     setErro("");
     const erroSenha = validarSenha(novaSenha);
@@ -270,12 +270,12 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
 
   if (passo === "sucesso") {
     return (
-      <BcModal aberto={aberto} onFechar={handleFechar}>
+      <BcModal aberto={aberto} onFechar={aoFecharModal}>
         <div className="mrs-sucesso">
           <div className="mrs-sucesso__icone"><IconeSucesso /></div>
           <h2>Senha alterada!</h2>
           <p>Sua senha foi redefinida com sucesso. Você já pode fazer login com a nova senha.</p>
-          <BcButton onClick={handleFechar}>Ir para o login</BcButton>
+          <BcButton onClick={aoFecharModal}>Ir para o login</BcButton>
         </div>
       </BcModal>
     );
@@ -284,7 +284,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
   const passoAtual = PASSOS.indexOf(passo);
 
   return (
-    <BcModal aberto={aberto} onFechar={handleFechar}>
+    <BcModal aberto={aberto} onFechar={aoFecharModal}>
       <div className="mrs-wrap">
         <div className="mrs-passos">
           {PASSOS.map((_, i) => (
@@ -299,7 +299,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
               <h2>Recuperar senha</h2>
               <p>Informe o CPF ou CNPJ cadastrado para receber o código de recuperação.</p>
             </div>
-            <form className="mrs-form" onSubmit={handleEnviarIdentificador} noValidate>
+            <form className="mrs-form" onSubmit={aoEnviarIdentificadorRecuperacao} noValidate>
               <BcInput
                 label="CPF ou CNPJ" name="mrs-identificador" type="text"
                 placeholder="000.000.000-00 ou 00.000.000/0000-00"
@@ -308,7 +308,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
                 autoComplete="off" error={erro}
               />
               <BcButton type="submit" loading={loading}>Enviar código</BcButton>
-              <BcButton variant="ghost" onClick={handleFechar}>Cancelar</BcButton>
+              <BcButton variant="ghost" onClick={aoFecharModal}>Cancelar</BcButton>
             </form>
           </>
         )}
@@ -324,7 +324,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
                 Confirme seu email e insira o código recebido.
               </p>
             </div>
-            <form className="mrs-form" onSubmit={handleVerificarCodigo} noValidate>
+            <form className="mrs-form" onSubmit={aoVerificarCodigoRecuperacao} noValidate>
               <BcInput
                 label="Seu email completo" name="mrs-email-completo" type="email"
                 placeholder="seuemail@exemplo.com"
@@ -353,7 +353,7 @@ function ModalRecuperarSenha({ aberto, onFechar }) {
               <h2>Nova senha</h2>
               <p>Crie uma senha forte com pelo menos 8 caracteres, maiúscula, minúscula, número e símbolo.</p>
             </div>
-            <form className="mrs-form" onSubmit={handleDefinirSenha} noValidate>
+            <form className="mrs-form" onSubmit={aoDefinirNovaSenhaRecuperacao} noValidate>
               <BcInput
                 label="Nova senha" name="mrs-nova-senha"
                 type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
@@ -416,27 +416,27 @@ export default function LoginPage({ onLogin }) {
   const [twoFaPerfil, setTwoFaPerfil]               = useState("");
   const [twoFaRemember, setTwoFaRemember]           = useState(false);
 
-  function handleCpfCnpjChange(event) {
+  function aoAlterarCpfCnpjLogin(event) {
     const valorFormatado = formatarCpfCnpj(event.target.value);
     setCpfCnpj(valorFormatado);
     if (error) setError("");
   }
 
-  function validateForm() {
+  function validarFormularioLogin() {
     if (!cpfCnpj.trim()) { setError("Informe seu CPF ou CNPJ."); return false; }
     if (!password.trim()) { setError("Informe a sua senha."); return false; }
     setError("");
     return true;
   }
 
-  async function handleProfileLogin(profile) {
+  async function aoSelecionarPerfilLogin(profile) {
     if (loadingProfile) return;
-    if (!validateForm()) return;
+    if (!validarFormularioLogin()) return;
     setError("");
     fecharToast();
     setLoadingProfile(profile);
     try {
-      const data = await loginUsuario({
+      const data = await autenticarUsuarioNoSistema({
         identificador: cpfCnpj,
         senha: password,
         perfil: profile,
@@ -461,7 +461,7 @@ export default function LoginPage({ onLogin }) {
     }
   }
 
-  function handle2FASucesso(data, profile) {
+  function aoConfirmarSucessoDoisFatores(data, profile) {
     setModal2FA(false);
     mostrarToast("sucesso", "Login realizado", `Login de ${profileNames[profile].toLowerCase()} realizado com sucesso.`);
     if (onLogin) onLogin(profile, data);
@@ -471,13 +471,13 @@ export default function LoginPage({ onLogin }) {
     <main className="login-page">
       <BcToast {...toastProps} />
 
-      <Modal2FA
+      <ModalDoisFatores
         aberto={modal2FA}
         emailMascarado={twoFaEmail}
         identificador={twoFaIdentificador}
         rememberMe={twoFaRemember}
         perfil={twoFaPerfil}
-        onSucesso={handle2FASucesso}
+        onSucesso={aoConfirmarSucessoDoisFatores}
         onFechar={() => setModal2FA(false)}
       />
 
@@ -533,7 +533,7 @@ export default function LoginPage({ onLogin }) {
             <BcInput
               label="CPF ou CNPJ" name="cpfCnpj" type="text"
               placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              value={cpfCnpj} onChange={handleCpfCnpjChange}
+              value={cpfCnpj} onChange={aoAlterarCpfCnpjLogin}
               autoComplete="off" inputMode="numeric" maxLength={18}
               error={error && !cpfCnpj.trim() ? error : ""}
             />
@@ -568,7 +568,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   key={profile} type="button" className="login-profile-button"
                   disabled={Boolean(loadingProfile)}
-                  onClick={() => handleProfileLogin(profile)}
+                  onClick={() => aoSelecionarPerfilLogin(profile)}
                 >
                   <span className="login-profile-button__title">
                     {loadingProfile === profile && (

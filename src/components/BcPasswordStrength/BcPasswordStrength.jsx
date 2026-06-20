@@ -6,7 +6,7 @@
  */
 import "./BcPasswordStrength.css";
 
-function calcStrength(s) {
+function calcularForcaSenha(s) {
   if (!s) return null;
   let score = 0;
   if (s.length >= 8) score++;
@@ -23,7 +23,7 @@ function calcStrength(s) {
 }
 
 export default function BcPasswordStrength({ password }) {
-  const s = calcStrength(password);
+  const s = calcularForcaSenha(password);
   if (!s) return null;
   return (
     <div className="bc-ps">

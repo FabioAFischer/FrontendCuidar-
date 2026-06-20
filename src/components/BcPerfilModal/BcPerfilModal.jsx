@@ -29,7 +29,7 @@ const IconeChave = () => (
 );
 
 /* ── Helpers ── */
-function formatarCNPJ(v = "") {
+function formatarCnpj(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 14);
   return n
     .replace(/(\d{2})(\d)/, "$1.$2")
@@ -38,7 +38,7 @@ function formatarCNPJ(v = "") {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
 }
 
-function formatarCPF(v = "") {
+function formatarCpf(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 11);
   return n
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -46,7 +46,7 @@ function formatarCPF(v = "") {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
-function formatarCEP(v = "") {
+function formatarCep(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 8);
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
@@ -57,12 +57,12 @@ function formatarTelefone(ddd = "", tel = "") {
   return ddd ? `(${ddd}) ${formatted}` : formatted;
 }
 
-function labelPerfil(perfil) {
+function formatarLabelPerfil(perfil) {
   const map = { INSTITUICAO: "Instituição", CUIDADOR: "Cuidador", ADMINISTRADOR: "Administrador" };
   return map[perfil] || perfil;
 }
 
-function inicial(nome = "") {
+function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
 }
 
@@ -106,7 +106,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
   const email = localStorage.getItem("usuarioEmail")
     || sessionStorage.getItem("usuarioEmail") || "";
 
-  async function handleSolicitarCodigo(e) {
+  async function aoSolicitarCodigoRedefinicaoSenha(e) {
     e.preventDefault();
     setErro("");
     const erroSenha = validarSenha(novaSenha);
@@ -121,7 +121,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
     finally { setLoading(false); }
   }
 
-  async function handleConfirmarCodigo(e) {
+  async function aoConfirmarCodigoRedefinicaoSenha(e) {
     e.preventDefault();
     setErro("");
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
@@ -167,7 +167,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
               Crie uma senha forte com pelo menos 8 caracteres, maiúscula, minúscula, número e símbolo.
             </p>
           </div>
-          <form className="bcp-redefinir__form" onSubmit={handleSolicitarCodigo} noValidate>
+          <form className="bcp-redefinir__form" onSubmit={aoSolicitarCodigoRedefinicaoSenha} noValidate>
             <BcInput
               label="Nova senha" name="rp-nova"
               type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
@@ -218,7 +218,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
               Insira o código para confirmar a troca de senha.
             </p>
           </div>
-          <form className="bcp-redefinir__form" onSubmit={handleConfirmarCodigo} noValidate>
+          <form className="bcp-redefinir__form" onSubmit={aoConfirmarCodigoRedefinicaoSenha} noValidate>
             <BcInput
               label="Código de verificação" name="rp-codigo" type="text"
               placeholder="000000" value={codigo}
@@ -263,20 +263,20 @@ export default function BcPerfilModal({ aberto, onFechar }) {
       .finally(() => setCarregando(false));
   }, [aberto]);
 
-  function handleFechar() {
+  function aoFecharModal() {
     setRedefinindo(false);
     onFechar();
   }
 
   return (
-    <BcModal aberto={aberto} onFechar={handleFechar}>
+    <BcModal aberto={aberto} onFechar={aoFecharModal}>
       <div className="bcp-wrap">
 
         <div className="bcp-header">
-          <div className="bcp-header__avatar">{inicial(nome)}</div>
+          <div className="bcp-header__avatar">{gerarInicialNome(nome)}</div>
           <div className="bcp-header__info">
             <strong className="bcp-header__nome">{nome}</strong>
-            <span className="bcp-header__perfil">{labelPerfil(perfil)}</span>
+            <span className="bcp-header__perfil">{formatarLabelPerfil(perfil)}</span>
           </div>
         </div>
 
@@ -290,21 +290,21 @@ export default function BcPerfilModal({ aberto, onFechar }) {
               <CampoInfo label="Email" valor={dados.email} />
               {perfil === "INSTITUICAO" && (
                 <>
-                  <CampoInfo label="CNPJ"   valor={formatarCNPJ(dados.cnpj)} />
+                  <CampoInfo label="CNPJ"   valor={formatarCnpj(dados.cnpj)} />
                   <CampoInfo label="Rua"    valor={dados.rua} />
                   <CampoInfo label="Bairro" valor={dados.bairro} />
                   <CampoInfo label="UF"     valor={dados.uf} />
-                  <CampoInfo label="CEP"    valor={formatarCEP(dados.cep)} />
+                  <CampoInfo label="CEP"    valor={formatarCep(dados.cep)} />
                 </>
               )}
               {perfil === "CUIDADOR" && (
                 <>
-                  <CampoInfo label="CPF"      valor={formatarCPF(dados.cpf)} />
+                  <CampoInfo label="CPF"      valor={formatarCpf(dados.cpf)} />
                   <CampoInfo label="Telefone" valor={dados.contato ? formatarTelefone(dados.contato.ddd, dados.contato.telefone) : ""} />
                 </>
               )}
               {perfil === "ADMINISTRADOR" && (
-                <CampoInfo label="CPF" valor={formatarCPF(dados.cpf)} />
+                <CampoInfo label="CPF" valor={formatarCpf(dados.cpf)} />
               )}
               <CampoInfo label="Status" valor={dados.status} />
             </div>
@@ -319,7 +319,7 @@ export default function BcPerfilModal({ aberto, onFechar }) {
         {!carregando && redefinindo && (
           <RedefinirSenha
             onVoltar={() => setRedefinindo(false)}
-            onConcluir={handleFechar}
+            onConcluir={aoFecharModal}
           />
         )}
 
