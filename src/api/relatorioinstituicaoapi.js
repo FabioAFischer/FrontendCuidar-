@@ -1,9 +1,9 @@
-import { getAuthHeaders } from "./authApi";
+import { montarCabecalhosAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
 export async function buscarDadosRelatorioInstituicao() {
   const res = await fetch(`${API_BASE_URL}/instituicao/relatorio`, {
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
   });
 
   const data = await res.json().catch(() => ({}));

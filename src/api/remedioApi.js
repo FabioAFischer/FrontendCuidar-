@@ -1,7 +1,7 @@
-import { getAuthHeaders, getAuthToken } from "./authApi";
+import { montarCabecalhosAutenticacao, buscarTokenAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
-async function getErrorMessage(response, fallback) {
+async function extrairMensagemErro(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
   if (response.status === 401) {
@@ -15,29 +15,29 @@ async function getErrorMessage(response, fallback) {
   return erro.message || fallback;
 }
 
-async function requestApi(path, { method = "GET", dados, fallback } = {}) {
-  if (!getAuthToken()) {
+async function executarRequisicaoApi(path, { method = "GET", dados, fallback } = {}) {
+  if (!buscarTokenAutenticacao()) {
     throw new Error("Sua sessao expirou ou o login nao foi encontrado.");
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
     body: dados ? JSON.stringify(dados) : undefined,
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, fallback));
+    throw new Error(await extrairMensagemErro(response, fallback));
   }
 
   return response.json().catch(() => null);
 }
 
-function conteudoPaginado(data) {
+function extrairConteudoPaginado(data) {
   return Array.isArray(data?.content) ? data.content : [];
 }
 
-function normalizarRemedio(dados) {
+function normalizarDadosRemedio(dados) {
   return {
     id: dados.id,
     nome: dados.nome?.trim(),
@@ -47,40 +47,40 @@ function normalizarRemedio(dados) {
 }
 
 export async function listarRemedios(page = 0, size = 100) {
-  const data = await requestApi(`/remedio/listar_todas?page=${page}&size=${size}`, {
+  const data = await executarRequisicaoApi(`/remedio/listar_todas?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar remedios.",
   });
 
-  return conteudoPaginado(data);
+  return extrairConteudoPaginado(data);
 }
 
 export async function buscarRemedioPorId(id) {
-  return requestApi(`/remedio/listar/${id}`, {
+  return executarRequisicaoApi(`/remedio/listar/${id}`, {
     fallback: "Remedio nao encontrado.",
   });
 }
 
 export async function cadastrarRemedio(dados) {
-  return requestApi("/remedio/cadastrar", {
+  return executarRequisicaoApi("/remedio/cadastrar", {
     method: "POST",
-    dados: normalizarRemedio(dados),
+    dados: normalizarDadosRemedio(dados),
     fallback: "Erro ao cadastrar remedio.",
   });
 }
 
 export async function atualizarRemedio(id, dados) {
-  return requestApi(`/remedio/atualizar/${id}`, {
+  return executarRequisicaoApi(`/remedio/atualizar/${id}`, {
     method: "PUT",
-    dados: normalizarRemedio(dados),
+    dados: normalizarDadosRemedio(dados),
     fallback: "Erro ao atualizar remedio.",
   });
 }
 
 export async function inativarRemedio(id) {
-  return requestApi(`/remedio/deletar/${id}`, {
+  return executarRequisicaoApi(`/remedio/deletar/${id}`, {
     method: "DELETE",
     fallback: "Erro ao deletar remedio.",
   });
 }
 
-export const deletarRemedio = inativarRemedio;
+export const excluirRemedio = inativarRemedio;

@@ -9,7 +9,7 @@ function formatarData(isoString) {
   }).format(date);
 }
 
-function formatarCPF(v = "") {
+function formatarCpf(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 11);
   return n
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -87,7 +87,7 @@ export function gerarRelatorioInstituicaoPDF(dados) {
       i + 1,
       c.nome   || "—",
       c.email  || "—",
-      formatarCPF(c.cpf),
+      formatarCpf(c.cpf),
       c.status || "—",
     ]),
     theme: "striped",
@@ -118,7 +118,7 @@ export function gerarRelatorioInstituicaoPDF(dados) {
     body: (idosos.lista || []).map((i, idx) => [
       idx + 1,
       i.nome        || "—",
-      formatarCPF(i.cpf),
+      formatarCpf(i.cpf),
       i.observacoes || "—",
       i.status      || "—",
     ]),
