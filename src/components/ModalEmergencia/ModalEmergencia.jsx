@@ -13,7 +13,7 @@ import BcToast, { useBcToast } from "../BcToast/BcToast";
 import { listarVinculosPorIdoso, definirVinculoEmergencia } from "../../api/instituicaoApi";
 import "./ModalEmergencia.css";
 
-function inicial(nome = "") {
+function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
 }
 
@@ -54,7 +54,7 @@ export default function ModalEmergencia({ aberto, onFechar, idoso }) {
     if (aberto) carregarVinculos();
   }, [aberto, carregarVinculos]);
 
-  async function handleConfirmar() {
+  async function aoConfirmarSelecaoEmergencia() {
     if (!selecionado || selecionado === emergenciaAtual) { onFechar(); return; }
     setSalvando(true);
     try {
@@ -117,7 +117,7 @@ export default function ModalEmergencia({ aberto, onFechar, idoso }) {
                       onChange={() => setSelecionado(v.id)}
                     />
                     <div className={`mem-item__avatar ${isSelecionado ? "mem-item__avatar--sel" : ""}`}>
-                      {inicial(v.nomeCuidador)}
+                      {gerarInicialNome(v.nomeCuidador)}
                     </div>
                     <div className="mem-item__info">
                       <strong>{v.nomeCuidador}</strong>
@@ -135,7 +135,7 @@ export default function ModalEmergencia({ aberto, onFechar, idoso }) {
               Cancelar
             </button>
             <BcButton
-              onClick={handleConfirmar}
+              onClick={aoConfirmarSelecaoEmergencia}
               loading={salvando}
               disabled={carregando || vinculos.length === 0}
               fullWidth={false}
