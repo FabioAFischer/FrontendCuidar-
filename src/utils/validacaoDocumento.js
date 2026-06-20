@@ -1,9 +1,9 @@
-export function somenteNumeros(valor = "") {
+export function extrairSomenteNumeros(valor = "") {
   return String(valor).replace(/\D/g, "");
 }
 
-export function formatarCPF(valor = "") {
-  const numeros = somenteNumeros(valor).slice(0, 11);
+export function formatarCpf(valor = "") {
+  const numeros = extrairSomenteNumeros(valor).slice(0, 11);
 
   return numeros
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -11,8 +11,8 @@ export function formatarCPF(valor = "") {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
-export function formatarCNPJ(valor = "") {
-  const numeros = somenteNumeros(valor).slice(0, 14);
+export function formatarCnpj(valor = "") {
+  const numeros = extrairSomenteNumeros(valor).slice(0, 14);
 
   return numeros
     .replace(/(\d{2})(\d)/, "$1.$2")
@@ -22,19 +22,19 @@ export function formatarCNPJ(valor = "") {
 }
 
 export function formatarCpfCnpj(valor = "") {
-  const numeros = somenteNumeros(valor);
-  return numeros.length > 11 ? formatarCNPJ(numeros) : formatarCPF(numeros);
+  const numeros = extrairSomenteNumeros(valor);
+  return numeros.length > 11 ? formatarCnpj(numeros) : formatarCpf(numeros);
 }
 
-export function documentoRepetido(documento = "") {
-  const numeros = somenteNumeros(documento);
+export function verificarDocumentoRepetido(documento = "") {
+  const numeros = extrairSomenteNumeros(documento);
   return numeros.length > 0 && /^(\d)\1+$/.test(numeros);
 }
 
 export const MENSAGEM_CPF_EM_USO = "CPF já está em uso";
 
-export function cpfEmUso(cpf = "", ...colecoes) {
-  const cpfLimpo = somenteNumeros(cpf);
+export function verificarCpfEmUso(cpf = "", ...colecoes) {
+  const cpfLimpo = extrairSomenteNumeros(cpf);
 
   if (!cpfLimpo) {
     return false;
@@ -45,18 +45,18 @@ export function cpfEmUso(cpf = "", ...colecoes) {
     .filter(Boolean)
     .some((item) => {
       const cpfItem = typeof item === "string" ? item : item.cpf;
-      return somenteNumeros(cpfItem) === cpfLimpo;
+      return extrairSomenteNumeros(cpfItem) === cpfLimpo;
     });
 }
 
-export function cpfDisponivel(cpf = "", ...colecoes) {
-  return !cpfEmUso(cpf, ...colecoes);
+export function verificarCpfDisponivel(cpf = "", ...colecoes) {
+  return !verificarCpfEmUso(cpf, ...colecoes);
 }
 
-export function cpfValido(cpf = "") {
-  const numeros = somenteNumeros(cpf);
+export function validarCpf(cpf = "") {
+  const numeros = extrairSomenteNumeros(cpf);
 
-  if (numeros.length !== 11 || documentoRepetido(numeros)) {
+  if (numeros.length !== 11 || verificarDocumentoRepetido(numeros)) {
     return false;
   }
 
@@ -80,10 +80,10 @@ export function cpfValido(cpf = "") {
   );
 }
 
-export function cnpjValido(cnpj = "") {
-  const numeros = somenteNumeros(cnpj);
+export function validarCnpj(cnpj = "") {
+  const numeros = extrairSomenteNumeros(cnpj);
 
-  if (numeros.length !== 14 || documentoRepetido(numeros)) {
+  if (numeros.length !== 14 || verificarDocumentoRepetido(numeros)) {
     return false;
   }
 
@@ -118,9 +118,9 @@ export function cnpjValido(cnpj = "") {
  * Exemplos válidos: (48) 99789-7890 | 48 99789-7890 | 4899789-7890
  * Exemplo inválido: 48 90789-7890 (falta o 9, tem apenas 8 dígitos)
  */
-export function celularValido(ddd = "", telefone = "") {
-  const dddNumeros = somenteNumeros(String(ddd));
-  const telNumeros = somenteNumeros(String(telefone));
+export function validarCelular(ddd = "", telefone = "") {
+  const dddNumeros = extrairSomenteNumeros(String(ddd));
+  const telNumeros = extrairSomenteNumeros(String(telefone));
 
   // DDD deve ter 2 dígitos
   if (dddNumeros.length !== 2) {

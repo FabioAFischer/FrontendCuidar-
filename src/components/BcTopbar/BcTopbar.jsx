@@ -3,7 +3,7 @@ import BcLogo from "../Bclogo/BcLogo";
 import BcPerfilModal from "../BcPerfilModal/BcPerfilModal";
 import "./BcTopbar.css";
 
-function inicial(nome = "") {
+function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
 }
 
@@ -39,7 +39,7 @@ export default function BcTopbar({
                 title="Ver perfil"
                 aria-label="Abrir perfil"
               >
-                {inicial(nome)}
+                {gerarInicialNome(nome)}
               </button>
             )}
 

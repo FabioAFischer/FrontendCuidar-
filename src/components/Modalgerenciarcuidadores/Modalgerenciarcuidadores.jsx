@@ -11,14 +11,14 @@ import { useCallback, useEffect, useState } from "react";
 import BcButton from "../Bcbutton/BcButton";
 import BcModal from "../BcModal/BcModal";
 import BcToast, { useBcToast } from "../BcToast/BcToast";
-import { listarVinculosPorIdoso, criarVinculo, deletarVinculo } from "../../api/instituicaoApi";
+import { listarVinculosPorIdoso, criarVinculo, excluirVinculo } from "../../api/instituicaoApi";
 import "./Modalgerenciarcuidadores.css";
 
-function inicial(nome = "") {
+function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
 }
 
-function formatarCPF(valor = "") {
+function formatarCpf(valor = "") {
   const n = String(valor).replace(/\D/g, "").slice(0, 11);
   return n
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -67,7 +67,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
     if (aberto) carregarVinculos();
   }, [aberto, carregarVinculos]);
 
-  function handleToggleLocal(cuidador) {
+  function aoAlternarVinculoLocal(cuidador) {
     const cuidadorId = Number(cuidador.id);
     setSelecoesLocais((ant) => {
       const nova = new Set(ant);
@@ -80,7 +80,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
     });
   }
 
-  async function handleConcluir() {
+  async function aoConcluirGerenciamentoCuidadores() {
     setSalvando(true);
     try {
       // Calcula diferenças
@@ -102,7 +102,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
       for (const cuidadorId of removidos) {
         const vinculoId = mapaVinculos[cuidadorId];
         if (vinculoId) {
-          await deletarVinculo(vinculoId);
+          await excluirVinculo(vinculoId);
         }
       }
 
@@ -141,7 +141,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
           {/* Cabeçalho */}
           <div className="mgc-header">
             <div className="mgc-header__avatar">
-              {inicial(idoso?.nome)}
+              {gerarInicialNome(idoso?.nome)}
             </div>
             <div>
               <h2 className="mgc-header__titulo">Gerenciar Cuidadores</h2>
@@ -180,12 +180,12 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
                       className="mgc-item__check"
                       checked={ativo}
                       disabled={salvando}
-                      onChange={() => handleToggleLocal(c)}
+                      onChange={() => aoAlternarVinculoLocal(c)}
                     />
-                    <div className="mgc-item__avatar">{inicial(c.nome)}</div>
+                    <div className="mgc-item__avatar">{gerarInicialNome(c.nome)}</div>
                     <div className="mgc-item__info">
                       <strong>{c.nome}</strong>
-                      <span>CPF: {formatarCPF(c.cpf)}</span>
+                      <span>CPF: {formatarCpf(c.cpf)}</span>
                       {c.contato && (
                         <span>
                           Tel: ({c.contato.ddd}) {formatarTelefone(c.contato.telefone)}
@@ -203,7 +203,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
             <p className="mgc-footer__info">
               {totalAutorizados} cuidador(es) autorizado(s)
             </p>
-            <BcButton onClick={handleConcluir} fullWidth={false} loading={salvando}>
+            <BcButton onClick={aoConcluirGerenciamentoCuidadores} fullWidth={false} loading={salvando}>
               Concluir
             </BcButton>
           </div>

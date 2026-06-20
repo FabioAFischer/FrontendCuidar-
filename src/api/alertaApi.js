@@ -1,7 +1,7 @@
-import { getAuthHeaders } from "./authApi";
+import { montarCabecalhosAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
-async function getErrorMessage(response, fallback) {
+async function extrairMensagemErro(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
   if (response.status === 401) {
@@ -15,15 +15,15 @@ async function getErrorMessage(response, fallback) {
   return erro.message || fallback;
 }
 
-async function requestApi(path, { method = "GET", dados, fallback } = {}) {
+async function executarRequisicaoApi(path, { method = "GET", dados, fallback } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
     body: dados ? JSON.stringify(dados) : undefined,
   });
 
   if (!response.ok) {
-    const erro = new Error(await getErrorMessage(response, fallback));
+    const erro = new Error(await extrairMensagemErro(response, fallback));
     erro.status = response.status;
     throw erro;
   }
@@ -31,7 +31,7 @@ async function requestApi(path, { method = "GET", dados, fallback } = {}) {
   return response.json().catch(() => null);
 }
 
-function conteudoPaginado(data) {
+function extrairConteudoPaginado(data) {
   return Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 }
 
@@ -40,7 +40,7 @@ function formatarDataAgendada(valor) {
   return String(valor).length === 16 ? `${valor}:00` : valor;
 }
 
-function normalizarAlerta(dados) {
+function normalizarDadosAlerta(dados) {
   const alerta = {
     idosoId: Number(dados.idosoId),
     tipoAlerta: dados.tipoAlerta,
@@ -59,41 +59,41 @@ function normalizarAlerta(dados) {
 }
 
 export async function cadastrarAlerta(dados) {
-  return requestApi("/alertas/cadastrar", {
+  return executarRequisicaoApi("/alertas/cadastrar", {
     method: "POST",
-    dados: normalizarAlerta(dados),
+    dados: normalizarDadosAlerta(dados),
     fallback: "Erro ao cadastrar alerta.",
   });
 }
 
 export async function listarAlertas() {
-  const data = await requestApi("/alertas/listar_todos", {
+  const data = await executarRequisicaoApi("/alertas/listar_todos", {
     fallback: "Erro ao buscar alertas.",
   });
 
-  return conteudoPaginado(data);
+  return extrairConteudoPaginado(data);
 }
 
 export async function listarAlertasPorIdoso(idosoId) {
   if (!idosoId) return [];
 
-  const data = await requestApi(`/alertas/idoso/${idosoId}`, {
+  const data = await executarRequisicaoApi(`/alertas/idoso/${idosoId}`, {
     fallback: "Erro ao buscar alertas do idoso.",
   });
 
-  return conteudoPaginado(data);
+  return extrairConteudoPaginado(data);
 }
 
 export async function atualizarAlerta(id, dados) {
-  return requestApi(`/alertas/atualizar/${id}`, {
+  return executarRequisicaoApi(`/alertas/atualizar/${id}`, {
     method: "PUT",
-    dados: normalizarAlerta(dados),
+    dados: normalizarDadosAlerta(dados),
     fallback: "Erro ao atualizar alerta.",
   });
 }
 
 export async function cancelarAlerta(id) {
-  return requestApi(`/alertas/deletar/${id}`, {
+  return executarRequisicaoApi(`/alertas/deletar/${id}`, {
     method: "DELETE",
     fallback: "Erro ao cancelar alerta.",
   });

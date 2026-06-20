@@ -19,7 +19,7 @@ import {
   IconeVisualizar,
   IconeVoltar,
 } from "../../../components/icons/Icons";
-import { somenteNumeros, cpfValido } from "../../../utils/validacaoDocumento";
+import { extrairSomenteNumeros, validarCpf } from "../../../utils/validacaoDocumento";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import { cadastrarAlerta, cancelarAlerta, listarAlertasPorIdoso } from "../../../api/alertaApi";
 import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, inativarPrescricao, listarPrescricoesPorIdoso } from "../../../api/prescricaoApi";
@@ -96,7 +96,7 @@ function formatarDataHora(valor) {
   });
 }
 
-function valorInputData(valor) {
+function formatarValorInputData(valor) {
   if (!valor) return "";
 
   const data = new Date(valor);
@@ -106,7 +106,7 @@ function valorInputData(valor) {
   return new Date(data.getTime() - offsetMs).toISOString().slice(0, 10);
 }
 
-function fimDoDia(valor) {
+function calcularFimDoDia(valor) {
   if (!valor) return null;
   return `${valor}T23:59:59`;
 }
@@ -172,13 +172,13 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
 
     return idosos.filter((idoso) => {
       const nome = String(idoso.nome || "").toLowerCase();
-      const cpf = somenteNumeros(idoso.cpf);
+      const cpf = extrairSomenteNumeros(idoso.cpf);
       const cpfFormatado = formatarCpf(idoso.cpf).toLowerCase();
       const telefone = formatarTelefone(idoso).toLowerCase();
-      const termoNumerico = somenteNumeros(termo);
+      const termoNumerico = extrairSomenteNumeros(termo);
 
       // If user typed a full CPF, validate it; if invalid, don't match by CPF
-      if (termoNumerico.length === 11 && !cpfValido(termoNumerico)) return nome.includes(termo) || telefone.includes(termo) || cpfFormatado.includes(termo);
+      if (termoNumerico.length === 11 && !validarCpf(termoNumerico)) return nome.includes(termo) || telefone.includes(termo) || cpfFormatado.includes(termo);
 
       return (
         nome.includes(termo) ||
@@ -301,7 +301,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     });
   }
 
-  function atualizarRemedio(evento) {
+  function aoAlterarFormularioRemedio(evento) {
     const { name, value } = evento.target;
     setFormRemedio((anterior) => ({ ...anterior, [name]: value }));
   }
@@ -344,12 +344,12 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setFormAlertaRemedio({ prescricaoId: "", dataAgendada: "" });
   }
 
-  function atualizarAlertaRemedio(evento) {
+  function aoAlterarFormularioAlertaRemedio(evento) {
     const { name, value } = evento.target;
     setFormAlertaRemedio((anterior) => ({ ...anterior, [name]: value }));
   }
 
-  async function handleSalvarAlertaRemedio(evento) {
+  async function aoSalvarAlertaRemedio(evento) {
     evento.preventDefault();
 
     if (!idosoSelecionado) {
@@ -431,7 +431,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     });
   }
 
-  function atualizarPrescricao(evento) {
+  function aoAlterarFormularioPrescricao(evento) {
     const { name, value } = evento.target;
     setFormPrescricao((anterior) => ({ ...anterior, [name]: value }));
   }
@@ -445,14 +445,14 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       remedioId: prescricao.remedioId ? String(prescricao.remedioId) : "",
       dosagem: prescricao.dosagem || "",
       intervalo: prescricao.intervalo ? String(prescricao.intervalo) : "",
-      dataFim: valorInputData(prescricao.dataFim),
+      dataFim: formatarValorInputData(prescricao.dataFim),
       necessarioJejum: prescricao.necessarioJejum ? "true" : "false",
       instrucao: prescricao.instrucao || "",
     });
     setModalPrescricaoAberto(true);
   }
 
-  function atualizarBuscaRemedioPrescricao(evento) {
+  function aoAlterarBuscaRemedioPrescricao(evento) {
     const valor = evento.target.value;
 
     setBuscaRemedioPrescricao(valor);
@@ -460,13 +460,13 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     setFormPrescricao((anterior) => ({ ...anterior, remedioId: "" }));
   }
 
-  function selecionarRemedioPrescricao(remedio) {
+  function aoSelecionarRemedioPrescricao(remedio) {
     setBuscaRemedioPrescricao(remedio.nome || "");
     setSugestoesRemedioAbertas(false);
     setFormPrescricao((anterior) => ({ ...anterior, remedioId: String(remedio.id) }));
   }
 
-  async function handleSalvarPrescricao(evento) {
+  async function aoSalvarPrescricao(evento) {
     evento.preventDefault();
 
     if (!idosoSelecionado) {
@@ -497,7 +497,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
       idosoNome: idosoSelecionado.nome || "",
       dosagem: formPrescricao.dosagem,
       intervalo: Number(formPrescricao.intervalo),
-      dataFim: fimDoDia(formPrescricao.dataFim),
+      dataFim: calcularFimDoDia(formPrescricao.dataFim),
       necessarioJejum: formPrescricao.necessarioJejum === "true",
       instrucao: formPrescricao.instrucao,
     };
@@ -535,7 +535,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     }
   }
 
-  async function handleSalvarRemedio(evento) {
+  async function aoSalvarRemedio(evento) {
     evento.preventDefault();
 
     if (!formRemedio.nome.trim()) {
@@ -629,7 +629,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
     }
   }
 
-  function confirmarAcaoPendente() {
+  function aoConfirmarAcaoPendente() {
     if (!confirmacao) return;
     confirmarInativacaoPrescricao(confirmacao.item);
   }
@@ -829,7 +829,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           title="Novo Alerta de Remedio"
           subtitle="Informe quando o cuidador deve ser lembrado"
           error={erroAlertaRemedio}
-          onSubmit={handleSalvarAlertaRemedio}
+          onSubmit={aoSalvarAlertaRemedio}
         >
           <div className="cuidador-remedios-agenda-paciente">
             <span>Idoso selecionado</span>
@@ -844,7 +844,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
               name="prescricaoId"
               className="cuidador-remedios-select"
               value={formAlertaRemedio.prescricaoId}
-              onChange={atualizarAlertaRemedio}
+              onChange={aoAlterarFormularioAlertaRemedio}
               disabled={prescricoes.length === 0}
             >
               <option value="">
@@ -863,7 +863,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             name="dataAgendada"
             type="datetime-local"
             value={formAlertaRemedio.dataAgendada}
-            onChange={atualizarAlertaRemedio}
+            onChange={aoAlterarFormularioAlertaRemedio}
           />
 
           <BcButton type="submit" loading={salvandoAlertaRemedio}>
@@ -877,14 +877,14 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           title={remedioEmEdicao ? "Editar Remedio" : "Novo Remedio"}
           subtitle={remedioEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
           error={erroCadastroRemedio}
-          onSubmit={handleSalvarRemedio}
+          onSubmit={aoSalvarRemedio}
         >
           <BcInput
             label="Nome *"
             name="nome"
             placeholder="Insira o nome do remedio"
             value={formRemedio.nome}
-            onChange={atualizarRemedio}
+            onChange={aoAlterarFormularioRemedio}
           />
 
           <BcFormModalTextarea
@@ -893,7 +893,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             name="observacao"
             placeholder="Observacoes importantes sobre o remedio..."
             value={formRemedio.observacao}
-            onChange={atualizarRemedio}
+            onChange={aoAlterarFormularioRemedio}
           />
 
           <BcButton type="submit" loading={salvandoRemedio}>
@@ -981,7 +981,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
           title={prescricaoEmEdicao ? "Editar Prescricao" : "Nova Prescricao"}
           subtitle={prescricaoEmEdicao ? "Atualize os dados da prescricao" : "Preencha os dados para criar uma prescricao para o idoso selecionado"}
           error={erroPrescricao}
-          onSubmit={handleSalvarPrescricao}
+          onSubmit={aoSalvarPrescricao}
           className="cuidador-remedios-prescricao-modal"
         >
           <div className="cuidador-remedios-prescricao-paciente">
@@ -1003,7 +1003,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                 aria-controls="prescricao-remedio-opcoes"
                 placeholder="Digite o nome do remedio"
                 value={buscaRemedioPrescricao}
-                onChange={atualizarBuscaRemedioPrescricao}
+                onChange={aoAlterarBuscaRemedioPrescricao}
                 onFocus={() => setSugestoesRemedioAbertas(true)}
                 onBlur={() => window.setTimeout(() => setSugestoesRemedioAbertas(false), 120)}
               />
@@ -1019,7 +1019,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
                         aria-selected={Number(formPrescricao.remedioId) === Number(remedio.id)}
                         key={remedio.id}
                         onMouseDown={(evento) => evento.preventDefault()}
-                        onClick={() => selecionarRemedioPrescricao(remedio)}
+                        onClick={() => aoSelecionarRemedioPrescricao(remedio)}
                       >
                         {remedio.nome}
                       </button>
@@ -1037,7 +1037,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             name="dosagem"
             placeholder="Ex: 1 comprimido"
             value={formPrescricao.dosagem}
-            onChange={atualizarPrescricao}
+            onChange={aoAlterarFormularioPrescricao}
           />
 
           <BcInput
@@ -1046,7 +1046,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             type="number"
             placeholder="Ex: 8"
             value={formPrescricao.intervalo}
-            onChange={atualizarPrescricao}
+            onChange={aoAlterarFormularioPrescricao}
             inputMode="decimal"
           />
 
@@ -1055,7 +1055,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             name="dataFim"
             type="date"
             value={formPrescricao.dataFim}
-            onChange={atualizarPrescricao}
+            onChange={aoAlterarFormularioPrescricao}
           />
 
           <div className="cuidador-remedios-campo">
@@ -1065,7 +1065,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
               name="necessarioJejum"
               className="cuidador-remedios-select"
               value={formPrescricao.necessarioJejum}
-              onChange={atualizarPrescricao}
+              onChange={aoAlterarFormularioPrescricao}
             >
               <option value="false">Nao</option>
               <option value="true">Sim</option>
@@ -1078,7 +1078,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
             name="instrucao"
             placeholder="Orientacoes importantes sobre a administracao..."
             value={formPrescricao.instrucao}
-            onChange={atualizarPrescricao}
+            onChange={aoAlterarFormularioPrescricao}
           />
 
           <BcButton type="submit" loading={salvandoPrescricao} disabled={inativandoPrescricao}>
@@ -1096,7 +1096,7 @@ export default function CuidadorRemediosPrescricao({ onBack, onLogout }) {
         carregando={inativandoRemedio || inativandoPrescricao}
         icone={<IconeLixeira />}
         onCancelar={() => setConfirmacao(null)}
-        onConfirmar={confirmarAcaoPendente}
+        onConfirmar={aoConfirmarAcaoPendente}
       />
     </div>
   );

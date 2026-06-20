@@ -1,7 +1,7 @@
-import { getAuthHeaders } from "./authApi";
+import { montarCabecalhosAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
-async function getErrorMessage(response, fallback) {
+async function extrairMensagemErro(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
   if (response.status === 401) {
@@ -18,12 +18,12 @@ async function getErrorMessage(response, fallback) {
 export async function cadastrarInstituicao(dados) {
   const response = await fetch(`${API_BASE_URL}/instituicao/cadastrar`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
     body: JSON.stringify(dados),
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao cadastrar instituicao."));
+    throw new Error(await extrairMensagemErro(response, "Erro ao cadastrar instituicao."));
   }
 
   return response.json().catch(() => null);
@@ -33,12 +33,12 @@ export async function listarInstituicoes(page = 0, size = 100) {
   const response = await fetch(
     `${API_BASE_URL}/instituicao/listar_todas?page=${page}&size=${size}`,
     {
-      headers: getAuthHeaders(),
+      headers: montarCabecalhosAutenticacao(),
     }
   );
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao buscar instituicoes."));
+    throw new Error(await extrairMensagemErro(response, "Erro ao buscar instituicoes."));
   }
 
   const data = await response.json();
@@ -48,11 +48,11 @@ export async function listarInstituicoes(page = 0, size = 100) {
 
 export async function buscarInstituicaoPorId(id) {
   const response = await fetch(`${API_BASE_URL}/instituicao/listar/${id}`, {
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Instituicao nao encontrada."));
+    throw new Error(await extrairMensagemErro(response, "Instituicao nao encontrada."));
   }
 
   return response.json();
@@ -61,25 +61,25 @@ export async function buscarInstituicaoPorId(id) {
 export async function atualizarInstituicao(id, dados) {
   const response = await fetch(`${API_BASE_URL}/instituicao/atualizar/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
     body: JSON.stringify(dados),
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao atualizar instituicao."));
+    throw new Error(await extrairMensagemErro(response, "Erro ao atualizar instituicao."));
   }
 
   return response.json().catch(() => null);
 }
 
-export async function deletarInstituicao(id) {
+export async function excluirInstituicao(id) {
   const response = await fetch(`${API_BASE_URL}/instituicao/deletar/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao inativar instituicao."));
+    throw new Error(await extrairMensagemErro(response, "Erro ao inativar instituicao."));
   }
 
   return response.json().catch(() => null);
@@ -88,11 +88,11 @@ export async function deletarInstituicao(id) {
 export async function reativarInstituicao(id) {
   const response = await fetch(`${API_BASE_URL}/instituicao/ativar/${id}`, {
     method: "PATCH",
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, "Erro ao ativar instituicao."));
+    throw new Error(await extrairMensagemErro(response, "Erro ao ativar instituicao."));
   }
 
   return response.json().catch(() => null);

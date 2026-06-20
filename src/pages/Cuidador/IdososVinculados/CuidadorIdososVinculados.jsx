@@ -10,11 +10,11 @@ import {
   IconeSair,
   IconeSetaEsquerda,
 } from "../../../components/icons/Icons";
-import { somenteNumeros, cpfValido } from "../../../utils/validacaoDocumento";
+import { extrairSomenteNumeros, validarCpf } from "../../../utils/validacaoDocumento";
 import { listarIdososDoCuidador, obterSenhaAcessoIdoso } from "../../../api/instituicaoApi";
 import "./CuidadorIdososVinculados.css";
 
-function formatarCPF(valor = "") {
+function formatarCpf(valor = "") {
   const numeros = String(valor).replace(/\D/g, "").slice(0, 11);
   return numeros
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -37,22 +37,22 @@ function formatarTelefone(idoso) {
   return ddd ? `(${ddd}) ${telefoneFormatado}` : telefoneFormatado;
 }
 
-function normalizarBusca(valor = "") {
+function normalizarTextoBusca(valor = "") {
   return String(valor).toLowerCase().trim();
 }
 
-function IdosoCard({ idoso, onSenhaClick }) {
-  const inicial = String(idoso.nome || "?").charAt(0).toUpperCase();
+function CartaoIdoso({ idoso, onSenhaClick }) {
+  const gerarInicialNome = String(idoso.nome || "?").charAt(0).toUpperCase();
 
   return (
     <article className="cuidador-idosos-card">
-      <span className="cuidador-idosos-card__avatar">{inicial}</span>
+      <span className="cuidador-idosos-card__avatar">{gerarInicialNome}</span>
       <div className="cuidador-idosos-card__content">
         <h3>{idoso.nome || "Idoso sem nome"}</h3>
         <dl>
           <div>
             <dt>CPF</dt>
-            <dd>{formatarCPF(idoso.cpf) || "Nao informado"}</dd>
+            <dd>{formatarCpf(idoso.cpf) || "Nao informado"}</dd>
           </div>
           <div>
             <dt>Telefone</dt>
@@ -113,17 +113,17 @@ export default function CuidadorIdososVinculados({ onBack, onLogout }) {
   }, []);
 
   const idososFiltrados = useMemo(() => {
-    const termo = normalizarBusca(busca);
-    const cpfBusca = somenteNumeros(busca);
+    const termo = normalizarTextoBusca(busca);
+    const cpfBusca = extrairSomenteNumeros(busca);
 
     if (!termo && !cpfBusca) return idosos;
 
     return idosos.filter((idoso) => {
-      const nome = normalizarBusca(idoso.nome);
-      const cpf = somenteNumeros(idoso.cpf);
+      const nome = normalizarTextoBusca(idoso.nome);
+      const cpf = extrairSomenteNumeros(idoso.cpf);
 
       // If user typed a full CPF, validate it; if invalid, don't match by CPF
-      if (cpfBusca.length === 11 && !cpfValido(cpfBusca)) return nome.includes(termo);
+      if (cpfBusca.length === 11 && !validarCpf(cpfBusca)) return nome.includes(termo);
 
       return nome.includes(termo) || (cpfBusca && cpf.includes(cpfBusca));
     });
@@ -144,7 +144,7 @@ export default function CuidadorIdososVinculados({ onBack, onLogout }) {
     setErroSenha("");
   }
 
-  async function handleObterSenha(evento) {
+  async function aoObterSenhaAcesso(evento) {
     evento.preventDefault();
 
     if (!senhaCuidador.trim()) {
@@ -220,7 +220,7 @@ export default function CuidadorIdososVinculados({ onBack, onLogout }) {
         ) : idososFiltrados.length > 0 ? (
           <section className="cuidador-idosos-lista" aria-label="Lista de usuarios vinculados">
             {idososFiltrados.map((idoso) => (
-              <IdosoCard
+              <CartaoIdoso
                 key={idoso.id || idoso.cpf || idoso.nome}
                 idoso={idoso}
                 onSenhaClick={abrirModalSenha}
@@ -245,7 +245,7 @@ export default function CuidadorIdososVinculados({ onBack, onLogout }) {
           title={senhaAcesso ? "Senha de acesso" : idosoSenha?.senhaAcessoGerada ? "Visualizar senha" : "Gerar senha"}
           subtitle={idosoSenha ? `Confirme sua senha de cuidador para acessar a senha de ${idosoSenha.nome}.` : ""}
           error={erroSenha}
-          onSubmit={handleObterSenha}
+          onSubmit={aoObterSenhaAcesso}
           className="cuidador-idosos-senha-modal"
         >
           {!senhaAcesso ? (

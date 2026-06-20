@@ -65,7 +65,7 @@ export default function BcListagem({
     setPaginaAtual((pagina) => Math.min(pagina, totalPaginas));
   }, [totalPaginas]);
 
-  async function confirmarExclusao() {
+  async function aoConfirmarExclusao() {
     if (!itemParaExcluir || !onExcluir) return;
     await onExcluir(itemParaExcluir);
     setItemParaExcluir(null);
@@ -219,7 +219,7 @@ export default function BcListagem({
         carregando={excluindo}
         icone={itemParaExcluir?.status === "ATIVO" ? <IconeInativar /> : <IconeAtivar />}
         onCancelar={() => setItemParaExcluir(null)}
-        onConfirmar={confirmarExclusao}
+        onConfirmar={aoConfirmarExclusao}
       />
     </>
   );

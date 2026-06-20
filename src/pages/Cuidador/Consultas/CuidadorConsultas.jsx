@@ -151,7 +151,7 @@ function BotaoIcone({ children, label, tipo = "padrao", onClick }) {
   );
 }
 
-function StatCard({ label, valor, tipo }) {
+function CartaoEstatistica({ label, valor, tipo }) {
   return (
     <article className={`cuidador-consultas-stat cuidador-consultas-stat--${tipo}`}>
       <span>{label}</span>
@@ -160,7 +160,7 @@ function StatCard({ label, valor, tipo }) {
   );
 }
 
-function ConsultaCard({ consulta, onVisualizar, onEditar, onExcluir, onLembrete }) {
+function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir, onLembrete }) {
   const status = STATUS[consulta.status] || STATUS.pendente;
   const futura = criarDataConsulta(consulta).getTime() > Date.now();
 
@@ -327,7 +327,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
     setForm(formInicial);
   }
 
-  function atualizarForm(evento) {
+  function aoAlterarFormularioConsulta(evento) {
     const { name, value } = evento.target;
     setForm((anterior) => ({ ...anterior, [name]: value }));
   }
@@ -343,7 +343,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
     return "";
   }
 
-  async function salvarConsulta(evento) {
+  async function aoSalvarConsulta(evento) {
     evento.preventDefault();
 
     const erro = validarFormulario();
@@ -438,7 +438,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
     }
   }
 
-  function enviarLembrete(consultaSelecionada) {
+  function aoEnviarLembreteConsulta(consultaSelecionada) {
     setConsultas((anteriores) =>
       anteriores.map((consulta) =>
         consulta.id === consultaSelecionada.id ? { ...consulta, lembreteEnviado: true } : consulta
@@ -466,10 +466,10 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
         </button>
 
         <section className="cuidador-consultas-stats" aria-label="Resumo das consultas">
-          <StatCard label="Total de Consultas" valor={consultas.length} tipo="total" />
-          <StatCard label="Proximas Consultas" valor={proximas.length} tipo="proximas" />
-          <StatCard label="Confirmadas" valor={consultas.filter((consulta) => consulta.status === "confirmada").length} tipo="confirmadas" />
-          <StatCard label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
+          <CartaoEstatistica label="Total de Consultas" valor={consultas.length} tipo="total" />
+          <CartaoEstatistica label="Proximas Consultas" valor={proximas.length} tipo="proximas" />
+          <CartaoEstatistica label="Confirmadas" valor={consultas.filter((consulta) => consulta.status === "confirmada").length} tipo="confirmadas" />
+          <CartaoEstatistica label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
         </section>
 
         <section className="cuidador-consultas-toolbar" aria-label="Filtros de consultas">
@@ -533,13 +533,13 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
           {consultasFiltradas.length > 0 ? (
             <div className="cuidador-consultas-lista">
               {consultasFiltradas.map((consulta) => (
-                <ConsultaCard
+                <CartaoConsulta
                   key={consulta.id}
                   consulta={consulta}
                   onVisualizar={setConsultaEmVisualizacao}
                   onEditar={abrirEdicao}
                   onExcluir={setConsultaParaExcluir}
-                  onLembrete={enviarLembrete}
+                  onLembrete={aoEnviarLembreteConsulta}
                 />
               ))}
             </div>
@@ -557,12 +557,12 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
           title={consultaEmEdicao ? "Editar Consulta" : "Nova Consulta"}
           subtitle={consultaEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
           error={erroFormulario}
-          onSubmit={salvarConsulta}
+          onSubmit={aoSalvarConsulta}
           className="cuidador-consultas-form"
         >
           <div className="cuidador-consultas-campo">
             <label htmlFor="consulta-idoso" className="bc-form-modal__label">Idoso *</label>
-            <select id="consulta-idoso" name="idosoId" value={form.idosoId} onChange={atualizarForm}>
+            <select id="consulta-idoso" name="idosoId" value={form.idosoId} onChange={aoAlterarFormularioConsulta}>
               <option value="">Selecione um idoso</option>
               {idosos.map((idoso) => (
                 <option key={idoso.id || idoso.cpf} value={idoso.id}>
@@ -574,26 +574,26 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
 
           <div className="cuidador-consultas-campo">
             <label htmlFor="consulta-tipo-alerta" className="bc-form-modal__label">Tipo de alerta *</label>
-            <select id="consulta-tipo-alerta" name="tipoAlerta" value={form.tipoAlerta} onChange={atualizarForm}>
+            <select id="consulta-tipo-alerta" name="tipoAlerta" value={form.tipoAlerta} onChange={aoAlterarFormularioConsulta}>
               {TIPOS_ALERTA.map((tipo) => (
                 <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
               ))}
             </select>
           </div>
 
-          <BcInput label="Medico *" name="medico" placeholder="Dr. Nome do medico" value={form.medico} onChange={atualizarForm} />
+          <BcInput label="Medico *" name="medico" placeholder="Dr. Nome do medico" value={form.medico} onChange={aoAlterarFormularioConsulta} />
 
           <div className="cuidador-consultas-form__linha">
-            <BcInput label="Data *" name="data" type="date" value={form.data} onChange={atualizarForm} />
-            <BcInput label="Horario *" name="hora" type="time" value={form.hora} onChange={atualizarForm} />
+            <BcInput label="Data *" name="data" type="date" value={form.data} onChange={aoAlterarFormularioConsulta} />
+            <BcInput label="Horario *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
           </div>
 
-          <BcInput label="Especialidade *" name="especialidade" placeholder="Ex: Cardiologia" value={form.especialidade} onChange={atualizarForm} />
-          <BcInput label="Local *" name="local" placeholder="Hospital, clinica ou endereco" value={form.local} onChange={atualizarForm} />
+          <BcInput label="Especialidade *" name="especialidade" placeholder="Ex: Cardiologia" value={form.especialidade} onChange={aoAlterarFormularioConsulta} />
+          <BcInput label="Local *" name="local" placeholder="Hospital, clinica ou endereco" value={form.local} onChange={aoAlterarFormularioConsulta} />
 
           <div className="cuidador-consultas-campo">
             <label htmlFor="consulta-status" className="bc-form-modal__label">Status</label>
-            <select id="consulta-status" name="status" value={form.status} onChange={atualizarForm}>
+            <select id="consulta-status" name="status" value={form.status} onChange={aoAlterarFormularioConsulta}>
               <option value="pendente">Pendente</option>
               <option value="confirmada">Confirmada</option>
               <option value="realizada">Realizada</option>
@@ -607,7 +607,7 @@ export default function CuidadorConsultas({ onBack, onLogout }) {
             name="observacoes"
             placeholder="Informacoes adicionais sobre a consulta..."
             value={form.observacoes}
-            onChange={atualizarForm}
+            onChange={aoAlterarFormularioConsulta}
           />
 
           <BcButton type="submit" loading={salvandoConsulta}>

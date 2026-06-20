@@ -4,7 +4,7 @@ import BcLogo from "../../components/Bclogo/BcLogo";
 import BcPerfilModal from "../../components/BcPerfilModal/BcPerfilModal";
 import "./RolePlaceholder.css";
 
-export default function RolePlaceholder({
+export default function TelaPerfilEmPreparacao({
   titulo,
   descricao,
   botao = "Sair",

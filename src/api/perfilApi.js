@@ -1,10 +1,10 @@
-import { getAuthHeaders } from "./authApi";
+import { montarCabecalhosAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
-async function requestGet(path) {
+async function executarRequisicaoGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "GET",
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -22,11 +22,11 @@ export function buscarPerfilUsuario() {
 
   switch (perfil) {
     case "INSTITUICAO":
-      return requestGet(`/instituicao/listar/${id}`);
+      return executarRequisicaoGet(`/instituicao/listar/${id}`);
     case "CUIDADOR":
-      return requestGet(`/cuidador/listar/${id}`);
+      return executarRequisicaoGet(`/cuidador/listar/${id}`);
     case "ADMINISTRADOR":
-      return requestGet(`/administrador/listar/${id}`);
+      return executarRequisicaoGet(`/administrador/listar/${id}`);
     default:
       return Promise.reject(new Error("Perfil não identificado."));
   }

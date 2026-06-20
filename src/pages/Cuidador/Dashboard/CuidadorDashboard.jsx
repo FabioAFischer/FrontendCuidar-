@@ -12,7 +12,7 @@ import {
   IconeSetaDireita,
   IconeTelefone,
 } from "../../../components/icons/Icons";
-import { somenteNumeros } from "../../../utils/validacaoDocumento";
+import { extrairSomenteNumeros } from "../../../utils/validacaoDocumento";
 import { atualizarAlerta, listarAlertas } from "../../../api/alertaApi";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
 import "./CuidadorDashboard.css";
@@ -24,8 +24,8 @@ const CONTATOS_EMERGENCIA = [
 ];
 
 
-function formatarCPF(valor = "") {
-  const numeros = somenteNumeros(valor).slice(0, 11);
+function formatarCpf(valor = "") {
+  const numeros = extrairSomenteNumeros(valor).slice(0, 11);
   return numeros
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -47,31 +47,31 @@ function formatarTelefone(idoso) {
   return ddd ? `(${ddd}) ${telefoneFormatado}` : telefoneFormatado;
 }
 
-function getNomeCuidador() {
+function buscarNomeCuidador() {
   return localStorage.getItem("usuarioNome") || sessionStorage.getItem("usuarioNome") || "Cuidador";
 }
 
-function isEventoProximo(dataAgendada) {
+function verificarEventoProximo(dataAgendada) {
   const data = new Date(dataAgendada);
   const diferencaHoras = (data.getTime() - Date.now()) / (1000 * 60 * 60);
   return diferencaHoras >= 0 && diferencaHoras <= 24;
 }
 
-function getTipoAlerta(evento) {
+function buscarTipoAlerta(evento) {
   return String(evento.tipoAlerta || evento.tipo || "OUTRO").toUpperCase();
 }
 
-function getStatusAlerta(evento) {
+function buscarStatusAlerta(evento) {
   return String(evento.statusAlertas || evento.status || "PENDENTE").toUpperCase();
 }
 
-function isMedicacao(evento) {
-  const tipo = getTipoAlerta(evento);
+function verificarMedicacao(evento) {
+  const tipo = buscarTipoAlerta(evento);
   return tipo === "REMEDIO" || tipo === "MEDICACAO";
 }
 
-function isPendente(evento) {
-  const status = getStatusAlerta(evento);
+function verificarPendente(evento) {
+  const status = buscarStatusAlerta(evento);
   return status === "PENDENTE" || status === "AGENDADO";
 }
 
@@ -80,7 +80,7 @@ function formatarStatusAgenda(status) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
-function QuickActionCard({ icon, title, description, onClick }) {
+function CartaoAcaoRapida({ icon, title, description, onClick }) {
   return (
     <button type="button" className="cuidador-action-card" onClick={onClick}>
       <span className="cuidador-action-card__icon">{icon}</span>
@@ -93,27 +93,27 @@ function QuickActionCard({ icon, title, description, onClick }) {
   );
 }
 
-function PatientCard({ idoso }) {
-  const inicial = String(idoso.nome || "?").charAt(0).toUpperCase();
+function CartaoIdosoDashboard({ idoso }) {
+  const gerarInicialNome = String(idoso.nome || "?").charAt(0).toUpperCase();
 
   return (
     <article className="cuidador-card cuidador-patient-card">
-      <span className="cuidador-patient-card__avatar">{inicial}</span>
+      <span className="cuidador-patient-card__avatar">{gerarInicialNome}</span>
       <div className="cuidador-patient-card__content">
         <h3>{idoso.nome || "Idoso sem nome"}</h3>
-        <p>CPF: {formatarCPF(idoso.cpf) || "Nao informado"}</p>
+        <p>CPF: {formatarCpf(idoso.cpf) || "Nao informado"}</p>
         <p>Tel: {formatarTelefone(idoso)}</p>
       </div>
     </article>
   );
 }
 
-function AgendaEventCard({ event, confirming, onConfirm }) {
+function CartaoEventoAgenda({ event, confirming, onConfirm }) {
   const data = new Date(event.dataAgendada);
-  const proximo = isEventoProximo(event.dataAgendada);
-  const tipo = getTipoAlerta(event);
-  const medicacao = isMedicacao(event);
-  const status = getStatusAlerta(event);
+  const proximo = verificarEventoProximo(event.dataAgendada);
+  const tipo = buscarTipoAlerta(event);
+  const medicacao = verificarMedicacao(event);
+  const status = buscarStatusAlerta(event);
 
   return (
     <article className={`cuidador-agenda-card ${proximo ? "cuidador-agenda-card--soon" : ""}`}>
@@ -151,7 +151,7 @@ function AgendaEventCard({ event, confirming, onConfirm }) {
   );
 }
 
-function PaginationControls({ currentPage, totalPages, onPrevious, onNext }) {
+function ControlesPaginacao({ currentPage, totalPages, onPrevious, onNext }) {
   if (totalPages <= 1) return null;
 
   return (
@@ -165,7 +165,7 @@ function PaginationControls({ currentPage, totalPages, onPrevious, onNext }) {
   );
 }
 
-function DailySummary({ totalAgendas, totalIdosos }) {
+function ResumoDiario({ totalAgendas, totalIdosos }) {
   return (
     <section className="cuidador-card cuidador-summary" aria-labelledby="resumo-dia">
       <h2 id="resumo-dia">Resumo do Dia</h2>
@@ -183,7 +183,7 @@ function DailySummary({ totalAgendas, totalIdosos }) {
   );
 }
 
-function EmergencyContacts() {
+function ContatosEmergencia() {
   return (
     <section className="cuidador-card cuidador-emergency" aria-labelledby="contatos-emergencia">
       <h2 id="contatos-emergencia">Contatos de Emergencia</h2>
@@ -206,7 +206,7 @@ function EmergencyContacts() {
 
 export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRemedios, onOpenIdososVinculados }) {
   const { toastProps, mostrarToast } = useBcToast();
-  const [nomeCuidador, setNomeCuidador] = useState(getNomeCuidador);
+  const [nomeCuidador, setNomeCuidador] = useState(buscarNomeCuidador);
   const [idosos, setIdosos] = useState([]);
   const [agendaEvents, setAgendaEvents] = useState([]);
   const [carregandoAgendas, setCarregandoAgendas] = useState(true);
@@ -222,7 +222,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
   }, [agendaEvents, currentPage]);
 
   useEffect(() => {
-    setNomeCuidador(getNomeCuidador());
+    setNomeCuidador(buscarNomeCuidador());
     carregarDadosDoCuidador();
   }, []);
 
@@ -250,7 +250,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
       const alertasPendentes = (Array.isArray(listaAlertas) ? listaAlertas : [])
         .filter((alerta) =>
           idsVinculados.has(Number(alerta.idosoId)) &&
-          isPendente(alerta)
+          verificarPendente(alerta)
         )
         .map((alerta) => ({
           ...alerta,
@@ -270,7 +270,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
     }
   }
 
-  async function confirmarTomadaRemedio(evento) {
+  async function aoConfirmarTomadaRemedio(evento) {
     try {
       setConfirmandoAgendaId(evento.id);
 
@@ -316,13 +316,13 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
         </section>
 
         <section className="cuidador-actions" aria-label="Acoes rapidas">
-          <QuickActionCard
+          <CartaoAcaoRapida
             title="Medicacoes"
             description="Gerenciar medicacoes dos pacientes"
             icon={<IconeRemedio />}
             onClick={onOpenRemedios}
           />
-          <QuickActionCard
+          <CartaoAcaoRapida
             title="Consultas"
             description="Cadastrar e ver consultas agendadas"
             icon={<IconeCalendario />}
@@ -345,7 +345,7 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
           {idosos.length > 0 ? (
             <div className="cuidador-patient-grid">
               {idosos.slice(0, 4).map((idoso) => (
-                <PatientCard key={idoso.id || idoso.cpf || idoso.nome} idoso={idoso} />
+                <CartaoIdosoDashboard key={idoso.id || idoso.cpf || idoso.nome} idoso={idoso} />
               ))}
             </div>
           ) : (
@@ -379,15 +379,15 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
             <>
               <div className="cuidador-agenda-list">
                 {currentEvents.map((event) => (
-                  <AgendaEventCard
+                  <CartaoEventoAgenda
                     key={event.id}
                     event={event}
                     confirming={Number(confirmandoAgendaId) === Number(event.id)}
-                    onConfirm={confirmarTomadaRemedio}
+                    onConfirm={aoConfirmarTomadaRemedio}
                   />
                 ))}
               </div>
-              <PaginationControls
+              <ControlesPaginacao
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPrevious={() => setCurrentPage((page) => Math.max(page - 1, 1))}
@@ -402,8 +402,8 @@ export default function CuidadorDashboard({ onLogout, onOpenConsultas, onOpenRem
         </section>
 
         <div className="cuidador-bottom-grid">
-          <DailySummary totalAgendas={agendaEvents.length} totalIdosos={idosos.length} />
-          <EmergencyContacts />
+          <ResumoDiario totalAgendas={agendaEvents.length} totalIdosos={idosos.length} />
+          <ContatosEmergencia />
         </div>
       </main>
     </div>
