@@ -19,12 +19,12 @@ import {
   cadastrarInstituicao,
   listarInstituicoes,
   atualizarInstituicao,
-  deletarInstituicao,
+  excluirInstituicao,
   reativarInstituicao,
 } from "../../../api/administradorApi";
 import { buscarDadosRelatorio } from "../../../api/relatorioApi";
 import { gerarRelatorioPDF } from "../../../utils/gerarRelatorioPDF";
-import { cnpjValido } from "../../../utils/validacaoDocumento";
+import { validarCnpj } from "../../../utils/validacaoDocumento";
 import "./Admindashboard.css";
 
 /* ── Ícones locais ── */
@@ -45,7 +45,7 @@ const IconeIdoso = () => (
 );
 
 /* ── Helpers ── */
-function formatarCNPJ(v) {
+function formatarCnpj(v) {
   const n = v.replace(/\D/g, "").slice(0, 14);
   return n
     .replace(/(\d{2})(\d)/, "$1.$2")
@@ -54,12 +54,12 @@ function formatarCNPJ(v) {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
 }
 
-function formatarCEP(v) {
+function formatarCep(v) {
   const n = v.replace(/\D/g, "").slice(0, 8);
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
 
-async function buscarCEP(cep) {
+async function buscarEnderecoPorCep(cep) {
   const n = cep.replace(/\D/g, "");
   if (n.length !== 8) return null;
   const res = await fetch(`https://viacep.com.br/ws/${n}/json/`);
@@ -68,9 +68,9 @@ async function buscarCEP(cep) {
   return data;
 }
 
-function validar(form, exigirSenha = false) {
+function validarFormularioInstituicao(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
-  if (!cnpjValido(form.cnpj))                    return "CNPJ inválido.";
+  if (!validarCnpj(form.cnpj))                    return "CNPJ inválido.";
   if (!form.email.trim())                         return "Informe o email.";
   if (!form.rua.trim())                           return "Informe a rua.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
@@ -90,7 +90,7 @@ const FORM_INICIAL = {
 };
 
 /* ── Hook ViaCEP ── */
-function useViaCEP(cep, setForm, onToast) {
+function useBuscaEnderecoPorCep(cep, setForm, onToast) {
   const [buscandoCEP, setBuscandoCEP] = useState(false);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ function useViaCEP(cep, setForm, onToast) {
     const timer = setTimeout(async () => {
       setBuscandoCEP(true);
       try {
-        const data = await buscarCEP(cep);
+        const data = await buscarEnderecoPorCep(cep);
         if (data) {
           setForm(prev => ({
             ...prev,
@@ -151,21 +151,21 @@ function ModalCadastro({ onSucesso, onToast }) {
   const [loading, setLoading]             = useState(false);
   const [erro, setErro]                   = useState("");
 
-  const { buscandoCEP } = useViaCEP(form.cep, setForm, onToast);
+  const { buscandoCEP } = useBuscaEnderecoPorCep(form.cep, setForm, onToast);
 
-  function handleChange(e) {
+  function aoAlterarCampoFormulario(e) {
     const { name, value } = e.target;
     let v = value;
-    if (name === "cnpj") v = formatarCNPJ(value);
-    if (name === "cep")  v = formatarCEP(value);
+    if (name === "cnpj") v = formatarCnpj(value);
+    if (name === "cep")  v = formatarCep(value);
     if (name === "uf")   v = value.toUpperCase().slice(0, 2);
     setForm(prev => ({ ...prev, [name]: v }));
   }
 
-  async function handleSubmit(e) {
+  async function aoEnviarFormulario(e) {
     e.preventDefault();
     setErro("");
-    const err = validar(form, true);
+    const err = validarFormularioInstituicao(form, true);
     if (err) { setErro(err); return; }
     setLoading(true);
     try {
@@ -196,17 +196,17 @@ function ModalCadastro({ onSucesso, onToast }) {
       title="Nova Instituição"
       subtitle="Preencha os dados para cadastrar"
       error={erro}
-      onSubmit={handleSubmit}
+      onSubmit={aoEnviarFormulario}
     >
-      <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
-      <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
-      <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
-      <CamposEndereco form={form} onChange={handleChange} buscandoCEP={buscandoCEP} />
+      <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} />
+      <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} />
+      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} />
       <BcInput
         label="Senha" name="senha"
         type={showSenha ? "text" : "password"}
         placeholder="Crie uma senha"
-        value={form.senha} onChange={handleChange}
+        value={form.senha} onChange={aoAlterarCampoFormulario}
         autoComplete="new-password"
         suffix={
           <button type="button" className="bc-form-modal__icon-button" onClick={() => setShowSenha(v => !v)}>
@@ -219,7 +219,7 @@ function ModalCadastro({ onSucesso, onToast }) {
         label="Confirmar Senha" name="confirmarSenha"
         type={showConfirmar ? "text" : "password"}
         placeholder="Confirme sua senha"
-        value={form.confirmarSenha} onChange={handleChange}
+        value={form.confirmarSenha} onChange={aoAlterarCampoFormulario}
         autoComplete="new-password"
         suffix={
           <button type="button" className="bc-form-modal__icon-button" onClick={() => setShowConfirmar(v => !v)}>
@@ -243,32 +243,32 @@ function ModalCadastro({ onSucesso, onToast }) {
 function ModalEditar({ instituicao, onSucesso, onToast }) {
   const [form, setForm] = useState({
     nome:   instituicao.nome   || "",
-    cnpj:   formatarCNPJ(String(instituicao.cnpj || "")),
+    cnpj:   formatarCnpj(String(instituicao.cnpj || "")),
     email:  instituicao.email  || "",
     rua:    instituicao.rua    || "",
     bairro: instituicao.bairro || "",
     uf:     instituicao.uf     || "",
     numero: String(instituicao.numero || ""),
-    cep:    formatarCEP(String(instituicao.cep || "")),
+    cep:    formatarCep(String(instituicao.cep || "")),
   });
   const [loading, setLoading] = useState(false);
   const [erro, setErro]       = useState("");
 
-  const { buscandoCEP } = useViaCEP(form.cep, setForm, onToast);
+  const { buscandoCEP } = useBuscaEnderecoPorCep(form.cep, setForm, onToast);
 
-  function handleChange(e) {
+  function aoAlterarCampoFormulario(e) {
     const { name, value } = e.target;
     let v = value;
-    if (name === "cnpj") v = formatarCNPJ(value);
-    if (name === "cep")  v = formatarCEP(value);
+    if (name === "cnpj") v = formatarCnpj(value);
+    if (name === "cep")  v = formatarCep(value);
     if (name === "uf")   v = value.toUpperCase().slice(0, 2);
     setForm(prev => ({ ...prev, [name]: v }));
   }
 
-  async function handleSubmit(e) {
+  async function aoEnviarFormulario(e) {
     e.preventDefault();
     setErro("");
-    const err = validar(form);
+    const err = validarFormularioInstituicao(form);
     if (err) { setErro(err); return; }
     setLoading(true);
     try {
@@ -296,12 +296,12 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
       title="Editar Instituição"
       subtitle="Atualize os dados abaixo"
       error={erro}
-      onSubmit={handleSubmit}
+      onSubmit={aoEnviarFormulario}
     >
-      <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={handleChange} />
-      <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={handleChange} maxLength={18} />
-      <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={handleChange} />
-      <CamposEndereco form={form} onChange={handleChange} buscandoCEP={buscandoCEP} />
+      <BcInput label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcInput label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} />
+      <BcInput label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} />
+      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} />
       <BcButton type="submit" loading={loading}>Salvar alterações</BcButton>
     </BcFormModal>
   );
@@ -402,11 +402,11 @@ export default function Admindashboard({ onLogout }) {
     return matchBusca && matchStatus;
   });
 
-  async function handleToggleStatus(inst) {
+  async function aoAlternarStatusInstituicao(inst) {
     setExcluindo(true);
     try {
       if (inst.status === "ATIVO") {
-        await deletarInstituicao(inst.id);
+        await excluirInstituicao(inst.id);
         mostrarToast("sucesso", "Instituição inativada", `${inst.nome} foi inativada.`);
       } else {
         await reativarInstituicao(inst.id);
@@ -421,7 +421,7 @@ export default function Admindashboard({ onLogout }) {
     }
   }
 
-  async function handleBaixarRelatorio() {
+  async function aoBaixarRelatorio() {
     setBaixando(true);
     try {
       const dados = await buscarDadosRelatorio();
@@ -461,7 +461,7 @@ export default function Admindashboard({ onLogout }) {
           carregando={carregando}
           excluindo={excluindo}
           onEditar={(inst) => setModalEditar(inst)}
-          onExcluir={handleToggleStatus}
+          onExcluir={aoAlternarStatusInstituicao}
           tituloConfirmacao="Alterar status da instituição?"
           mensagemConfirmacao="Deseja alterar o status desta instituição?"
           textoConfirmar="Confirmar"
@@ -504,7 +504,7 @@ export default function Admindashboard({ onLogout }) {
               inativos: dadosRelatorio.idosos.inativos,
             },
           ]}
-          onBaixar={handleBaixarRelatorio}
+          onBaixar={aoBaixarRelatorio}
         />
       </main>
 

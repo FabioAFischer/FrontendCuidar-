@@ -15,8 +15,8 @@ import {
   buscarIdosoPorCpf,
   cadastrarCuidador,
   cadastrarIdoso,
-  deletarCuidador,
-  deletarIdoso,
+  excluirCuidador,
+  excluirIdoso,
   listarCuidadores,
   listarIdosos,
   reativarCuidador,
@@ -28,7 +28,7 @@ import {
   IconeIdosos,
   IconeSair,
 } from "../../../components/icons/Icons";
-import { cpfDisponivel, cpfValido, somenteNumeros, celularValido } from "../../../utils/validacaoDocumento";
+import { verificarCpfDisponivel, validarCpf, extrairSomenteNumeros, validarCelular } from "../../../utils/validacaoDocumento";
 import "./InstituicaoProfileHome.css";
 
 const IconePessoa = () => (
@@ -145,7 +145,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    const cpfLimpo = somenteNumeros(formIdoso.cpf);
+    const cpfLimpo = extrairSomenteNumeros(formIdoso.cpf);
     if (!modalIdosoAberto || idosoEmEdicao || cpfLimpo.length !== 11) {
       setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
       setIdosoParaReativar(null);
@@ -164,7 +164,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             setErroIdoso("");
             setFormIdoso((ant) => ({
               ...ant,
-              cpf: formatarCPF(String(idosoEncontrado.cpf || cpfLimpo)),
+              cpf: formatarCpf(String(idosoEncontrado.cpf || cpfLimpo)),
               nome: idosoEncontrado.nome || "",
               observacoes: idosoEncontrado.observacoes || "",
               ddd: idosoEncontrado.contato?.ddd ? String(idosoEncontrado.contato.ddd) : "",
@@ -198,7 +198,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     String(i.cpf || "").includes(buscaIdoso.replace(/\D/g, ""))
   );
 
-  function formatarCPF(valor) {
+  function formatarCpf(valor) {
     const n = valor.replace(/\D/g, "").slice(0, 11);
     return n.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   }
@@ -211,12 +211,12 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function atualizarCuidador(evento) {
     const { name, value } = evento.target;
     let novoValor = value;
-    if (name === "cpf") novoValor = formatarCPF(value);
+    if (name === "cpf") novoValor = formatarCpf(value);
     if (name === "ddd") novoValor = value.replace(/\D/g, "").slice(0, 2);
     if (name === "telefone") novoValor = formatarTelefone(value);
     if (name === "cpf") {
-      const cpfDigitado = somenteNumeros(novoValor);
-      const encontrado = cuidadoresInativos.find((c) => !cpfDisponivel(cpfDigitado, [c]));
+      const cpfDigitado = extrairSomenteNumeros(novoValor);
+      const encontrado = cuidadoresInativos.find((c) => !verificarCpfDisponivel(cpfDigitado, [c]));
       if (cpfDigitado.length === 11 && encontrado) {
         setCuidadorParaReativar(encontrado);
         setErroCuidador("");
@@ -236,19 +236,19 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function atualizarIdoso(evento) {
     const { name, value } = evento.target;
     let novoValor = value;
-    if (name === "cpf") novoValor = formatarCPF(value);
+    if (name === "cpf") novoValor = formatarCpf(value);
     if (name === "ddd") novoValor = value.replace(/\D/g, "").slice(0, 2);
     if (name === "telefone") novoValor = formatarTelefone(value);
     if (name === "cpf") setErroIdoso("");
     setFormIdoso((ant) => ({ ...ant, [name]: novoValor }));
   }
 
-  function limparFormCuidador() {
+  function limparFormularioCuidador() {
     setFormCuidador({ cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null });
     setCuidadorParaReativar(null);
   }
 
-  function limparFormIdoso() {
+  function limparFormularioIdoso() {
     setFormIdoso({ nome: "", cpf: "", observacoes: "", ddd: "", telefone: "", contatoId: null });
     setConsultaCpfIdoso({ carregando: false, consultado: false, idoso: null });
     setIdosoParaReativar(null);
@@ -257,7 +257,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   function abrirEdicaoCuidador(cuidador) {
     setErroCuidador(""); setCuidadorEmEdicao(cuidador);
     setFormCuidador({
-      cpf: formatarCPF(String(cuidador.cpf || "")), nome: cuidador.nome || "", email: cuidador.email || "", senha: "", confirmarSenha: "",
+      cpf: formatarCpf(String(cuidador.cpf || "")), nome: cuidador.nome || "", email: cuidador.email || "", senha: "", confirmarSenha: "",
       ddd: cuidador.contato?.ddd ? String(cuidador.contato.ddd) : "",
       telefone: cuidador.contato?.telefone ? formatarTelefone(String(cuidador.contato.telefone)) : "",
       contatoId: cuidador.contatoId || cuidador.contato?.id || null,
@@ -265,42 +265,42 @@ export default function InstituicaoProfileHome({ onLogout }) {
     setModalCuidadorAberto(true);
   }
 
-  function abrirCadastroIdoso() { setErroIdoso(""); setIdosoEmEdicao(null); limparFormIdoso(); setModalIdosoAberto(true); }
+  function abrirCadastroIdoso() { setErroIdoso(""); setIdosoEmEdicao(null); limparFormularioIdoso(); setModalIdosoAberto(true); }
   function abrirEdicaoIdoso(idoso) {
     setErroIdoso(""); setIdosoEmEdicao(idoso); setIdosoParaReativar(null);
     setFormIdoso({
-      nome: idoso.nome || "", cpf: formatarCPF(String(idoso.cpf || "")), observacoes: idoso.observacoes || "",
+      nome: idoso.nome || "", cpf: formatarCpf(String(idoso.cpf || "")), observacoes: idoso.observacoes || "",
       ddd: idoso.contato?.ddd ? String(idoso.contato.ddd) : "",
       telefone: idoso.contato?.telefone ? formatarTelefone(String(idoso.contato.telefone)) : "",
       contatoId: idoso.contatoId || idoso.contato?.id || null,
     });
     setModalIdosoAberto(true);
   }
-  function fecharModalIdoso() { setModalIdosoAberto(false); setIdosoEmEdicao(null); setIdosoParaReativar(null); setErroIdoso(""); limparFormIdoso(); }
-  function abrirCadastroCuidador() { setErroCuidador(""); setCuidadorEmEdicao(null); limparFormCuidador(); setModalCuidadorAberto(true); }
-  function fecharModalCuidador() { setErroCuidador(""); setModalCuidadorAberto(false); setCuidadorEmEdicao(null); limparFormCuidador(); }
+  function fecharModalIdoso() { setModalIdosoAberto(false); setIdosoEmEdicao(null); setIdosoParaReativar(null); setErroIdoso(""); limparFormularioIdoso(); }
+  function abrirCadastroCuidador() { setErroCuidador(""); setCuidadorEmEdicao(null); limparFormularioCuidador(); setModalCuidadorAberto(true); }
+  function fecharModalCuidador() { setErroCuidador(""); setModalCuidadorAberto(false); setCuidadorEmEdicao(null); limparFormularioCuidador(); }
 
-  function emailValido(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+  function validarEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
 
   function validarIdoso() {
     const s = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
     if (!idosoEmEdicao && s === "ATIVO") return "CPF já cadastrado para um idoso ativo.";
     if (!formIdoso.nome.trim()) return "Informe o nome do idoso.";
-    if (!cpfValido(formIdoso.cpf)) return "CPF inválido.";
-    if (!idosoEmEdicao && !cpfDisponivel(formIdoso.cpf, cuidadores)) return "CPF já está em uso por um cuidador.";
-    if (!celularValido(formIdoso.ddd, formIdoso.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
+    if (!validarCpf(formIdoso.cpf)) return "CPF inválido.";
+    if (!idosoEmEdicao && !verificarCpfDisponivel(formIdoso.cpf, cuidadores)) return "CPF já está em uso por um cuidador.";
+    if (!validarCelular(formIdoso.ddd, formIdoso.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
     return null;
   }
 
   function validarCuidador() {
-    if (!cpfValido(formCuidador.cpf)) return "CPF inválido.";
-    if (!cuidadorEmEdicao && !cuidadorParaReativar && !cpfDisponivel(formCuidador.cpf, cuidadores, idosos)) return "CPF já está em uso.";
+    if (!validarCpf(formCuidador.cpf)) return "CPF inválido.";
+    if (!cuidadorEmEdicao && !cuidadorParaReativar && !verificarCpfDisponivel(formCuidador.cpf, cuidadores, idosos)) return "CPF já está em uso.";
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
-    if (!emailValido(formCuidador.email.trim())) return "Informe um e-mail válido.";
+    if (!validarEmail(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
     if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas não coincidem.";
-    if (!celularValido(formCuidador.ddd, formCuidador.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
+    if (!validarCelular(formCuidador.ddd, formCuidador.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
     return null;
   }
 
@@ -308,7 +308,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     const id = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
     const chave = `cuidadoresInativos:${id || "atual"}`;
     setCuidadoresInativos((ant) => {
-      const att = ant.filter((c) => somenteNumeros(c.cpf) !== somenteNumeros(cpf));
+      const att = ant.filter((c) => extrairSomenteNumeros(c.cpf) !== extrairSomenteNumeros(cpf));
       localStorage.setItem(chave, JSON.stringify(att));
       return att;
     });
@@ -318,14 +318,14 @@ export default function InstituicaoProfileHome({ onLogout }) {
     const id = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
     const chave = `cuidadoresInativos:${id || "atual"}`;
     setCuidadoresInativos((ant) => {
-      const sem = ant.filter((c) => somenteNumeros(c.cpf) !== somenteNumeros(cuidadorInativo.cpf));
+      const sem = ant.filter((c) => extrairSomenteNumeros(c.cpf) !== extrairSomenteNumeros(cuidadorInativo.cpf));
       const att = [cuidadorInativo, ...sem];
       localStorage.setItem(chave, JSON.stringify(att));
       return att;
     });
   }
 
-  async function handleCadastrarCuidador(evento) {
+  async function aoEnviarFormularioCuidador(evento) {
     evento.preventDefault();
     const erroV = validarCuidador();
     if (erroV) { setErroCuidador(erroV); return; }
@@ -354,10 +354,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally { setSalvandoCuidador(false); }
   }
 
-  async function handleExcluirCuidador(cuidador) {
+  async function aoExcluirCuidador(cuidador) {
     try {
       setExcluindoCuidador(true); setErroCuidador("");
-      await deletarCuidador(cuidador.id);
+      await excluirCuidador(cuidador.id);
       guardarCuidadorInativo(cuidador);
       await carregarCuidadores();
       await carregarRelatorio();
@@ -368,7 +368,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally { setExcluindoCuidador(false); }
   }
 
-  async function handleCadastrarIdoso(evento) {
+  async function aoEnviarFormularioIdoso(evento) {
     evento.preventDefault();
     const erroV = validarIdoso();
     if (erroV) { setErroIdoso(erroV); return; }
@@ -393,10 +393,10 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally { setSalvandoIdoso(false); }
   }
 
-  async function handleExcluirIdoso(idoso) {
+  async function aoExcluirIdoso(idoso) {
     try {
       setExcluindoIdoso(true); setErroIdoso("");
-      await deletarIdoso(idoso.id);
+      await excluirIdoso(idoso.id);
       await carregarIdosos();
       await carregarRelatorio();
       mostrarToast("sucesso", "Idoso desativado", `${idoso.nome} foi removido da listagem.`);
@@ -406,7 +406,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
     } finally { setExcluindoIdoso(false); }
   }
 
-  async function handleBaixarRelatorio() {
+  async function aoBaixarRelatorio() {
     setBaixando(true);
     try {
       const dados = await buscarDadosRelatorioInstituicao();
@@ -420,7 +420,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
   /* ── Colunas dos idosos com botão de emergência ── */
   const colunasIdosos = [
     { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
-    { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCPF(String(i.cpf || "")) },
+    { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCpf(String(i.cpf || "")) },
     { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
       render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
     { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
@@ -465,7 +465,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               itens={cuidadoresFiltrados}
               colunas={[
                 { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
-                { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (c) => formatarCPF(String(c.cpf || "")) },
+                { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (c) => formatarCpf(String(c.cpf || "")) },
                 { chave: "email", titulo: "E-mail", className: "bc-listagem-tdMuted", render: (c) => c.email || "-" },
                 { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
                   render: (c) => c.contato ? `(${c.contato.ddd}) ${formatarTelefone(String(c.contato.telefone || ""))}` : "-" },
@@ -480,7 +480,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               textoCarregando="Carregando cuidadores..."
               erro={modalCuidadorAberto ? "" : erroCuidador}
               onEditar={abrirEdicaoCuidador}
-              onExcluir={handleExcluirCuidador}
+              onExcluir={aoExcluirCuidador}
               tituloConfirmacao="Inativar cuidador?"
               mensagemConfirmacao="O cuidador será inativado na listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, inativar"
@@ -508,7 +508,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
               erro={modalIdosoAberto ? "" : erroIdoso}
               onVisualizar={(idoso) => setIdosoGerenciar(idoso)}
               onEditar={abrirEdicaoIdoso}
-              onExcluir={handleExcluirIdoso}
+              onExcluir={aoExcluirIdoso}
               tituloConfirmacao="Desativar idoso?"
               mensagemConfirmacao="O idoso será removido da listagem, mas poderá ser reativado ao cadastrar o mesmo CPF."
               textoConfirmar="Sim, desativar"
@@ -529,7 +529,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
             { icone: <IconePessoa />, titulo: "Cuidadores", total: dadosRelatorio.cuidadores.total, ativos: dadosRelatorio.cuidadores.ativos, inativos: dadosRelatorio.cuidadores.inativos },
             { icone: <IconeIdosoCard />, titulo: "Idosos", total: dadosRelatorio.idosos.total, ativos: dadosRelatorio.idosos.ativos, inativos: dadosRelatorio.idosos.inativos },
           ]}
-          onBaixar={handleBaixarRelatorio}
+          onBaixar={aoBaixarRelatorio}
         />
       </main>
 
@@ -554,7 +554,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
           title={cuidadorEmEdicao ? "Editar Cuidador" : cuidadorParaReativar ? "Reativar Cuidador" : "Novo Cuidador"}
           subtitle={cuidadorEmEdicao ? "Atualize os dados abaixo" : cuidadorParaReativar ? "Confira os dados antes de reativar" : "Preencha os dados para cadastrar"}
           error={erroCuidador}
-          onSubmit={handleCadastrarCuidador}
+          onSubmit={aoEnviarFormularioCuidador}
         >
           <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
           <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
@@ -587,7 +587,7 @@ export default function InstituicaoProfileHome({ onLogout }) {
           title={idosoEmEdicao ? "Editar Idoso" : idosoParaReativar ? "Reativar Idoso" : "Novo Idoso"}
           subtitle={idosoEmEdicao ? "Atualize os dados abaixo" : idosoParaReativar ? "Confira os dados antes de reativar" : "Preencha os dados para cadastrar"}
           error={erroIdoso}
-          onSubmit={handleCadastrarIdoso}
+          onSubmit={aoEnviarFormularioIdoso}
         >
           <BcInput label="CPF *" name="cpf" placeholder="000.000.000-00" value={formIdoso.cpf} onChange={atualizarIdoso} inputMode="numeric" maxLength={14} />
           <BcInput label="Nome *" name="nome" placeholder="Insira um nome" value={formIdoso.nome} onChange={atualizarIdoso} />
