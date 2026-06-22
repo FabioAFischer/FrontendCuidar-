@@ -67,7 +67,22 @@
   transition: background 0.15s, border-color 0.15s;
 }
 
-.iph-btn-emergencia:hover {
+  .iph-btn-emergencia:hover {
   background: #fee2e2;
   border-color: #e05252;
+}
+
+@media (max-width: 420px) {
+  .instituicao-home__content {
+    padding-inline: 12px;
+  }
+
+  .instituicao-modal {
+    padding-inline: 14px;
+  }
+
+  .iph-btn-emergencia {
+    width: 100%;
+    justify-content: center;
+  }
 }

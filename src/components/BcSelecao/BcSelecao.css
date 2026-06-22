@@ -1,6 +1,7 @@
 .bc-select {
   position: relative;
-  width: 220px;
+  width: min(220px, 100%);
+  min-width: 0;
 }
 
 .bc-select__field {
@@ -54,4 +55,10 @@
 
 .bc-select__field:focus + .bc-select__icon {
   transform: translateY(-50%) rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .bc-select {
+    width: 100%;
+  }
 }

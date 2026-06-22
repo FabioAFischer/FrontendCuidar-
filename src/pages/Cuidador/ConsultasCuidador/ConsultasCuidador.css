@@ -531,6 +531,11 @@
     padding: 24px 16px 36px;
   }
 
+  .cuidador-consultas-voltar {
+    width: 100%;
+    justify-content: center;
+  }
+
   .cuidador-consultas-stats,
   .cuidador-consultas-toolbar,
   .cuidador-consultas-form__linha,
@@ -538,8 +543,18 @@
     grid-template-columns: 1fr;
   }
 
+  .cuidador-consultas-toolbar .bc-button {
+    width: 100%;
+  }
+
+  .cuidador-consultas-listagem__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .cuidador-consultas-card {
     grid-template-columns: auto minmax(0, 1fr);
+    padding: 16px;
   }
 
   .cuidador-consultas-card__topo {
@@ -555,11 +570,46 @@
     flex-wrap: wrap;
   }
 
+  .cuidador-consultas-acao {
+    flex: 1 1 38px;
+  }
+
+  .cuidador-consultas-detalhes {
+    padding: 24px 18px;
+  }
+
+  .cuidador-consultas-detalhes__header {
+    align-items: flex-start;
+  }
+
   .cuidador-consultas-detalhes__acoes {
     flex-direction: column-reverse;
   }
 
   .cuidador-consultas-detalhes__acoes .bc-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .cuidador-consultas-main {
+    padding-inline: 12px;
+  }
+
+  .cuidador-consultas-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-consultas-card__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cuidador-consultas-card__acoes {
+    grid-column: 1;
+  }
+
+  .cuidador-consultas-acao {
+    min-width: 44px;
   }
 }

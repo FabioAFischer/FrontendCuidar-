@@ -660,16 +660,26 @@
     padding: 24px 16px 36px;
   }
 
+  .cuidador-remedios-voltar {
+    width: 100%;
+    justify-content: center;
+  }
+
   .cuidador-remedios-card {
     padding: 16px;
   }
 
   .cuidador-remedios-card__header {
     align-items: flex-start;
+    flex-direction: column;
   }
 
   .cuidador-remedios-titulo {
     font-size: 16px;
+  }
+
+  .cuidador-remedios-prescrever {
+    width: 100%;
   }
 
   .cuidador-remedios-idosos,
@@ -685,5 +695,35 @@
 
   .cuidador-remedios-item__acoes {
     flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .cuidador-remedios-acao {
+    flex: 1 1 42px;
+    min-width: 42px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cuidador-remedios-main {
+    padding-inline: 12px;
+  }
+
+  .cuidador-remedios-card {
+    padding: 14px;
+  }
+
+  .cuidador-remedios-detalhes {
+    width: 100%;
+    padding: 24px 18px;
+  }
+
+  .cuidador-remedios-detalhes__header {
+    align-items: flex-start;
+  }
+
+  .cuidador-remedios-prescricoes-lista,
+  .cuidador-remedios-idosos {
+    max-height: none;
   }
 }

@@ -105,3 +105,33 @@
   border-color: #0d9e8a;
   background: #fff;
 }
+
+@media (max-width: 640px) {
+  .bcmodal-content:has(.bc-form-modal) {
+    max-width: none;
+  }
+
+  .bc-form-modal {
+    padding: 24px 18px 26px;
+  }
+
+  .bc-form-modal__header {
+    margin-bottom: 20px;
+    padding-inline: 28px;
+  }
+
+  .bc-form-modal__header h1 {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .bc-form-modal__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .bc-form-modal {
+    padding-inline: 14px;
+  }
+}

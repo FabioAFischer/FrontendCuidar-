@@ -17,12 +17,14 @@
   display: flex;
   align-items: center;
   gap: 22px;
+  min-width: 0;
 }
 
 .bc-topbar__titles {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .bc-topbar__titles h1 {
@@ -30,12 +32,14 @@
   line-height: 1.2;
   font-weight: 700;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
 }
 
 .bc-topbar__titles p {
   font-size: 13px;
   line-height: 1.25;
   color: #5f6b79;
+  overflow-wrap: anywhere;
 }
 
 /* ── Grupo de ações (avatar + sair) ── */
@@ -106,6 +110,7 @@
 
   .bc-topbar__brand {
     gap: 14px;
+    align-items: flex-start;
   }
 
   .bc-topbar__titles h1 {
@@ -114,13 +119,29 @@
 
   .bc-topbar__acoes {
     width: 100%;
+    justify-content: space-between;
   }
 
   .bc-topbar__action {
     flex: 1;
+    min-width: 0;
   }
 
   .bc-topbar__avatar {
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .bc-topbar__inner {
+    padding: 16px 14px;
+  }
+
+  .bc-topbar__brand {
+    gap: 10px;
+  }
+
+  .bc-topbar__action {
+    padding-inline: 12px;
   }
 }
