@@ -8,11 +8,11 @@
  *   cuidadores  : Array  — lista de cuidadores da instituição
  */
 import { useCallback, useEffect, useState } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcModal from "../BcModal/BcModal";
-import BcToast, { useBcToast } from "../BcToast/BcToast";
+import BcNotificacao, { useBcNotificacao } from "../BcNotificacao/BcNotificacao";
 import { listarVinculosPorIdoso, criarVinculo, excluirVinculo } from "../../api/instituicaoApi";
-import "./Modalgerenciarcuidadores.css";
+import "./ModalGerenciarCuidadores.css";
 
 function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
@@ -32,8 +32,7 @@ function formatarTelefone(valor = "") {
 }
 
 export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuidadores = [] }) {
-  const { toastProps, mostrarToast } = useBcToast();
-  const [vinculos, setVinculos]         = useState([]);
+  const { toastProps, mostrarToast } = useBcNotificacao();
   const [carregando, setCarregando]     = useState(false);
   const [salvando, setSalvando]         = useState(false);
   // set de cuidadorId com vínculo ativo (do servidor)
@@ -48,7 +47,6 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
     setCarregando(true);
     try {
       const lista = await listarVinculosPorIdoso(idoso.id);
-      setVinculos(lista);
       const ids = new Set(lista.map((v) => Number(v.cuidadorId)));
       const mapa = {};
       lista.forEach((v) => { mapa[Number(v.cuidadorId)] = v.id; });
@@ -135,7 +133,7 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
 
   return (
     <>
-      <BcToast {...toastProps} />
+      <BcNotificacao {...toastProps} />
       <BcModal aberto={aberto} onFechar={onFechar}>
         <div className="mgc-wrap">
           {/* Cabeçalho */}
@@ -203,9 +201,9 @@ export default function ModalGerenciarCuidadores({ aberto, onFechar, idoso, cuid
             <p className="mgc-footer__info">
               {totalAutorizados} cuidador(es) autorizado(s)
             </p>
-            <BcButton onClick={aoConcluirGerenciamentoCuidadores} fullWidth={false} loading={salvando}>
+            <BcBotao onClick={aoConcluirGerenciamentoCuidadores} fullWidth={false} loading={salvando}>
               Concluir
-            </BcButton>
+            </BcBotao>
           </div>
         </div>
       </BcModal>

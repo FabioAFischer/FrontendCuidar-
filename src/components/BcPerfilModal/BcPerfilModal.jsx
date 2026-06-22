@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcModal from "../BcModal/BcModal";
-import BcInput from "../Bcinput/BcInput";
-import BcPasswordStrength from "../BcPasswordStrength/BcPasswordStrength";
+import BcCampoTexto from "../BcCampoTexto/BcCampoTexto";
+import BcForcaSenha from "../BcForcaSenha/BcForcaSenha";
 import { buscarPerfilUsuario } from "../../api/perfilApi";
 import {
   enviarIdentificador,
@@ -15,7 +15,7 @@ import {
   IconeSucesso,
   IconeOlhoAberto,
   IconeOlhoFechado,
-} from "../icons/Icons";
+} from "../icones/Icones";
 import "./BcPerfilModal.css";
 
 /* ── Ícone chave (local, não existe em Icons.js) ── */
@@ -141,7 +141,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
           <div className="bcp-redefinir__sucesso-icone"><IconeSucesso /></div>
           <h3>Senha alterada!</h3>
           <p>Sua senha foi redefinida com sucesso.</p>
-          <BcButton onClick={onConcluir}>Fechar</BcButton>
+          <BcBotao onClick={onConcluir}>Fechar</BcBotao>
         </div>
       </div>
     );
@@ -168,7 +168,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
             </p>
           </div>
           <form className="bcp-redefinir__form" onSubmit={aoSolicitarCodigoRedefinicaoSenha} noValidate>
-            <BcInput
+            <BcCampoTexto
               label="Nova senha" name="rp-nova"
               type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
               value={novaSenha} onChange={e => { setNovaSenha(e.target.value); setErro(""); }}
@@ -178,9 +178,9 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
                   {showNova ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
                 </button>
               }
-              hint={<BcPasswordStrength password={novaSenha} />}
+              hint={<BcForcaSenha password={novaSenha} />}
             />
-            <BcInput
+            <BcCampoTexto
               label="Confirmar nova senha" name="rp-confirmar"
               type={showConfirmar ? "text" : "password"} placeholder="Repita a senha"
               value={confirmar} onChange={e => { setConfirmar(e.target.value); setErro(""); }}
@@ -200,8 +200,8 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
             />
             {erro && <div className="bcp-erro" role="alert">{erro}</div>}
             <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={onVoltar}>Voltar</BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Continuar</BcButton>
+              <BcBotao variant="ghost" onClick={onVoltar}>Voltar</BcBotao>
+              <BcBotao type="submit" loading={loading} fullWidth={false}>Continuar</BcBotao>
             </div>
           </form>
         </>
@@ -219,17 +219,17 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
             </p>
           </div>
           <form className="bcp-redefinir__form" onSubmit={aoConfirmarCodigoRedefinicaoSenha} noValidate>
-            <BcInput
+            <BcCampoTexto
               label="Código de verificação" name="rp-codigo" type="text"
               placeholder="000000" value={codigo}
               onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
               autoComplete="one-time-code" maxLength={6} error={erro}
             />
             <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={() => { setPasso("nova-senha"); setErro(""); setCodigo(""); }}>
+              <BcBotao variant="ghost" onClick={() => { setPasso("nova-senha"); setErro(""); setCodigo(""); }}>
                 Voltar
-              </BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Salvar senha</BcButton>
+              </BcBotao>
+              <BcBotao type="submit" loading={loading} fullWidth={false}>Salvar senha</BcBotao>
             </div>
           </form>
         </>

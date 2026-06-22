@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { buscarTokenAutenticacao, encerrarSessaoUsuario } from "./api/authApi";
 import BcConfirmacao from "./components/BcConfirmacao/BcConfirmacao";
-import { IconeSair } from "./components/icons/Icons";
-import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
-import LoginPage from "./pages/Auth/LoginPage";
-import CuidadorConsultas from "./pages/Cuidador/Consultas/CuidadorConsultas";
-import CuidadorDashboard from "./pages/Cuidador/Dashboard/CuidadorDashboard";
-import CuidadorIdososVinculados from "./pages/Cuidador/IdososVinculados/CuidadorIdososVinculados";
-import CuidadorRemediosPrescricao from "./pages/Cuidador/RemediosPrescricao/CuidadorRemediosPrescricao";
-import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
+import { IconeSair } from "./components/icones/Icones";
+import PainelAdministrador from "./pages/Administrador/PainelAdministrador/PainelAdministrador";
+import PaginaLogin from "./pages/Autenticacao/PaginaLogin";
+import ConsultasCuidador from "./pages/Cuidador/ConsultasCuidador/ConsultasCuidador";
+import PainelCuidador from "./pages/Cuidador/PainelCuidador/PainelCuidador";
+import IdososVinculadosCuidador from "./pages/Cuidador/IdososVinculadosCuidador/IdososVinculadosCuidador";
+import RemediosPrescricaoCuidador from "./pages/Cuidador/RemediosPrescricaoCuidador/RemediosPrescricaoCuidador";
+import PainelInstituicao from "./pages/Instituicao/PainelInstituicao/PainelInstituicao";
 import "./styles/global.css";
 import "./App.css";
 
@@ -120,19 +120,19 @@ export default function App() {
     if (!verificarAcessoRota(tela)) {
       encerrarSessaoUsuario();
       navegarParaRota(ROUTES.login);
-      return <LoginPage onLogin={aoEntrarNoSistema} />;
+      return <PaginaLogin onLogin={aoEntrarNoSistema} />;
     }
 
     switch (tela) {
       case "login":
-        return <LoginPage onLogin={aoEntrarNoSistema} />;
+        return <PaginaLogin onLogin={aoEntrarNoSistema} />;
 
       case "dashboard-admin":
-        return <AdminDashboard onLogout={aoSolicitarSaidaDoSistema} />;
+        return <PainelAdministrador onLogout={aoSolicitarSaidaDoSistema} />;
 
       case "area-cuidador":
         return (
-          <CuidadorDashboard
+          <PainelCuidador
             onLogout={aoSolicitarSaidaDoSistema}
             onOpenIdososVinculados={() => navegarParaRota(ROUTES.cuidadorIdososVinculados)}
             onOpenConsultas={() => navegarParaRota(ROUTES.cuidadorConsultas)}
@@ -142,7 +142,7 @@ export default function App() {
 
       case "cuidador-idosos-vinculados":
         return (
-          <CuidadorIdososVinculados
+          <IdososVinculadosCuidador
             onLogout={aoSolicitarSaidaDoSistema}
             onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
@@ -150,7 +150,7 @@ export default function App() {
 
       case "cuidador-consultas":
         return (
-          <CuidadorConsultas
+          <ConsultasCuidador
             onLogout={aoSolicitarSaidaDoSistema}
             onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
@@ -158,14 +158,14 @@ export default function App() {
 
       case "cuidador-remedios-prescricao":
         return (
-          <CuidadorRemediosPrescricao
+          <RemediosPrescricaoCuidador
             onLogout={aoSolicitarSaidaDoSistema}
             onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
         );
 
       case "area-instituicao":
-        return <InstituicaoProfileHome onLogout={aoSolicitarSaidaDoSistema} />;
+        return <PainelInstituicao onLogout={aoSolicitarSaidaDoSistema} />;
 
       default:
         return (

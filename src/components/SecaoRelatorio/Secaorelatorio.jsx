@@ -16,8 +16,8 @@
  *   carregando? : boolean
  */
 
-import BcButton from "../Bcbutton/BcButton";
-import "./Secaorelatorio.css";
+import BcBotao from "../BcBotao/BcBotao";
+import "./SecaoRelatorio.css";
 
 const IconeDownload = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -87,10 +87,10 @@ export default function SecaoRelatorio({
 
       {erro && <div className="sr-erro" role="alert">{erro}</div>}
 
-      <BcButton onClick={onBaixar} loading={baixando} disabled={carregando}>
+      <BcBotao onClick={onBaixar} loading={baixando} disabled={carregando}>
         <IconeDownload />
         {baixando ? "Gerando relatório..." : textoBotao}
-      </BcButton>
+      </BcBotao>
     </section>
   );
 }
