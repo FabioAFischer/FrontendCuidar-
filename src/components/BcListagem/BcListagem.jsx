@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
 import {
   IconeBusca,
@@ -9,7 +9,7 @@ import {
   IconeSetaDireita,
   IconeSetaEsquerda,
   IconeVisualizar,
-} from "../icons/Icons";
+} from "../icones/Icones";
 import "./BcListagem.css";
 
 /* IconeAtivar não está em Icons.jsx, então fica local */
@@ -88,9 +88,9 @@ export default function BcListagem({
         {filtrosToolbar}
 
         {textoBotao && onBotaoClick ? (
-          <BcButton onClick={onBotaoClick} fullWidth={false}>
+          <BcBotao onClick={onBotaoClick} fullWidth={false}>
             <IconeMais /> {textoBotao}
-          </BcButton>
+          </BcBotao>
         ) : null}
       </div>
 

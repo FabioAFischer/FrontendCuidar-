@@ -7,9 +7,9 @@
  *   idoso    : { id, nome }
  */
 import { useCallback, useEffect, useState } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcModal from "../BcModal/BcModal";
-import BcToast, { useBcToast } from "../BcToast/BcToast";
+import BcNotificacao, { useBcNotificacao } from "../BcNotificacao/BcNotificacao";
 import { listarVinculosPorIdoso, definirVinculoEmergencia } from "../../api/instituicaoApi";
 import "./ModalEmergencia.css";
 
@@ -25,7 +25,7 @@ const IconeEmergencia = () => (
 );
 
 export default function ModalEmergencia({ aberto, onFechar, idoso }) {
-  const { toastProps, mostrarToast } = useBcToast();
+  const { toastProps, mostrarToast } = useBcNotificacao();
   const [vinculos, setVinculos]           = useState([]);
   const [carregando, setCarregando]       = useState(false);
   const [salvando, setSalvando]           = useState(false);
@@ -74,7 +74,7 @@ export default function ModalEmergencia({ aberto, onFechar, idoso }) {
 
   return (
     <>
-      <BcToast {...toastProps} />
+      <BcNotificacao {...toastProps} />
       <BcModal aberto={aberto} onFechar={onFechar}>
         <div className="mem-wrap">
 
@@ -134,14 +134,14 @@ export default function ModalEmergencia({ aberto, onFechar, idoso }) {
             <button type="button" className="mem-btn-cancelar" onClick={onFechar}>
               Cancelar
             </button>
-            <BcButton
+            <BcBotao
               onClick={aoConfirmarSelecaoEmergencia}
               loading={salvando}
               disabled={carregando || vinculos.length === 0}
               fullWidth={false}
             >
               {mudou ? "Confirmar" : "Fechar"}
-            </BcButton>
+            </BcBotao>
           </div>
         </div>
       </BcModal>
