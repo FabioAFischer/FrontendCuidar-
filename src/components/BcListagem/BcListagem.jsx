@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcConfirmacao from "../BcConfirmacao/BcConfirmacao";
 import {
   IconeBusca,
@@ -9,7 +9,7 @@ import {
   IconeSetaDireita,
   IconeSetaEsquerda,
   IconeVisualizar,
-} from "../icons/Icons";
+} from "../icones/Icones";
 import "./BcListagem.css";
 
 /* IconeAtivar não está em Icons.jsx, então fica local */
@@ -65,7 +65,7 @@ export default function BcListagem({
     setPaginaAtual((pagina) => Math.min(pagina, totalPaginas));
   }, [totalPaginas]);
 
-  async function confirmarExclusao() {
+  async function aoConfirmarExclusao() {
     if (!itemParaExcluir || !onExcluir) return;
     await onExcluir(itemParaExcluir);
     setItemParaExcluir(null);
@@ -88,9 +88,9 @@ export default function BcListagem({
         {filtrosToolbar}
 
         {textoBotao && onBotaoClick ? (
-          <BcButton onClick={onBotaoClick} fullWidth={false}>
+          <BcBotao onClick={onBotaoClick} fullWidth={false}>
             <IconeMais /> {textoBotao}
-          </BcButton>
+          </BcBotao>
         ) : null}
       </div>
 
@@ -219,7 +219,7 @@ export default function BcListagem({
         carregando={excluindo}
         icone={itemParaExcluir?.status === "ATIVO" ? <IconeInativar /> : <IconeAtivar />}
         onCancelar={() => setItemParaExcluir(null)}
-        onConfirmar={confirmarExclusao}
+        onConfirmar={aoConfirmarExclusao}
       />
     </>
   );

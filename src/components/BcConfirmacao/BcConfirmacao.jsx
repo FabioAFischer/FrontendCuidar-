@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { IconeAlerta } from "../icons/Icons";
+import { IconeAlerta } from "../icones/Icones";
 import "./BcConfirmacao.css";
 
 export default function BcConfirmacao({
