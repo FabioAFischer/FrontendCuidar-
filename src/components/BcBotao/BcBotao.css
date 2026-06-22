@@ -1,0 +1,72 @@
+.bc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 15px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  overflow-wrap: anywhere;
+  transition: background 0.18s, opacity 0.18s, transform 0.1s;
+}
+
+.bc-button--full {
+  width: 100%;
+}
+
+/* Variante primária */
+.bc-button--primary {
+  background: #0d9e8a;
+  color: #fff;
+}
+.bc-button--primary:hover:not(:disabled) {
+  background: #0a7d6e;
+}
+.bc-button--primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Variante ghost */
+.bc-button--ghost {
+  background: transparent;
+  color: #0d9e8a;
+  border: 1.5px solid #0d9e8a;
+}
+.bc-button--ghost:hover:not(:disabled) {
+  background: #e6f7f5;
+}
+
+/* Desabilitado / loading */
+.bc-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner */
+.bc-button-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: bc-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes bc-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 420px) {
+  .bc-button {
+    padding: 13px 16px;
+    font-size: 15px;
+  }
+}

@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./env";
-import { somenteNumeros } from "../utils/validacaoDocumento";
+import { extrairSomenteNumeros } from "../utils/validacaoDocumento";
 
 const PERFIL_BACKEND = {
   administrador: "ADMINISTRADOR",
@@ -17,15 +17,15 @@ const SESSION_KEYS = [
   "usuarioIdentificador",
 ];
 
-function limparStorage(storage) {
+function limparArmazenamento(storage) {
   SESSION_KEYS.forEach((key) => storage.removeItem(key));
 }
 
-function getStorage(rememberMe) {
+function selecionarArmazenamentoSessao(rememberMe) {
   return rememberMe ? localStorage : sessionStorage;
 }
 
-async function fetchComTimeout(url, options = {}, timeout = 10000) {
+async function executarRequisicaoComTimeout(url, options = {}, timeout = 10000) {
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
@@ -42,10 +42,10 @@ async function fetchComTimeout(url, options = {}, timeout = 10000) {
 }
 
 function salvarSessao(data, rememberMe, identificador) {
-  const storage = getStorage(rememberMe);
+  const storage = selecionarArmazenamentoSessao(rememberMe);
   const storageAlternativo = rememberMe ? sessionStorage : localStorage;
 
-  limparStorage(storageAlternativo);
+  limparArmazenamento(storageAlternativo);
   storage.setItem("token", data.token);
   storage.setItem("tokenTipo", data.tipo || "Bearer");
   storage.setItem("perfil", data.perfil);
@@ -55,14 +55,14 @@ function salvarSessao(data, rememberMe, identificador) {
   if (identificador) storage.setItem("usuarioIdentificador", identificador);
 }
 
-export async function login({ identificador, senha, perfil, rememberMe = false }) {
+export async function autenticarUsuario({ identificador, senha, perfil, rememberMe = false }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
-  const identificadorNormalizado = somenteNumeros(identificador);
+  const identificadorNormalizado = extrairSomenteNumeros(identificador);
 
   let response;
 
   try {
-    response = await fetchComTimeout(`${API_BASE_URL}/auth/login`, {
+    response = await executarRequisicaoComTimeout(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -93,11 +93,11 @@ export async function login({ identificador, senha, perfil, rememberMe = false }
   return data;
 }
 
-export async function verificar2fa({ identificador, codigo, perfil, rememberMe = false }) {
+export async function validarCodigoDoisFatores({ identificador, codigo, perfil, rememberMe = false }) {
   const perfilBackend = PERFIL_BACKEND[perfil] || perfil;
-  const identificadorNormalizado = somenteNumeros(identificador);
+  const identificadorNormalizado = extrairSomenteNumeros(identificador);
 
-  const response = await fetchComTimeout(`${API_BASE_URL}/auth/verificar-2fa`, {
+  const response = await executarRequisicaoComTimeout(`${API_BASE_URL}/auth/verificar-2fa`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -117,21 +117,21 @@ export async function verificar2fa({ identificador, codigo, perfil, rememberMe =
   return data;
 }
 
-export function getAuthToken() {
+export function buscarTokenAutenticacao() {
   const tokenLocal = localStorage.getItem("token");
   const tokenSessao = sessionStorage.getItem("token");
   const token = tokenLocal || tokenSessao;
 
-  if (token && tokenInvalidoOuExpirado(token)) {
-    logout();
+  if (token && verificarTokenInvalidoOuExpirado(token)) {
+    encerrarSessaoUsuario();
     return null;
   }
 
   return token;
 }
 
-export function getAuthHeaders() {
-  const token = getAuthToken();
+export function montarCabecalhosAutenticacao() {
+  const token = buscarTokenAutenticacao();
 
   return token
     ? {
@@ -141,13 +141,13 @@ export function getAuthHeaders() {
     : { "Content-Type": "application/json" };
 }
 
-export function logout() {
-  limparStorage(localStorage);
-  limparStorage(sessionStorage);
+export function encerrarSessaoUsuario() {
+  limparArmazenamento(localStorage);
+  limparArmazenamento(sessionStorage);
 }
 
-function tokenInvalidoOuExpirado(token) {
-  const payload = decodificarPayloadJwt(token);
+function verificarTokenInvalidoOuExpirado(token) {
+  const payload = decodificarPayloadTokenJwt(token);
 
   if (!payload?.exp) {
     return true;
@@ -156,7 +156,7 @@ function tokenInvalidoOuExpirado(token) {
   return payload.exp * 1000 <= Date.now();
 }
 
-function decodificarPayloadJwt(token) {
+function decodificarPayloadTokenJwt(token) {
   try {
     const payloadBase64 = token.split(".")[1];
 

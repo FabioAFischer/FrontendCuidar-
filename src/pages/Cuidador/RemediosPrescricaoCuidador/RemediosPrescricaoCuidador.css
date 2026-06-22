@@ -1,0 +1,729 @@
+.cuidador-remedios-page {
+  min-height: 100vh;
+  background: #f0f4f4;
+}
+
+.cuidador-remedios-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+.cuidador-remedios-voltar {
+  position: sticky;
+  top: 16px;
+  z-index: 20;
+  min-height: 42px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid #d9e3e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #0d9e8a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-voltar:hover {
+  background: #e6f7f5;
+}
+
+.cuidador-remedios-voltar svg,
+.cuidador-remedios-page svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cuidador-remedios-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.82fr) minmax(470px, 1.55fr) minmax(270px, 0.82fr);
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.cuidador-remedios-centro {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cuidador-remedios-card {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e7ecef;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cuidador-remedios-card--fixo {
+  position: sticky;
+  top: 96px;
+}
+
+.cuidador-remedios-listagem {
+  position: sticky;
+  top: 96px;
+}
+
+.cuidador-remedios-card__header {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cuidador-remedios-busca-idoso {
+  position: relative;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.cuidador-remedios-busca-idoso span {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  display: inline-flex;
+  color: #667085;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.cuidador-remedios-busca-idoso input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px 0 44px;
+  border: 1.5px solid #dce6e5;
+  border-radius: 12px;
+  background: #fbfdfd;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.cuidador-remedios-busca-idoso input::placeholder {
+  color: #98a2b3;
+}
+
+.cuidador-remedios-busca-idoso input:focus {
+  border-color: #0d9e8a;
+  background: #fff;
+}
+
+.cuidador-remedios-titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  color: #1a1a1a;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.cuidador-remedios-titulo span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #0d9e8a;
+  background: #e6f7f5;
+}
+
+.cuidador-remedios-acao,
+.cuidador-remedios-prescrever {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dce6e5;
+  border-radius: 10px;
+  background: #fff;
+  color: #526263;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cuidador-remedios-acao {
+  width: 34px;
+  height: 34px;
+}
+
+.cuidador-remedios-acao:hover {
+  background: #e6f7f5;
+  color: #0d9e8a;
+}
+
+.cuidador-remedios-acao--perigo {
+  color: #e05252;
+}
+
+.cuidador-remedios-acao--sucesso {
+  color: #148553;
+}
+
+.cuidador-remedios-prescrever {
+  min-height: 38px;
+  padding: 9px 13px;
+  border: none;
+  background: #0d9e8a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.cuidador-remedios-prescricoes-lista {
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-prescricoes-lista::-webkit-scrollbar-thumb:hover {
+  background: #98a2b3;
+}
+
+.cuidador-remedios-vazio {
+  padding: 28px 18px;
+  border: 1px dashed #c9dcda;
+  border-radius: 12px;
+  background: #fbfdfd;
+  text-align: center;
+}
+
+.cuidador-remedios-vazio--alto {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cuidador-remedios-vazio p {
+  color: #475467;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-vazio small {
+  display: block;
+  max-width: 340px;
+  margin: 8px auto 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.cuidador-remedios-item,
+.cuidador-remedios-prescricao,
+.cuidador-remedios-agenda {
+  border: 1px solid #e3e9ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.cuidador-remedios-item,
+.cuidador-remedios-prescricao,
+.cuidador-remedios-agenda {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cuidador-remedios-item h3,
+.cuidador-remedios-prescricao h3 {
+  color: #1a1a1a;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.cuidador-remedios-item p,
+.cuidador-remedios-agenda p {
+  margin-top: 6px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.cuidador-remedios-item small,
+.cuidador-remedios-prescricao__topo span {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef6f5;
+  color: #0a7d6e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-prescricao {
+  padding: 12px 14px;
+}
+
+.cuidador-remedios-item small {
+  margin-top: 10px;
+}
+
+.cuidador-remedios-item__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cuidador-remedios-prescricao .cuidador-remedios-item__acoes {
+  align-self: stretch;
+  justify-content: center;
+}
+
+.cuidador-remedios-idosos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  max-height: 245px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-idosos::-webkit-scrollbar-thumb:hover {
+  background: #98a2b3;
+}
+
+.cuidador-remedios-idoso {
+  min-height: 116px;
+  padding: 16px;
+  border: 2px solid #e1e8eb;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.cuidador-remedios-idoso--selecionado {
+  border-color: #4db6ac;
+  background: #e0f2f1;
+  box-shadow: 0 8px 18px rgba(13, 158, 138, 0.1);
+}
+
+.cuidador-remedios-idoso strong,
+.cuidador-remedios-idoso span {
+  display: block;
+}
+
+.cuidador-remedios-idoso strong {
+  margin-bottom: 8px;
+  color: #1a1a1a;
+  font-size: 16px;
+}
+
+.cuidador-remedios-idoso span {
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cuidador-remedios-prescricao h3 {
+  color: #0a7d6e;
+  font-size: 17px;
+}
+
+.cuidador-remedios-prescricao__topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cuidador-remedios-prescricao dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cuidador-remedios-prescricao dl div {
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: #f5f8f8;
+}
+
+.cuidador-remedios-prescricao dt {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-prescricao dd {
+  margin-top: 3px;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-prescricao p {
+  margin-top: 10px;
+  color: #667085;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.cuidador-remedios-agenda-paciente {
+  margin: -4px 0 14px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-agenda--realizado {
+  border-color: #bde4cc;
+  background: #f0fbf4;
+}
+
+.cuidador-remedios-agenda__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+
+.cuidador-remedios-agenda__badges span {
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: #4db6ac;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-agenda__badges span:last-child {
+  background: #dcecff;
+  color: #2559a8;
+}
+
+.cuidador-remedios-agenda--realizado .cuidador-remedios-agenda__badges span:last-child {
+  background: #ccebd8;
+  color: #177245;
+}
+
+.cuidador-remedios-agenda time {
+  display: block;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-detalhes {
+  width: min(440px, calc(100vw - 32px));
+  padding: 28px;
+}
+
+.cuidador-remedios-detalhes__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.cuidador-remedios-detalhes__icone {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #0d9e8a;
+  background: #e6f7f5;
+}
+
+.cuidador-remedios-detalhes__header h2 {
+  color: #1a1a1a;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.cuidador-remedios-detalhes__header p {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.cuidador-remedios-detalhes__lista {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.cuidador-remedios-detalhes__lista div {
+  padding: 14px;
+  border: 1px solid #dce6e5;
+  border-radius: 12px;
+  background: #fbfdfd;
+}
+
+.cuidador-remedios-detalhes__lista dt {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-detalhes__lista dd {
+  margin-top: 6px;
+  color: #1a1a1a;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cuidador-remedios-prescricao-modal {
+  padding-bottom: 28px;
+}
+
+.cuidador-remedios-prescricao-paciente {
+  padding: 14px 16px;
+  border: 1px solid #dce6e5;
+  border-radius: 12px;
+  background: #fbfdfd;
+}
+
+.cuidador-remedios-prescricao-paciente span,
+.cuidador-remedios-prescricao-paciente small {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-prescricao-paciente strong {
+  display: block;
+  margin: 5px 0;
+  color: #1a1a1a;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.cuidador-remedios-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cuidador-remedios-select {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0 40px 0 16px;
+  border: 2px solid #c9ebe4;
+  border-radius: 12px;
+  background: #f2f2f2;
+  color: #1a1a1a;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.cuidador-remedios-select:focus {
+  border-color: #0d9e8a;
+  background: #fff;
+}
+
+.cuidador-remedios-combobox {
+  position: relative;
+}
+
+.cuidador-remedios-combobox__input {
+  padding-right: 16px;
+}
+
+.cuidador-remedios-combobox__lista {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #dce6e5;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(31, 47, 53, 0.14);
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cuidador-remedios-combobox__lista::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8c0cc;
+}
+
+.cuidador-remedios-combobox__opcao,
+.cuidador-remedios-combobox__vazio {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: #fff;
+  color: #1a1a1a;
+  font: inherit;
+  text-align: left;
+}
+
+.cuidador-remedios-combobox__opcao {
+  cursor: pointer;
+}
+
+.cuidador-remedios-combobox__opcao:hover,
+.cuidador-remedios-combobox__opcao--selecionada {
+  background: #e6f7f5;
+  color: #0a7d6e;
+}
+
+.cuidador-remedios-combobox__vazio {
+  color: #667085;
+}
+
+@media (max-width: 1180px) {
+  .cuidador-remedios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-remedios-card--fixo {
+    position: static;
+  }
+
+  .cuidador-remedios-listagem {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .cuidador-remedios-main {
+    padding: 24px 16px 36px;
+  }
+
+  .cuidador-remedios-voltar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cuidador-remedios-card {
+    padding: 16px;
+  }
+
+  .cuidador-remedios-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cuidador-remedios-titulo {
+    font-size: 16px;
+  }
+
+  .cuidador-remedios-prescrever {
+    width: 100%;
+  }
+
+  .cuidador-remedios-idosos,
+  .cuidador-remedios-prescricao dl {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-remedios-item,
+  .cuidador-remedios-prescricao,
+  .cuidador-remedios-agenda {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-remedios-item__acoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .cuidador-remedios-acao {
+    flex: 1 1 42px;
+    min-width: 42px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cuidador-remedios-main {
+    padding-inline: 12px;
+  }
+
+  .cuidador-remedios-card {
+    padding: 14px;
+  }
+
+  .cuidador-remedios-detalhes {
+    width: 100%;
+    padding: 24px 18px;
+  }
+
+  .cuidador-remedios-detalhes__header {
+    align-items: flex-start;
+  }
+
+  .cuidador-remedios-prescricoes-lista,
+  .cuidador-remedios-idosos {
+    max-height: none;
+  }
+}

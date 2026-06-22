@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAuthToken, logout } from "./api/authApi";
+import { buscarTokenAutenticacao, encerrarSessaoUsuario } from "./api/authApi";
 import BcConfirmacao from "./components/BcConfirmacao/BcConfirmacao";
-import { IconeSair } from "./components/icons/Icons";
-import AdminDashboard from "./pages/Administrador/DashBoard/Admindashboard";
-import LoginPage from "./pages/Auth/LoginPage";
-import CuidadorConsultas from "./pages/Cuidador/Consultas/CuidadorConsultas";
-import CuidadorDashboard from "./pages/Cuidador/Dashboard/CuidadorDashboard";
-import CuidadorIdososVinculados from "./pages/Cuidador/IdososVinculados/CuidadorIdososVinculados";
-import CuidadorRemediosPrescricao from "./pages/Cuidador/RemediosPrescricao/CuidadorRemediosPrescricao";
-import InstituicaoProfileHome from "./pages/Instituicao/ProfileHome/InstituicaoProfileHome";
+import { IconeSair } from "./components/icones/Icones";
+import PainelAdministrador from "./pages/Administrador/PainelAdministrador/PainelAdministrador";
+import PaginaLogin from "./pages/Autenticacao/PaginaLogin";
+import ConsultasCuidador from "./pages/Cuidador/ConsultasCuidador/ConsultasCuidador";
+import PainelCuidador from "./pages/Cuidador/PainelCuidador/PainelCuidador";
+import IdososVinculadosCuidador from "./pages/Cuidador/IdososVinculadosCuidador/IdososVinculadosCuidador";
+import RemediosPrescricaoCuidador from "./pages/Cuidador/RemediosPrescricaoCuidador/RemediosPrescricaoCuidador";
+import PainelInstituicao from "./pages/Instituicao/PainelInstituicao/PainelInstituicao";
 import "./styles/global.css";
 import "./App.css";
 
@@ -31,11 +31,11 @@ const ROUTE_PROFILE = {
   "area-instituicao": "INSTITUICAO",
 };
 
-function getStoredProfile() {
+function buscarPerfilArmazenado() {
   return localStorage.getItem("perfil") || sessionStorage.getItem("perfil");
 }
 
-function getRouteFromHash(hash) {
+function buscarRotaPeloHash(hash) {
   switch (hash) {
     case ROUTES.administrador:
       return "dashboard-admin";
@@ -60,7 +60,7 @@ function getRouteFromHash(hash) {
 }
 
 export default function App() {
-  const [tela, setTela] = useState(() => getRouteFromHash(window.location.hash));
+  const [tela, setTela] = useState(() => buscarRotaPeloHash(window.location.hash));
   const [confirmarSaida, setConfirmarSaida] = useState(false);
 
   useEffect(() => {
@@ -68,104 +68,104 @@ export default function App() {
       window.location.hash = ROUTES.login;
     }
 
-    function handleHashChange() {
-      setTela(getRouteFromHash(window.location.hash));
+    function aoAlterarHashNavegacao() {
+      setTela(buscarRotaPeloHash(window.location.hash));
     }
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("hashchange", aoAlterarHashNavegacao);
+    return () => window.removeEventListener("hashchange", aoAlterarHashNavegacao);
   }, []);
 
-  function navigateTo(route) {
+  function navegarParaRota(route) {
     window.location.hash = route;
   }
 
-  function solicitarLogout() {
+  function aoSolicitarSaidaDoSistema() {
     setConfirmarSaida(true);
   }
 
-  function handleLogout() {
-    logout();
+  function aoSairDoSistema() {
+    encerrarSessaoUsuario();
     setConfirmarSaida(false);
-    navigateTo(ROUTES.login);
+    navegarParaRota(ROUTES.login);
   }
 
-  function handleLogin(role) {
+  function aoEntrarNoSistema(role) {
     if (role === "administrador") {
-      navigateTo(ROUTES.administrador);
+      navegarParaRota(ROUTES.administrador);
       return;
     }
 
     if (role === "cuidador") {
-      navigateTo(ROUTES.cuidador);
+      navegarParaRota(ROUTES.cuidador);
       return;
     }
 
     if (role === "instituicao") {
-      navigateTo(ROUTES.instituicao);
+      navegarParaRota(ROUTES.instituicao);
     }
   }
 
-  function hasAccess(route) {
+  function verificarAcessoRota(route) {
     const requiredProfile = ROUTE_PROFILE[route];
 
     if (!requiredProfile) {
       return true;
     }
 
-    return Boolean(getAuthToken()) && getStoredProfile() === requiredProfile;
+    return Boolean(buscarTokenAutenticacao()) && buscarPerfilArmazenado() === requiredProfile;
   }
 
-  function renderTela() {
-    if (!hasAccess(tela)) {
-      logout();
-      navigateTo(ROUTES.login);
-      return <LoginPage onLogin={handleLogin} />;
+  function renderizarTelaAtual() {
+    if (!verificarAcessoRota(tela)) {
+      encerrarSessaoUsuario();
+      navegarParaRota(ROUTES.login);
+      return <PaginaLogin onLogin={aoEntrarNoSistema} />;
     }
 
     switch (tela) {
       case "login":
-        return <LoginPage onLogin={handleLogin} />;
+        return <PaginaLogin onLogin={aoEntrarNoSistema} />;
 
       case "dashboard-admin":
-        return <AdminDashboard onLogout={solicitarLogout} />;
+        return <PainelAdministrador onLogout={aoSolicitarSaidaDoSistema} />;
 
       case "area-cuidador":
         return (
-          <CuidadorDashboard
-            onLogout={solicitarLogout}
-            onOpenIdososVinculados={() => navigateTo(ROUTES.cuidadorIdososVinculados)}
-            onOpenConsultas={() => navigateTo(ROUTES.cuidadorConsultas)}
-            onOpenRemedios={() => navigateTo(ROUTES.cuidadorRemediosPrescricao)}
+          <PainelCuidador
+            onLogout={aoSolicitarSaidaDoSistema}
+            onOpenIdososVinculados={() => navegarParaRota(ROUTES.cuidadorIdososVinculados)}
+            onOpenConsultas={() => navegarParaRota(ROUTES.cuidadorConsultas)}
+            onOpenRemedios={() => navegarParaRota(ROUTES.cuidadorRemediosPrescricao)}
           />
         );
 
       case "cuidador-idosos-vinculados":
         return (
-          <CuidadorIdososVinculados
-            onLogout={solicitarLogout}
-            onBack={() => navigateTo(ROUTES.cuidador)}
+          <IdososVinculadosCuidador
+            onLogout={aoSolicitarSaidaDoSistema}
+            onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
         );
 
       case "cuidador-consultas":
         return (
-          <CuidadorConsultas
-            onLogout={solicitarLogout}
-            onBack={() => navigateTo(ROUTES.cuidador)}
+          <ConsultasCuidador
+            onLogout={aoSolicitarSaidaDoSistema}
+            onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
         );
 
       case "cuidador-remedios-prescricao":
         return (
-          <CuidadorRemediosPrescricao
-            onLogout={solicitarLogout}
-            onBack={() => navigateTo(ROUTES.cuidador)}
+          <RemediosPrescricaoCuidador
+            onLogout={aoSolicitarSaidaDoSistema}
+            onBack={() => navegarParaRota(ROUTES.cuidador)}
           />
         );
 
       case "area-instituicao":
-        return <InstituicaoProfileHome onLogout={solicitarLogout} />;
+        return <PainelInstituicao onLogout={aoSolicitarSaidaDoSistema} />;
 
       default:
         return (
@@ -178,7 +178,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {renderTela()}
+      {renderizarTelaAtual()}
       <BcConfirmacao
         aberto={confirmarSaida}
         titulo="Sair da conta?"
@@ -186,7 +186,7 @@ export default function App() {
         textoConfirmar="Sair"
         icone={<IconeSair />}
         onCancelar={() => setConfirmarSaida(false)}
-        onConfirmar={handleLogout}
+        onConfirmar={aoSairDoSistema}
       />
     </div>
   );

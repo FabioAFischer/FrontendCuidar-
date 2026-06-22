@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import BcButton from "../Bcbutton/BcButton";
+import BcBotao from "../BcBotao/BcBotao";
 import BcModal from "../BcModal/BcModal";
-import BcInput from "../Bcinput/BcInput";
-import BcPasswordStrength from "../BcPasswordStrength/BcPasswordStrength";
+import BcCampoTexto from "../BcCampoTexto/BcCampoTexto";
+import BcForcaSenha from "../BcForcaSenha/BcForcaSenha";
 import { buscarPerfilUsuario } from "../../api/perfilApi";
 import {
   enviarIdentificador,
@@ -15,7 +15,7 @@ import {
   IconeSucesso,
   IconeOlhoAberto,
   IconeOlhoFechado,
-} from "../icons/Icons";
+} from "../icones/Icones";
 import "./BcPerfilModal.css";
 
 /* ── Ícone chave (local, não existe em Icons.js) ── */
@@ -29,7 +29,7 @@ const IconeChave = () => (
 );
 
 /* ── Helpers ── */
-function formatarCNPJ(v = "") {
+function formatarCnpj(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 14);
   return n
     .replace(/(\d{2})(\d)/, "$1.$2")
@@ -38,7 +38,7 @@ function formatarCNPJ(v = "") {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
 }
 
-function formatarCPF(v = "") {
+function formatarCpf(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 11);
   return n
     .replace(/(\d{3})(\d)/, "$1.$2")
@@ -46,7 +46,7 @@ function formatarCPF(v = "") {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
-function formatarCEP(v = "") {
+function formatarCep(v = "") {
   const n = String(v).replace(/\D/g, "").slice(0, 8);
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
@@ -57,12 +57,12 @@ function formatarTelefone(ddd = "", tel = "") {
   return ddd ? `(${ddd}) ${formatted}` : formatted;
 }
 
-function labelPerfil(perfil) {
+function formatarLabelPerfil(perfil) {
   const map = { INSTITUICAO: "Instituição", CUIDADOR: "Cuidador", ADMINISTRADOR: "Administrador" };
   return map[perfil] || perfil;
 }
 
-function inicial(nome = "") {
+function gerarInicialNome(nome = "") {
   return String(nome).charAt(0).toUpperCase() || "?";
 }
 
@@ -106,7 +106,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
   const email = localStorage.getItem("usuarioEmail")
     || sessionStorage.getItem("usuarioEmail") || "";
 
-  async function handleSolicitarCodigo(e) {
+  async function aoSolicitarCodigoRedefinicaoSenha(e) {
     e.preventDefault();
     setErro("");
     const erroSenha = validarSenha(novaSenha);
@@ -121,7 +121,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
     finally { setLoading(false); }
   }
 
-  async function handleConfirmarCodigo(e) {
+  async function aoConfirmarCodigoRedefinicaoSenha(e) {
     e.preventDefault();
     setErro("");
     if (codigo.trim().length !== 6) { setErro("O código deve ter 6 dígitos."); return; }
@@ -141,7 +141,7 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
           <div className="bcp-redefinir__sucesso-icone"><IconeSucesso /></div>
           <h3>Senha alterada!</h3>
           <p>Sua senha foi redefinida com sucesso.</p>
-          <BcButton onClick={onConcluir}>Fechar</BcButton>
+          <BcBotao onClick={onConcluir}>Fechar</BcBotao>
         </div>
       </div>
     );
@@ -167,8 +167,8 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
               Crie uma senha forte com pelo menos 8 caracteres, maiúscula, minúscula, número e símbolo.
             </p>
           </div>
-          <form className="bcp-redefinir__form" onSubmit={handleSolicitarCodigo} noValidate>
-            <BcInput
+          <form className="bcp-redefinir__form" onSubmit={aoSolicitarCodigoRedefinicaoSenha} noValidate>
+            <BcCampoTexto
               label="Nova senha" name="rp-nova"
               type={showNova ? "text" : "password"} placeholder="Crie uma senha forte"
               value={novaSenha} onChange={e => { setNovaSenha(e.target.value); setErro(""); }}
@@ -178,9 +178,9 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
                   {showNova ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
                 </button>
               }
-              hint={<BcPasswordStrength password={novaSenha} />}
+              hint={<BcForcaSenha password={novaSenha} />}
             />
-            <BcInput
+            <BcCampoTexto
               label="Confirmar nova senha" name="rp-confirmar"
               type={showConfirmar ? "text" : "password"} placeholder="Repita a senha"
               value={confirmar} onChange={e => { setConfirmar(e.target.value); setErro(""); }}
@@ -200,8 +200,8 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
             />
             {erro && <div className="bcp-erro" role="alert">{erro}</div>}
             <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={onVoltar}>Voltar</BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Continuar</BcButton>
+              <BcBotao variant="ghost" onClick={onVoltar}>Voltar</BcBotao>
+              <BcBotao type="submit" loading={loading} fullWidth={false}>Continuar</BcBotao>
             </div>
           </form>
         </>
@@ -218,18 +218,18 @@ function RedefinirSenha({ onVoltar, onConcluir }) {
               Insira o código para confirmar a troca de senha.
             </p>
           </div>
-          <form className="bcp-redefinir__form" onSubmit={handleConfirmarCodigo} noValidate>
-            <BcInput
+          <form className="bcp-redefinir__form" onSubmit={aoConfirmarCodigoRedefinicaoSenha} noValidate>
+            <BcCampoTexto
               label="Código de verificação" name="rp-codigo" type="text"
               placeholder="000000" value={codigo}
               onChange={e => { setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setErro(""); }}
               autoComplete="one-time-code" maxLength={6} error={erro}
             />
             <div className="bcp-redefinir__acoes">
-              <BcButton variant="ghost" onClick={() => { setPasso("nova-senha"); setErro(""); setCodigo(""); }}>
+              <BcBotao variant="ghost" onClick={() => { setPasso("nova-senha"); setErro(""); setCodigo(""); }}>
                 Voltar
-              </BcButton>
-              <BcButton type="submit" loading={loading} fullWidth={false}>Salvar senha</BcButton>
+              </BcBotao>
+              <BcBotao type="submit" loading={loading} fullWidth={false}>Salvar senha</BcBotao>
             </div>
           </form>
         </>
@@ -263,20 +263,20 @@ export default function BcPerfilModal({ aberto, onFechar }) {
       .finally(() => setCarregando(false));
   }, [aberto]);
 
-  function handleFechar() {
+  function aoFecharModal() {
     setRedefinindo(false);
     onFechar();
   }
 
   return (
-    <BcModal aberto={aberto} onFechar={handleFechar}>
+    <BcModal aberto={aberto} onFechar={aoFecharModal}>
       <div className="bcp-wrap">
 
         <div className="bcp-header">
-          <div className="bcp-header__avatar">{inicial(nome)}</div>
+          <div className="bcp-header__avatar">{gerarInicialNome(nome)}</div>
           <div className="bcp-header__info">
             <strong className="bcp-header__nome">{nome}</strong>
-            <span className="bcp-header__perfil">{labelPerfil(perfil)}</span>
+            <span className="bcp-header__perfil">{formatarLabelPerfil(perfil)}</span>
           </div>
         </div>
 
@@ -290,21 +290,21 @@ export default function BcPerfilModal({ aberto, onFechar }) {
               <CampoInfo label="Email" valor={dados.email} />
               {perfil === "INSTITUICAO" && (
                 <>
-                  <CampoInfo label="CNPJ"   valor={formatarCNPJ(dados.cnpj)} />
+                  <CampoInfo label="CNPJ"   valor={formatarCnpj(dados.cnpj)} />
                   <CampoInfo label="Rua"    valor={dados.rua} />
                   <CampoInfo label="Bairro" valor={dados.bairro} />
                   <CampoInfo label="UF"     valor={dados.uf} />
-                  <CampoInfo label="CEP"    valor={formatarCEP(dados.cep)} />
+                  <CampoInfo label="CEP"    valor={formatarCep(dados.cep)} />
                 </>
               )}
               {perfil === "CUIDADOR" && (
                 <>
-                  <CampoInfo label="CPF"      valor={formatarCPF(dados.cpf)} />
+                  <CampoInfo label="CPF"      valor={formatarCpf(dados.cpf)} />
                   <CampoInfo label="Telefone" valor={dados.contato ? formatarTelefone(dados.contato.ddd, dados.contato.telefone) : ""} />
                 </>
               )}
               {perfil === "ADMINISTRADOR" && (
-                <CampoInfo label="CPF" valor={formatarCPF(dados.cpf)} />
+                <CampoInfo label="CPF" valor={formatarCpf(dados.cpf)} />
               )}
               <CampoInfo label="Status" valor={dados.status} />
             </div>
@@ -319,7 +319,7 @@ export default function BcPerfilModal({ aberto, onFechar }) {
         {!carregando && redefinindo && (
           <RedefinirSenha
             onVoltar={() => setRedefinindo(false)}
-            onConcluir={handleFechar}
+            onConcluir={aoFecharModal}
           />
         )}
 

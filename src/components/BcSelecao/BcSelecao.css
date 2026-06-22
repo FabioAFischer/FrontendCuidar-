@@ -1,0 +1,64 @@
+.bc-select {
+  position: relative;
+  width: min(220px, 100%);
+  min-width: 0;
+}
+
+.bc-select__field {
+  width: 100%;
+  height: 44px;
+  padding: 0 42px 0 14px;
+
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+
+  background: #fff;
+  color: #24324a;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  outline: none;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.bc-select__field:hover {
+  border-color: #b7c7dd;
+  background: #f8fbff;
+}
+
+.bc-select__field:focus {
+  border-color: #4f8cff;
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.12);
+}
+
+.bc-select__icon {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  color: #6b7a90;
+  transition: transform 0.2s ease;
+}
+
+.bc-select__field:focus + .bc-select__icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .bc-select {
+    width: 100%;
+  }
+}

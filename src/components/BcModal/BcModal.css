@@ -73,3 +73,31 @@
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+@media (max-width: 640px) {
+  .bcmodal-overlay {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .bcmodal-content {
+    max-width: none;
+    max-height: calc(100dvh - 20px);
+    border-radius: 16px 16px 10px 10px;
+  }
+
+  .bcmodal-fechar {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .bcmodal-overlay {
+    padding: 6px;
+  }
+
+  .bcmodal-content {
+    max-height: calc(100dvh - 12px);
+  }
+}

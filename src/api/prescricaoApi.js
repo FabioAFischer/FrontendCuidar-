@@ -1,7 +1,7 @@
-import { getAuthHeaders, getAuthToken } from "./authApi";
+import { montarCabecalhosAutenticacao, buscarTokenAutenticacao } from "./authApi";
 import { API_BASE_URL } from "./env";
 
-async function getErrorMessage(response, fallback) {
+async function extrairMensagemErro(response, fallback) {
   const erro = await response.json().catch(() => ({}));
 
   if (response.status === 401) {
@@ -15,29 +15,29 @@ async function getErrorMessage(response, fallback) {
   return erro.message || fallback;
 }
 
-async function requestApi(path, { method = "GET", dados, fallback } = {}) {
-  if (!getAuthToken()) {
+async function executarRequisicaoApi(path, { method = "GET", dados, fallback } = {}) {
+  if (!buscarTokenAutenticacao()) {
     throw new Error("Sua sessao expirou ou o login nao foi encontrado.");
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: getAuthHeaders(),
+    headers: montarCabecalhosAutenticacao(),
     body: dados ? JSON.stringify(dados) : undefined,
   });
 
   if (!response.ok) {
-    throw new Error(await getErrorMessage(response, fallback));
+    throw new Error(await extrairMensagemErro(response, fallback));
   }
 
   return response.json().catch(() => null);
 }
 
-function conteudoPaginado(data) {
+function extrairConteudoPaginado(data) {
   return Array.isArray(data?.content) ? data.content : [];
 }
 
-function normalizarPrescricao(dados) {
+function normalizarDadosPrescricao(dados) {
   return {
     remedioId: Number(dados.remedioId),
     idosoId: Number(dados.idosoId),
@@ -54,31 +54,31 @@ export async function listarPrescricoesPorIdoso(idosoId, page = 0, size = 100) {
     return [];
   }
 
-  const data = await requestApi(`/prescricao/idoso/${idosoId}?page=${page}&size=${size}`, {
+  const data = await executarRequisicaoApi(`/prescricao/idoso/${idosoId}?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar prescricoes.",
   });
 
-  return conteudoPaginado(data);
+  return extrairConteudoPaginado(data);
 }
 
 export async function cadastrarPrescricao(dados) {
-  return requestApi("/prescricao/cadastrar", {
+  return executarRequisicaoApi("/prescricao/cadastrar", {
     method: "POST",
-    dados: normalizarPrescricao(dados),
+    dados: normalizarDadosPrescricao(dados),
     fallback: "Erro ao cadastrar prescricao.",
   });
 }
 
 export async function atualizarPrescricao(id, dados) {
-  return requestApi(`/prescricao/atualizar/${id}`, {
+  return executarRequisicaoApi(`/prescricao/atualizar/${id}`, {
     method: "PUT",
-    dados: normalizarPrescricao(dados),
+    dados: normalizarDadosPrescricao(dados),
     fallback: "Erro ao atualizar prescricao.",
   });
 }
 
 export async function inativarPrescricao(id) {
-  return requestApi(`/prescricao/deletar/${id}`, {
+  return executarRequisicaoApi(`/prescricao/deletar/${id}`, {
     method: "DELETE",
     fallback: "Erro ao deletar prescricao.",
   });
