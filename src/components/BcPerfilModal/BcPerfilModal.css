@@ -35,12 +35,14 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  min-width: 0;
 }
 
 .bcp-header__nome {
   font-size: 16px;
   font-weight: 700;
   color: #163737;
+  overflow-wrap: anywhere;
 }
 
 .bcp-header__perfil {
@@ -273,4 +275,39 @@
   font-weight: 700;
   color: #163737;
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .bcmodal-content:has(.bcp-wrap) {
+    max-width: none;
+  }
+
+  .bcp-wrap {
+    padding: 24px 18px 26px;
+  }
+
+  .bcp-header {
+    align-items: flex-start;
+    padding-right: 36px;
+  }
+
+  .bcp-campo {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bcp-campo__valor {
+    text-align: left;
+  }
+
+  .bcp-redefinir__acoes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .bcp-wrap {
+    padding-inline: 14px;
+  }
 }

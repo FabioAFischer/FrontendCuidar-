@@ -3,6 +3,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 0;
   padding: 15px 24px;
   font-size: 16px;
   font-weight: 600;
@@ -10,6 +11,8 @@
   border-radius: 14px;
   border: none;
   cursor: pointer;
+  text-align: center;
+  overflow-wrap: anywhere;
   transition: background 0.18s, opacity 0.18s, transform 0.1s;
 }
 
@@ -59,4 +62,11 @@
 
 @keyframes bc-spin {
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 420px) {
+  .bc-button {
+    padding: 13px 16px;
+    font-size: 15px;
+  }
 }

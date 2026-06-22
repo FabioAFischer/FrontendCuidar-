@@ -537,8 +537,13 @@
 }
 
 @media (max-width: 480px) {
+  .cuidador-main {
+    padding-inline: 12px;
+  }
+
   .cuidador-action-card {
     grid-template-columns: auto minmax(0, 1fr);
+    padding: 18px;
   }
 
   .cuidador-action-card__arrow {
@@ -546,7 +551,27 @@
   }
 
   .cuidador-patient-card {
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
     padding: 18px;
+  }
+
+  .cuidador-agenda-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cuidador-agenda-card__date,
+  .cuidador-agenda-card__confirm {
+    grid-column: 1;
+  }
+
+  .cuidador-agenda-card__confirm {
+    width: 100%;
+  }
+
+  .cuidador-summary dl div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }

@@ -105,3 +105,19 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 420px) {
+  .bc-confirmacao-overlay {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .bc-confirmacao {
+    max-width: none;
+    padding: 24px 18px;
+  }
+
+  .bc-confirmacao__acoes {
+    grid-template-columns: 1fr;
+  }
+}

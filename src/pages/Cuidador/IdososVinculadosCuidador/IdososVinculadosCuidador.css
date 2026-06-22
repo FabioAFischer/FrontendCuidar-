@@ -285,11 +285,36 @@
   .cuidador-idosos-busca {
     width: 100%;
   }
+
+  .cuidador-idosos-senha-modal__acoes {
+    flex-direction: column-reverse;
+  }
+
+  .cuidador-idosos-senha-modal__acoes .bc-button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
-  .cuidador-idosos-card {
-    align-items: center;
+  .cuidador-idosos-main {
+    padding-inline: 12px;
+  }
+
+  .cuidador-idosos-header {
     padding: 18px;
+  }
+
+  .cuidador-idosos-header > div {
+    align-items: flex-start;
+  }
+
+  .cuidador-idosos-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .cuidador-idosos-card__senha {
+    width: 100%;
   }
 }

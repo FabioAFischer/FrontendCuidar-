@@ -323,16 +323,38 @@
 
 @media (max-width: 640px) {
   .bc-listagem-toolbar {
+    padding: 14px;
     flex-direction: column;
     align-items: stretch;
   }
 
   .bc-listagem-buscaWrap {
+    min-width: 0;
     max-width: 100%;
   }
 
+  .bc-listagem-header {
+    padding: 14px;
+  }
+
+  .bc-listagem-titulo {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .bc-listagem-tabela {
+    min-width: 640px;
+  }
+
+  .bc-listagem-tabela th,
+  .bc-listagem-tabela td {
+    padding: 12px 14px;
+  }
+
   .bc-listagem-paginacao {
+    padding: 12px 14px;
     align-items: stretch;
+    flex-direction: column;
   }
 
   .bc-listagem-paginacaoAcoes {
@@ -345,10 +367,23 @@
   }
 }
 
+@media (max-width: 420px) {
+  .bc-listagem-tabela {
+    min-width: 560px;
+    font-size: 13px;
+  }
+
+  .bc-listagem-acoes,
+  .bc-listagem-acoesCabecalho {
+    width: 96px;
+  }
+}
+
 .bc-listagem-toolbarFiltros {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .bc-listagem-btnAtivar {
@@ -359,4 +394,16 @@
   background: rgba(22, 163, 74, 0.12);
   color: #16a34a;
   border-color: rgba(22, 163, 74, 0.2);
+}
+
+@media (max-width: 640px) {
+  .bc-listagem-toolbarFiltros {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bc-listagem-toolbarFiltros > * {
+    width: 100%;
+  }
 }

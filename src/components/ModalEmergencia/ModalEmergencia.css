@@ -183,3 +183,42 @@
   background: #f5f7fa;
   border-color: #b0bec5;
 }
+
+@media (max-width: 640px) {
+  .bcmodal-content:has(.mem-wrap) {
+    max-width: none;
+  }
+
+  .mem-wrap {
+    padding: 24px 18px 20px;
+  }
+
+  .mem-header {
+    align-items: flex-start;
+    padding-right: 36px;
+  }
+
+  .mem-lista {
+    max-height: min(420px, 48dvh);
+  }
+
+  .mem-item {
+    align-items: flex-start;
+  }
+
+  .mem-footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .mem-footer .bc-button,
+  .mem-btn-cancelar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .mem-wrap {
+    padding-inline: 14px;
+  }
+}

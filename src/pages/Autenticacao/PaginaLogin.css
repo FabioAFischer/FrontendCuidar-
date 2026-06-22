@@ -493,6 +493,14 @@
 }
 
 @media (max-width: 640px) {
+  .login-page {
+    min-height: 100dvh;
+  }
+
+  .login-page__hero {
+    padding: 28px 18px 8px;
+  }
+
   .login-card {
     padding: 24px 18px;
     border-radius: 22px;
@@ -506,5 +514,24 @@
   .login-card__footer {
     align-items: flex-start;
     justify-content: flex-start;
+  }
+
+  .login-card__footer {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-page__hero,
+  .login-page__panel {
+    padding-inline: 12px;
+  }
+
+  .login-page__hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .login-card {
+    padding: 22px 14px;
   }
 }
