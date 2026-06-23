@@ -318,8 +318,8 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
             onClick={onOpenRemedios}
           />
           <CartaoAcaoRapida
-            title="Consultas"
-            description="Cadastrar e ver consultas agendadas"
+            title="Agendamentos"
+            description="Cadastrar e ver agendamentos"
             icon={<IconeCalendario />}
             onClick={onOpenConsultas}
           />
