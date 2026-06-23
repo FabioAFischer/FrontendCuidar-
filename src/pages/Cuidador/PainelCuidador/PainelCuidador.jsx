@@ -6,7 +6,6 @@ import {
   IconeCalendario,
   IconeCheck,
   IconeIdosos,
-  IconePerfil,
   IconeRemedio,
   IconeSair,
   IconeSetaDireita,
@@ -309,10 +308,6 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
             <h1>Ola, {nomeCuidador}!</h1>
             <p>Bem-vindo ao seu painel de gerenciamento.</p>
           </div>
-          <BcBotao variant="ghost" fullWidth={false}>
-            <IconePerfil />
-            Meu Perfil
-          </BcBotao>
         </section>
 
         <section className="cuidador-actions" aria-label="Acoes rapidas">
