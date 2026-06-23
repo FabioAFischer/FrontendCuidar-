@@ -199,13 +199,13 @@ function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir, onLembret
             <IconeSino />
           </BotaoIcone>
         ) : null}
-        <BotaoIcone label="Visualizar consulta" onClick={() => onVisualizar(consulta)}>
+        <BotaoIcone label="Visualizar agendamento" onClick={() => onVisualizar(consulta)}>
           <IconeVisualizar />
         </BotaoIcone>
-        <BotaoIcone label="Editar consulta" onClick={() => onEditar(consulta)}>
+        <BotaoIcone label="Editar agendamento" onClick={() => onEditar(consulta)}>
           <IconeEditar />
         </BotaoIcone>
-        <BotaoIcone label="Excluir consulta" tipo="perigo" onClick={() => onExcluir(consulta)}>
+        <BotaoIcone label="Excluir agendamento" tipo="perigo" onClick={() => onExcluir(consulta)}>
           <IconeLixeira />
         </BotaoIcone>
       </div>
@@ -334,12 +334,12 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
   function validarFormulario() {
     if (!form.idosoId) return "Selecione um idoso.";
-    if (!form.data) return "Informe a data da consulta.";
-    if (!form.hora) return "Informe o horario da consulta.";
+    if (!form.data) return "Informe a data do agendamento.";
+    if (!form.hora) return "Informe o horario do agendamento.";
     if (!form.tipoAlerta) return "Selecione o tipo do alerta.";
     if (!form.medico.trim()) return "Informe o nome do medico.";
     if (!form.especialidade.trim()) return "Informe a especialidade.";
-    if (!form.local.trim()) return "Informe o local da consulta.";
+    if (!form.local.trim()) return "Informe o local do agendamento.";
     return "";
   }
 
@@ -398,7 +398,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               : consulta
           )
         );
-        mostrarToast("sucesso", "Consulta atualizada", "As alteracoes da consulta foram salvas e o alerta foi atualizado.");
+        mostrarToast("sucesso", "Agendamento atualizado", "As alteracoes do agendamento foram salvas e o alerta foi atualizado.");
       } else {
         setConsultas((anteriores) => [
           {
@@ -444,7 +444,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         consulta.id === consultaSelecionada.id ? { ...consulta, lembreteEnviado: true } : consulta
       )
     );
-    mostrarToast("sucesso", "Lembrete enviado", `Consulta de ${consultaSelecionada.idosoNome}.`);
+    mostrarToast("sucesso", "Lembrete enviado", `Agendamento de ${consultaSelecionada.idosoNome}.`);
   }
 
   return (
@@ -452,8 +452,8 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
       <BcNotificacao {...toastProps} />
 
       <BcBarraSuperior
-        title="Consultas dos Idosos"
-        subtitle="Gerencie consultas medicas e lembretes"
+        title="Agendamentos dos Idosos"
+        subtitle="Gerencie agendamentos medicos e lembretes"
         actionLabel="Sair"
         actionIcon={<IconeSair />}
         onAction={onLogout}
@@ -466,8 +466,8 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         </button>
 
         <section className="cuidador-consultas-stats" aria-label="Resumo das consultas">
-          <CartaoEstatistica label="Total de Consultas" valor={consultas.length} tipo="total" />
-          <CartaoEstatistica label="Proximas Consultas" valor={proximas.length} tipo="proximas" />
+          <CartaoEstatistica label="Total de Agendamentos" valor={consultas.length} tipo="total" />
+          <CartaoEstatistica label="Proximos Agendamentos" valor={proximas.length} tipo="proximas" />
           <CartaoEstatistica label="Confirmadas" valor={consultas.filter((consulta) => consulta.status === "confirmada").length} tipo="confirmadas" />
           <CartaoEstatistica label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
         </section>
@@ -506,7 +506,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             disabled={carregandoIdosos || idosos.length === 0}
           >
             <IconeMais />
-            Nova Consulta
+            Novo Agendamento
           </BcBotao>
         </section>
 
@@ -520,13 +520,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         {!carregandoIdosos && idosos.length === 0 ? (
           <div className="cuidador-consultas-alerta cuidador-consultas-alerta--aviso">
             <strong>Nenhum idoso vinculado.</strong>
-            <span>E necessario ter idosos vinculados ao cuidador para criar consultas.</span>
+            <span>E necessario ter idosos vinculados ao cuidador para criar agendamentos.</span>
           </div>
         ) : null}
 
         <section className="cuidador-consultas-listagem" aria-labelledby="consultas-titulo">
           <div className="cuidador-consultas-listagem__header">
-            <h2 id="consultas-titulo"><IconeCalendario /> Consultas Agendadas</h2>
+            <h2 id="consultas-titulo"><IconeCalendario /> Agendamentos</h2>
             <span>{consultasFiltradas.length}</span>
           </div>
 
@@ -546,7 +546,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           ) : (
             <div className="cuidador-consultas-vazio">
               <span><IconeCalendario /></span>
-              <p>{busca || statusFiltro !== "todos" || idosoFiltro !== "todos" ? "Nenhuma consulta encontrada." : "Nenhuma consulta agendada ainda."}</p>
+              <p>{busca || statusFiltro !== "todos" || idosoFiltro !== "todos" ? "Nenhum agendamento encontrado." : "Nenhum agendamento ainda."}</p>
             </div>
           )}
         </section>
@@ -554,7 +554,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
       <BcModal aberto={modalAberto} onFechar={fecharFormulario}>
         <BcFormularioModal
-          title={consultaEmEdicao ? "Editar Consulta" : "Nova Consulta"}
+          title={consultaEmEdicao ? "Editar Agendamento" : "Novo Agendamento"}
           subtitle={consultaEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
           error={erroFormulario}
           onSubmit={aoSalvarConsulta}
@@ -605,13 +605,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             id="consulta-observacoes"
             label="Observacoes"
             name="observacoes"
-            placeholder="Informacoes adicionais sobre a consulta..."
+            placeholder="Informacoes adicionais sobre o agendamento..."
             value={form.observacoes}
             onChange={aoAlterarFormularioConsulta}
           />
 
           <BcBotao type="submit" loading={salvandoConsulta}>
-            {consultaEmEdicao ? "Salvar alterações" : "Cadastrar consulta"}
+            {consultaEmEdicao ? "Salvar alterações" : "Cadastrar agendamento"}
           </BcBotao>
         </BcFormularioModal>
       </BcModal>
@@ -621,7 +621,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           <header className="cuidador-consultas-detalhes__header">
             <span><IconeCalendario /></span>
             <div>
-              <h2>Detalhes da Consulta</h2>
+              <h2>Detalhes do Agendamento</h2>
               <p>{consultaEmVisualizacao?.idosoNome}</p>
             </div>
           </header>
@@ -654,7 +654,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               }}
               fullWidth={false}
             >
-              Editar consulta
+              Editar agendamento
             </BcBotao>
           </div>
         </section>
@@ -662,8 +662,8 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
       <BcConfirmacao
         aberto={Boolean(consultaParaExcluir)}
-        titulo="Excluir consulta?"
-        mensagem="A consulta sera removida da agenda do cuidador."
+        titulo="Excluir agendamento?"
+        mensagem="O agendamento sera removido da agenda do cuidador."
         textoConfirmar="Excluir"
         textoCarregando="Excluindo..."
         icone={<IconeLixeira />}
