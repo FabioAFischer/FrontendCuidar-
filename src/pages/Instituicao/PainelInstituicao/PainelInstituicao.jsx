@@ -575,7 +575,7 @@ export default function PainelInstituicao({ onLogout }) {
             label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
             name="senha"
             type={mostrarSenhaCuidador ? "text" : "password"}
-            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
+            placeholder="Crie uma senha"
             value={formCuidador.senha}
             onChange={atualizarCuidador}
             autoComplete="new-password"
@@ -590,7 +590,7 @@ export default function PainelInstituicao({ onLogout }) {
             label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
             name="confirmarSenha"
             type={mostrarConfirmarSenhaCuidador ? "text" : "password"}
-            placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
+            placeholder="Confirme sua senha"
             value={formCuidador.confirmarSenha}
             onChange={atualizarCuidador}
             autoComplete="new-password"
