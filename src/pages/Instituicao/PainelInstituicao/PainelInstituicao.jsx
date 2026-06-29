@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import BcBotao from "../../../components/BcBotao/BcBotao";
 import BcFormularioModal, { BcFormularioModalLinha, BcFormularioModalAreaTexto } from "../../../components/BcFormularioModal/BcFormularioModal";
 import BcCampoTexto from "../../../components/BcCampoTexto/BcCampoTexto";
+import BcForcaSenha from "../../../components/BcForcaSenha/BcForcaSenha";
 import BcListagem from "../../../components/BcListagem/BcListagem";
 import BcModal from "../../../components/BcModal/BcModal";
 import BcBarraSuperior from "../../../components/BcBarraSuperior/BcBarraSuperior";
@@ -26,6 +27,8 @@ import { gerarRelatorioInstituicaoPDF } from "../../../utils/gerarRelatorioInsti
 import {
   IconeCuidadores,
   IconeIdosos,
+  IconeOlhoAberto,
+  IconeOlhoFechado,
   IconeSair,
 } from "../../../components/icones/Icones";
 import { verificarCpfDisponivel, validarCpf, extrairSomenteNumeros, validarCelular } from "../../../utils/validacaoDocumento";
@@ -84,6 +87,8 @@ export default function PainelInstituicao({ onLogout }) {
   const [erroIdoso, setErroIdoso]                       = useState("");
   const [idosoGerenciar, setIdosoGerenciar]             = useState(null);
   const [idosoEmergencia, setIdosoEmergencia]           = useState(null);
+  const [mostrarSenhaCuidador, setMostrarSenhaCuidador] = useState(false);
+  const [mostrarConfirmarSenhaCuidador, setMostrarConfirmarSenhaCuidador] = useState(false);
 
   const [dadosRelatorio, setDadosRelatorio] = useState(RELATORIO_INICIAL);
   const [carregandoRel, setCarregandoRel]   = useState(false);
@@ -246,6 +251,8 @@ export default function PainelInstituicao({ onLogout }) {
   function limparFormularioCuidador() {
     setFormCuidador({ cpf: "", nome: "", email: "", senha: "", confirmarSenha: "", ddd: "", telefone: "", contatoId: null });
     setCuidadorParaReativar(null);
+    setMostrarSenhaCuidador(false);
+    setMostrarConfirmarSenhaCuidador(false);
   }
 
   function limparFormularioIdoso() {
@@ -298,6 +305,9 @@ export default function PainelInstituicao({ onLogout }) {
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!validarEmail(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
+    if (formCuidador.senha.trim() && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(formCuidador.senha)) {
+      return "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.";
+    }
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
     if (formCuidador.senha.trim() && formCuidador.senha !== formCuidador.confirmarSenha) return "As senhas não coincidem.";
     if (!validarCelular(formCuidador.ddd, formCuidador.telefone)) return "Telefone celular inválido. Formato esperado: (XX) 9XXXX-XXXX";
@@ -442,6 +452,8 @@ export default function PainelInstituicao({ onLogout }) {
     },
   ];
 
+  const senhasCuidadorCoincidem = formCuidador.confirmarSenha.length > 0 && formCuidador.senha === formCuidador.confirmarSenha;
+
   return (
     <div className="instituicao-home">
       <BcNotificacao {...toastProps} />
@@ -561,15 +573,39 @@ export default function PainelInstituicao({ onLogout }) {
           <BcCampoTexto label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
           <BcCampoTexto
             label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
-            name="senha" type="password"
+            name="senha"
+            type={mostrarSenhaCuidador ? "text" : "password"}
             placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Preencha apenas se quiser alterar" : ""}
-            value={formCuidador.senha} onChange={atualizarCuidador}
+            value={formCuidador.senha}
+            onChange={atualizarCuidador}
+            autoComplete="new-password"
+            suffix={
+              <button type="button" className="bc-form-modal__icon-button" onClick={() => setMostrarSenhaCuidador((v) => !v)}>
+                {mostrarSenhaCuidador ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+              </button>
+            }
+            hint={<BcForcaSenha password={formCuidador.senha} />}
           />
           <BcCampoTexto
             label={cuidadorEmEdicao || cuidadorParaReativar ? "Confirmar senha" : "Confirmar senha *"}
-            name="confirmarSenha" type="password"
+            name="confirmarSenha"
+            type={mostrarConfirmarSenhaCuidador ? "text" : "password"}
             placeholder={cuidadorEmEdicao || cuidadorParaReativar ? "Repita apenas se quiser alterar" : ""}
-            value={formCuidador.confirmarSenha} onChange={atualizarCuidador}
+            value={formCuidador.confirmarSenha}
+            onChange={atualizarCuidador}
+            autoComplete="new-password"
+            suffix={
+              <button type="button" className="bc-form-modal__icon-button" onClick={() => setMostrarConfirmarSenhaCuidador((v) => !v)}>
+                {mostrarConfirmarSenhaCuidador ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
+              </button>
+            }
+            hint={
+              formCuidador.confirmarSenha.length > 0 ? (
+                <span className="bc-form-modal__match" style={{ color: senhasCuidadorCoincidem ? "#0d9e8a" : "#e05252" }}>
+                  {senhasCuidadorCoincidem ? "✓ Senhas coincidem" : "✗ Senhas não coincidem"}
+                </span>
+              ) : null
+            }
           />
           <BcFormularioModalLinha>
             <BcCampoTexto label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
