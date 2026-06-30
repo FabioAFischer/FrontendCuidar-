@@ -462,6 +462,48 @@
   font-weight: 800;
 }
 
+.cuidador-remedios-paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.cuidador-remedios-paginacao p {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cuidador-remedios-paginacao div {
+  display: flex;
+  gap: 8px;
+}
+
+.cuidador-remedios-paginacao button {
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid #dce6e5;
+  border-radius: 10px;
+  background: #fff;
+  color: #526263;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cuidador-remedios-paginacao button:hover:not(:disabled) {
+  background: #e6f7f5;
+  color: #0d9e8a;
+}
+
+.cuidador-remedios-paginacao button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .cuidador-remedios-detalhes {
   width: min(440px, calc(100vw - 32px));
   padding: 28px;
@@ -701,6 +743,20 @@
   .cuidador-remedios-acao {
     flex: 1 1 42px;
     min-width: 42px;
+  }
+
+  .cuidador-remedios-paginacao,
+  .cuidador-remedios-paginacao div {
+    width: 100%;
+  }
+
+  .cuidador-remedios-paginacao {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cuidador-remedios-paginacao button {
+    flex: 1;
   }
 }
 

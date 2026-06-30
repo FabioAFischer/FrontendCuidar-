@@ -74,6 +74,10 @@ function verificarPendente(evento) {
   return status === "PENDENTE" || status === "AGENDADO";
 }
 
+function buscarPrescricaoId(evento) {
+  return evento.prescricaoId || evento.prescricao?.id || evento.prescricao?.prescricaoId || evento.idPrescricao || evento.prescricao_id;
+}
+
 function formatarStatusAgenda(status) {
   if (status === "PENDENTE" || status === "AGENDADO") return "Pendente";
   return status.charAt(0) + status.slice(1).toLowerCase();
@@ -273,8 +277,14 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
     try {
       setConfirmandoAgendaId(evento.id);
 
+      const prescricaoId = buscarPrescricaoId(evento);
+      if (!prescricaoId) {
+        throw new Error("Nao foi possivel identificar a prescricao deste alerta de remedio.");
+      }
+
       await atualizarAlerta(evento.id, {
         idosoId: evento.idosoId,
+        prescricaoId,
         tipoAlerta: evento.tipoAlerta || evento.tipo || "REMEDIO",
         dataAgendada: evento.dataAgendada,
         statusAlertas: "REALIZADO",
