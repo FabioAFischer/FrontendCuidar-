@@ -26,6 +26,8 @@ import { atualizarPrescricao as atualizarPrescricaoApi, cadastrarPrescricao, ina
 import { atualizarRemedio as atualizarRemedioApi, cadastrarRemedio, inativarRemedio, listarRemedios } from "../../../api/remedioApi";
 import "./RemediosPrescricaoCuidador.css";
 
+const ITENS_POR_PAGINA_AGENDA = 5;
+
 function BotaoIcone({ children, tipo = "padrao", label, onClick }) {
   return (
     <button
@@ -46,6 +48,20 @@ function TituloSecao({ icone, children }) {
       <span>{icone}</span>
       {children}
     </h2>
+  );
+}
+
+function ControlesPaginacaoAgenda({ paginaAtual, totalPaginas, onAnterior, onProxima }) {
+  if (totalPaginas <= 1) return null;
+
+  return (
+    <div className="cuidador-remedios-paginacao">
+      <p>Pagina {paginaAtual} de {totalPaginas}</p>
+      <div>
+        <button type="button" onClick={onAnterior} disabled={paginaAtual === 1}>Anterior</button>
+        <button type="button" onClick={onProxima} disabled={paginaAtual === totalPaginas}>Proxima</button>
+      </div>
+    </div>
   );
 }
 
@@ -117,6 +133,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
   const [idosos, setIdosos] = useState([]);
   const [prescricoes, setPrescricoes] = useState([]);
   const [alertasRemedio, setAlertasRemedio] = useState([]);
+  const [paginaAgendaAtual, setPaginaAgendaAtual] = useState(1);
   const [idosoSelecionadoId, setIdosoSelecionadoId] = useState(null);
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [erroIdosos, setErroIdosos] = useState("");
@@ -199,6 +216,11 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       String(remedio.nome || "").toLowerCase().startsWith(termo)
     );
   }, [buscaRemedioPrescricao, remedios]);
+  const totalPaginasAgenda = Math.ceil(alertasRemedio.length / ITENS_POR_PAGINA_AGENDA);
+  const alertasRemedioPaginados = useMemo(() => {
+    const inicio = (paginaAgendaAtual - 1) * ITENS_POR_PAGINA_AGENDA;
+    return alertasRemedio.slice(inicio, inicio + ITENS_POR_PAGINA_AGENDA);
+  }, [alertasRemedio, paginaAgendaAtual]);
 
   const carregarPrescricoesDoIdoso = useCallback(async () => {
     if (!idosoSelecionadoId) {
@@ -245,9 +267,14 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
   }, []);
 
   useEffect(() => {
+    setPaginaAgendaAtual(1);
     carregarPrescricoesDoIdoso();
     carregarAlertasRemedioDoIdoso();
   }, [carregarPrescricoesDoIdoso, carregarAlertasRemedioDoIdoso]);
+
+  useEffect(() => {
+    setPaginaAgendaAtual((pagina) => Math.min(Math.max(pagina, 1), Math.max(totalPaginasAgenda, 1)));
+  }, [totalPaginasAgenda]);
 
   async function carregarIdosos() {
     try {
@@ -371,14 +398,15 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setSalvandoAlertaRemedio(true);
       setErroAlertaRemedio("");
 
-      const alerta = await cadastrarAlerta({
+      await cadastrarAlerta({
         idosoId: Number(idosoSelecionado.id),
         prescricaoId: Number(formAlertaRemedio.prescricaoId),
         tipoAlerta: "REMEDIO",
         dataAgendada: formAlertaRemedio.dataAgendada,
       });
 
-      setAlertasRemedio((anteriores) => [alerta, ...anteriores]);
+      await carregarAlertasRemedioDoIdoso();
+      setPaginaAgendaAtual(1);
       fecharCadastroAlertaRemedio();
       mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remedio foi cadastrado na agenda.");
     } catch (erro) {
@@ -797,22 +825,30 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                   <small>Nao foi possivel carregar os alertas deste idoso.</small>
                 </div>
               ) : alertasRemedio.length > 0 ? (
-                alertasRemedio.map((alerta) => (
-                  <article className="cuidador-remedios-agenda" key={alerta.id}>
-                    <div>
-                      <div className="cuidador-remedios-agenda__badges">
-                        <span>Remedio</span>
-                        <span>{alerta.statusAlertas || alerta.status || "AGENDADO"}</span>
+                <>
+                  {alertasRemedioPaginados.map((alerta) => (
+                    <article className="cuidador-remedios-agenda" key={alerta.id}>
+                      <div>
+                        <div className="cuidador-remedios-agenda__badges">
+                          <span>Remedio</span>
+                          <span>{alerta.statusAlertas || alerta.status || "AGENDADO"}</span>
+                        </div>
+                        <time>{formatarDataHora(alerta.dataAgendada)}</time>
+                        <p>{alerta.remedioNome || "Remedio prescrito"}</p>
+                        <small>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</small>
                       </div>
-                      <time>{formatarDataHora(alerta.dataAgendada)}</time>
-                      <p>{alerta.remedioNome || "Remedio prescrito"}</p>
-                      <small>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</small>
-                    </div>
-                    <div className="cuidador-remedios-item__acoes">
-                      <BotaoIcone tipo="perigo" label="Cancelar alerta" onClick={() => removerAlertaRemedio(alerta)}><IconeLixeira /></BotaoIcone>
-                    </div>
-                  </article>
-                ))
+                      <div className="cuidador-remedios-item__acoes">
+                        <BotaoIcone tipo="perigo" label="Cancelar alerta" onClick={() => removerAlertaRemedio(alerta)}><IconeLixeira /></BotaoIcone>
+                      </div>
+                    </article>
+                  ))}
+                  <ControlesPaginacaoAgenda
+                    paginaAtual={paginaAgendaAtual}
+                    totalPaginas={totalPaginasAgenda}
+                    onAnterior={() => setPaginaAgendaAtual((pagina) => Math.max(pagina - 1, 1))}
+                    onProxima={() => setPaginaAgendaAtual((pagina) => Math.min(pagina + 1, totalPaginasAgenda))}
+                  />
+                </>
               ) : (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>Nenhum evento agendado.</p>
