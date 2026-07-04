@@ -1071,7 +1071,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           <BcCampoTexto
             label="Dosagem *"
             name="dosagem"
-            placeholder="Ex: 1 comprimido"
+            placeholder="Ex: 1 comprimido de 25g, 1 cápsula de 500mg, 10ml"
             value={formPrescricao.dosagem}
             onChange={aoAlterarFormularioPrescricao}
           />
