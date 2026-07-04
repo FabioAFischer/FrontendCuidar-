@@ -31,32 +31,32 @@ export default function BcListagemRemedios({
           className="bc-remedios-listagem__add"
           type="button"
           onClick={onCadastrar}
-          aria-label="Cadastrar remedio"
-          title="Cadastrar remedio"
+          aria-label="Cadastrar remédio"
+          title="Cadastrar remédio"
         >
           <IconeMais />
         </button>
       </div>
 
       <BcListagem
-        titulo="Remedios"
+        titulo="Remédios"
         iconeTitulo={<IconeRemedio />}
         itens={remediosFiltrados}
         colunas={[
           { chave: "nome", titulo: "Nome", className: "bc-listagem-tdNome" },
         ]}
         busca={busca}
-        placeholderBusca="Buscar remedio..."
+        placeholderBusca="Buscar remédio..."
         onBuscaChange={setBusca}
-        textoVazio={busca ? "Nenhum remedio encontrado." : "Nenhum remedio cadastrado ainda."}
+        textoVazio={busca ? "Nenhum remédio encontrado." : "Nenhum remédio cadastrado ainda."}
         carregando={carregando}
-        textoCarregando="Carregando remedios..."
+        textoCarregando="Carregando remédios..."
         erro={erro}
         onVisualizar={onVisualizar}
         onEditar={onEditar}
         onExcluir={onInativar}
-        tituloConfirmacao="Inativar remedio?"
-        mensagemConfirmacao="O remedio sera inativado e todas as prescricoes vinculadas a ele tambem serao removidas da listagem."
+        tituloConfirmacao="Inativar remédio?"
+        mensagemConfirmacao="O remédio será inativado e todas as prescrições vinculadas a ele também serão removidas da listagem."
         textoConfirmar="Sim, inativar"
         textoCarregandoExcluir="Inativando..."
         excluindo={inativando}

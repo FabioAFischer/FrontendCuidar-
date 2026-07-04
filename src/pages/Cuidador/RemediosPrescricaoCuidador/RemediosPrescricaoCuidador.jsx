@@ -810,7 +810,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
           <aside className="cuidador-remedios-card cuidador-remedios-card--fixo">
             <div className="cuidador-remedios-card__header">
-              <TituloSecao icone={<IconeCalendario />}>Agenda</TituloSecao>
+              <TituloSecao icone={<IconeCalendario />}>Alertas</TituloSecao>
               <BotaoIcone label="Adicionar alerta de remédio" onClick={abrirCadastroAlertaRemedio}><IconeMais /></BotaoIcone>
             </div>
 

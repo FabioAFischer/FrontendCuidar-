@@ -40,7 +40,7 @@ export default function BcListagem({
   onEditar,
   onExcluir,
   tituloConfirmacao = "Inativar registro?",
-  mensagemConfirmacao = "O registro sera inativado na listagem.",
+  mensagemConfirmacao = "O registro será inativado na listagem.",
   textoConfirmar = "Sim, inativar",
   textoCarregandoExcluir = "Inativando...",
   excluindo = false,
@@ -184,14 +184,14 @@ export default function BcListagem({
             {itens.length > itensPorPagina ? (
               <div className="bc-listagem-paginacao">
                 <span className="bc-listagem-paginacaoInfo">
-                  Pagina {paginaAtual} de {totalPaginas}
+                  Página {paginaAtual} de {totalPaginas}
                 </span>
                 <div className="bc-listagem-paginacaoAcoes">
                   <button
                     className="bc-listagem-btnPagina" type="button"
                     onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
                     disabled={paginaAtual === 1}
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                   >
                     <IconeSetaEsquerda /> Anterior
                   </button>
@@ -199,9 +199,9 @@ export default function BcListagem({
                     className="bc-listagem-btnPagina" type="button"
                     onClick={() => setPaginaAtual((p) => Math.min(totalPaginas, p + 1))}
                     disabled={paginaAtual === totalPaginas}
-                    aria-label="Proxima pagina"
+                    aria-label="Próxima página"
                   >
-                    Proxima <IconeSetaDireita />
+                    Próxima <IconeSetaDireita />
                   </button>
                 </div>
               </div>

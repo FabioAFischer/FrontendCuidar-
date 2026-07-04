@@ -521,7 +521,7 @@ export default function PaginaLogin({ onLogin }) {
         </div>
       </section>
 
-      <section className="login-page__panel" aria-label="Formulario de login">
+      <section className="login-page__panel" aria-label="Formulário de login">
         <div className="login-card">
           <div className="login-card__header">
             <span className="login-card__tag">Login</span>
