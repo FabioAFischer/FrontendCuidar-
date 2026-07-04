@@ -310,7 +310,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
 /* ── Colunas ── */
 const COLUNAS = [
   { chave: "nome",  titulo: "Nome",     className: "bc-listagem-tdNome" },
-  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted" },
+  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted", render: (inst) => formatarCnpj(String(inst.cnpj || "")) },
   { chave: "email", titulo: "Email",    className: "bc-listagem-tdMuted" },
   {
     chave: "bairro",
