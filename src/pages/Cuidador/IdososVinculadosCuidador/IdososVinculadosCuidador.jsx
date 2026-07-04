@@ -27,7 +27,7 @@ function formatarTelefone(idoso) {
   const ddd = contato.ddd || idoso?.ddd;
   const telefone = contato.telefone || idoso?.telefone;
 
-  if (!telefone) return "Nao informado";
+  if (!telefone) return "Não informado";
 
   const numero = String(telefone).replace(/\D/g, "");
   const telefoneFormatado = numero.length > 8
@@ -52,7 +52,7 @@ function CartaoIdoso({ idoso, onSenhaClick }) {
         <dl>
           <div>
             <dt>CPF</dt>
-            <dd>{formatarCpf(idoso.cpf) || "Nao informado"}</dd>
+            <dd>{formatarCpf(idoso.cpf) || "Não informado"}</dd>
           </div>
           <div>
             <dt>Telefone</dt>
@@ -96,7 +96,7 @@ export default function IdososVinculadosCuidador({ onBack, onLogout }) {
         }
       } catch {
         if (ativo) {
-          setErro("Nao foi possivel carregar os usuarios vinculados.");
+          setErro("Não foi possível carregar os usuários vinculados.");
         }
       } finally {
         if (ativo) {
@@ -165,7 +165,7 @@ export default function IdososVinculadosCuidador({ onBack, onLogout }) {
         )
       );
     } catch (error) {
-      setErroSenha(error.message || "Nao foi possivel obter a senha.");
+      setErroSenha(error.message || "Não foi possível obter a senha.");
     } finally {
       setCarregandoSenha(false);
     }
@@ -191,8 +191,8 @@ export default function IdososVinculadosCuidador({ onBack, onLogout }) {
           <div>
             <span><IconeIdosos /></span>
             <div>
-              <h1 id="usuarios-vinculados-titulo">Usuarios vinculados</h1>
-              <p>{idosos.length} usuario(s) vinculado(s) ao cuidador.</p>
+              <h1 id="usuarios-vinculados-titulo">Usuários vinculados</h1>
+              <p>{idosos.length} usuário(s) vinculado(s) ao cuidador.</p>
             </div>
           </div>
 
@@ -215,10 +215,10 @@ export default function IdososVinculadosCuidador({ onBack, onLogout }) {
 
         {carregando ? (
           <div className="cuidador-idosos-empty">
-            <p>Carregando usuarios vinculados...</p>
+            <p>Carregando usuários vinculados...</p>
           </div>
         ) : idososFiltrados.length > 0 ? (
-          <section className="cuidador-idosos-lista" aria-label="Lista de usuarios vinculados">
+          <section className="cuidador-idosos-lista" aria-label="Lista de usuários vinculados">
             {idososFiltrados.map((idoso) => (
               <CartaoIdoso
                 key={idoso.id || idoso.cpf || idoso.nome}
@@ -230,11 +230,11 @@ export default function IdososVinculadosCuidador({ onBack, onLogout }) {
         ) : (
           <div className="cuidador-idosos-empty">
             <span><IconeIdosos /></span>
-            <p>{busca ? "Nenhum usuario encontrado." : "Nenhum usuario vinculado ainda."}</p>
+            <p>{busca ? "Nenhum usuário encontrado." : "Nenhum usuário vinculado ainda."}</p>
             <small>
               {busca
                 ? "Tente buscar por outro nome ou CPF."
-                : "Os usuarios vinculados pela instituicao aparecerao aqui."}
+                : "Os usuários vinculados pela instituição aparecerão aqui."}
             </small>
           </div>
         )}

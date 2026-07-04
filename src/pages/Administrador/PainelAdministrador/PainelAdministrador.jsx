@@ -310,15 +310,15 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
 /* ── Colunas ── */
 const COLUNAS = [
   { chave: "nome",  titulo: "Nome",     className: "bc-listagem-tdNome" },
-  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted" },
-  { chave: "email", titulo: "Email",    className: "bc-listagem-tdMuted" },
+  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted bc-listagem-tdContato", render: (inst) => formatarCnpj(String(inst.cnpj || "")) },
+  { chave: "email", titulo: "Email",    className: "bc-listagem-tdMuted bc-listagem-tdContato" },
   {
     chave: "bairro",
     titulo: "Endereço",
     className: "bc-listagem-tdMuted",
     render: (inst) => `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
   },
-  { chave: "cep", titulo: "CEP", className: "bc-listagem-tdMuted" },
+  { chave: "cep", titulo: "CEP", className: "bc-listagem-tdMuted bc-listagem-tdContato", render: (inst) => formatarCep(String(inst.cep || "")) },
   {
     chave: "status",
     titulo: "Status",

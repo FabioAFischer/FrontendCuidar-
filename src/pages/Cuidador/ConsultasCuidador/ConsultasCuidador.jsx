@@ -174,7 +174,7 @@ function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir, onLembret
         <div className="cuidador-consultas-card__topo">
           <div>
             <h3>{consulta.idosoNome}</h3>
-            <p>CPF: {formatarCpf(consulta.idosoCpf) || "Nao informado"}</p>
+            <p>CPF: {formatarCpf(consulta.idosoCpf) || "Não informado"}</p>
           </div>
           <span className={`cuidador-consultas-status cuidador-consultas-status--${status.classe}`}>
             {status.label}
@@ -335,9 +335,9 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
   function validarFormulario() {
     if (!form.idosoId) return "Selecione um idoso.";
     if (!form.data) return "Informe a data do agendamento.";
-    if (!form.hora) return "Informe o horario do agendamento.";
+    if (!form.hora) return "Informe o horário do agendamento.";
     if (!form.tipoAlerta) return "Selecione o tipo do alerta.";
-    if (!form.medico.trim()) return "Informe o nome do medico.";
+    if (!form.medico.trim()) return "Informe o nome do médico.";
     if (!form.especialidade.trim()) return "Informe a especialidade.";
     if (!form.local.trim()) return "Informe o local do agendamento.";
     return "";
@@ -354,7 +354,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
     const idoso = idosos.find((item) => Number(item.id) === Number(form.idosoId));
     if (!idoso) {
-      setErroFormulario("Idoso selecionado nao encontrado.");
+      setErroFormulario("Idoso selecionado não encontrado.");
       return;
     }
 
@@ -398,7 +398,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               : consulta
           )
         );
-        mostrarToast("sucesso", "Agendamento atualizado", "As alteracoes do agendamento foram salvas e o alerta foi atualizado.");
+        mostrarToast("sucesso", "Agendamento atualizado", "As alterações do agendamento foram salvas e o alerta foi atualizado.");
       } else {
         setConsultas((anteriores) => [
           {
@@ -453,7 +453,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
       <BcBarraSuperior
         title="Agendamentos dos Idosos"
-        subtitle="Gerencie agendamentos medicos e lembretes"
+        subtitle="Gerencie agendamentos médicos e lembretes"
         actionLabel="Sair"
         actionIcon={<IconeSair />}
         onAction={onLogout}
@@ -467,7 +467,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
         <section className="cuidador-consultas-stats" aria-label="Resumo das consultas">
           <CartaoEstatistica label="Total de Agendamentos" valor={consultas.length} tipo="total" />
-          <CartaoEstatistica label="Proximos Agendamentos" valor={proximas.length} tipo="proximas" />
+          <CartaoEstatistica label="Próximos Agendamentos" valor={proximas.length} tipo="proximas" />
           <CartaoEstatistica label="Confirmadas" valor={consultas.filter((consulta) => consulta.status === "confirmada").length} tipo="confirmadas" />
           <CartaoEstatistica label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
         </section>
@@ -477,7 +477,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             <IconeBusca />
             <input
               type="text"
-              placeholder="Buscar por idoso, medico, especialidade ou local..."
+              placeholder="Buscar por idoso, médico, especialidade ou local..."
               value={busca}
               onChange={(evento) => setBusca(evento.target.value)}
             />
@@ -512,7 +512,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
         {erroIdosos ? (
           <div className="cuidador-consultas-alerta" role="alert">
-            <strong>Nao foi possivel carregar os idosos.</strong>
+            <strong>Não foi possível carregar os idosos.</strong>
             <span>{erroIdosos}</span>
           </div>
         ) : null}
@@ -520,7 +520,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         {!carregandoIdosos && idosos.length === 0 ? (
           <div className="cuidador-consultas-alerta cuidador-consultas-alerta--aviso">
             <strong>Nenhum idoso vinculado.</strong>
-            <span>E necessario ter idosos vinculados ao cuidador para criar agendamentos.</span>
+            <span>É necessário ter idosos vinculados ao cuidador para criar agendamentos.</span>
           </div>
         ) : null}
 
@@ -581,15 +581,15 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             </select>
           </div>
 
-          <BcCampoTexto label="Medico *" name="medico" placeholder="Dr. Nome do medico" value={form.medico} onChange={aoAlterarFormularioConsulta} />
+          <BcCampoTexto label="Médico *" name="medico" placeholder="Dr. Nome do médico" value={form.medico} onChange={aoAlterarFormularioConsulta} />
 
           <div className="cuidador-consultas-form__linha">
             <BcCampoTexto label="Data *" name="data" type="date" value={form.data} onChange={aoAlterarFormularioConsulta} />
-            <BcCampoTexto label="Horario *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
+            <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
           </div>
 
           <BcCampoTexto label="Especialidade *" name="especialidade" placeholder="Ex: Cardiologia" value={form.especialidade} onChange={aoAlterarFormularioConsulta} />
-          <BcCampoTexto label="Local *" name="local" placeholder="Hospital, clinica ou endereco" value={form.local} onChange={aoAlterarFormularioConsulta} />
+          <BcCampoTexto label="Local *" name="local" placeholder="Hospital, clínica ou endereço" value={form.local} onChange={aoAlterarFormularioConsulta} />
 
           <div className="cuidador-consultas-campo">
             <label htmlFor="consulta-status" className="bc-form-modal__label">Status</label>
@@ -603,9 +603,9 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
 
           <BcFormularioModalAreaTexto
             id="consulta-observacoes"
-            label="Observacoes"
+            label="Observações"
             name="observacoes"
-            placeholder="Informacoes adicionais sobre o agendamento..."
+            placeholder="Informações adicionais sobre o agendamento..."
             value={form.observacoes}
             onChange={aoAlterarFormularioConsulta}
           />
@@ -630,13 +630,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             <div><dt>Idoso</dt><dd>{consultaEmVisualizacao?.idosoNome || "-"}</dd></div>
             <div><dt>CPF</dt><dd>{formatarCpf(consultaEmVisualizacao?.idosoCpf) || "-"}</dd></div>
             <div><dt>Data</dt><dd>{formatarData(consultaEmVisualizacao?.data)}</dd></div>
-            <div><dt>Horario</dt><dd>{consultaEmVisualizacao?.hora || "-"}</dd></div>
-            <div><dt>Medico</dt><dd>{consultaEmVisualizacao?.medico || "-"}</dd></div>
+            <div><dt>Horário</dt><dd>{consultaEmVisualizacao?.hora || "-"}</dd></div>
+            <div><dt>Médico</dt><dd>{consultaEmVisualizacao?.medico || "-"}</dd></div>
             <div><dt>Especialidade</dt><dd>{consultaEmVisualizacao?.especialidade || "-"}</dd></div>
             <div><dt>Local</dt><dd>{consultaEmVisualizacao?.local || "-"}</dd></div>
             <div><dt>Status</dt><dd>{STATUS[consultaEmVisualizacao?.status]?.label || "-"}</dd></div>
             <div className="cuidador-consultas-detalhes__observacoes">
-              <dt>Observacoes</dt>
+              <dt>Observações</dt>
               <dd>{consultaEmVisualizacao?.observacoes || "-"}</dd>
             </div>
           </dl>
@@ -663,7 +663,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
       <BcConfirmacao
         aberto={Boolean(consultaParaExcluir)}
         titulo="Excluir agendamento?"
-        mensagem="O agendamento sera removido da agenda do cuidador."
+        mensagem="O agendamento será removido da agenda do cuidador."
         textoConfirmar="Excluir"
         textoCarregando="Excluindo..."
         icone={<IconeLixeira />}
