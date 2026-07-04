@@ -39,6 +39,7 @@ export default function BcListagem({
   onVisualizar,
   onEditar,
   onExcluir,
+  tituloVisualizar = "Visualizar",
   tituloConfirmacao = "Inativar registro?",
   mensagemConfirmacao = "O registro será inativado na listagem.",
   textoConfirmar = "Sim, inativar",
@@ -144,7 +145,7 @@ export default function BcListagem({
                           {onVisualizar ? (
                             <button
                               className="bc-listagem-btnIcone bc-listagem-btnVisualizar"
-                              title="Visualizar" type="button"
+                              title={tituloVisualizar} type="button"
                               onClick={() => onVisualizar(item)}
                             >
                               <IconeVisualizar />

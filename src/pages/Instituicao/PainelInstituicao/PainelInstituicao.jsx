@@ -519,6 +519,7 @@ export default function PainelInstituicao({ onLogout }) {
               textoCarregando="Carregando idosos..."
               erro={modalIdosoAberto ? "" : erroIdoso}
               onVisualizar={(idoso) => setIdosoGerenciar(idoso)}
+              tituloVisualizar="Vincular"
               onEditar={abrirEdicaoIdoso}
               onExcluir={aoExcluirIdoso}
               tituloConfirmacao="Desativar idoso?"
