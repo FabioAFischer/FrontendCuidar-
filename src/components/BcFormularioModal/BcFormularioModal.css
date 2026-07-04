@@ -85,7 +85,8 @@
 .bc-form-modal__textarea {
   width: 100%;
   min-height: 100px;
-  resize: vertical;
+  max-height: 148px;
+  resize: none;
   box-sizing: border-box;
   padding: 13px 16px;
   border-radius: 12px;
@@ -94,7 +95,30 @@
   color: #1a1a1a;
   font: inherit;
   outline: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c0cc transparent;
   transition: border-color 0.18s, background 0.18s;
+}
+
+.bc-form-modal__textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bc-form-modal__textarea::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px;
+}
+
+.bc-form-modal__textarea::-webkit-scrollbar-thumb {
+  background: #b8c0cc;
+  border-radius: 999px;
+}
+
+.bc-form-modal__textarea::-webkit-scrollbar-thumb:hover {
+  background: #8f9aaa;
 }
 
 .bc-form-modal__textarea::placeholder {
