@@ -19,7 +19,7 @@ import "./PainelCuidador.css";
 const CONTATOS_EMERGENCIA = [
   { nome: "SAMU", telefone: "192", destaque: "vermelho" },
   { nome: "Bombeiros", telefone: "193", destaque: "vermelho" },
-  { nome: "Policia", telefone: "190", destaque: "azul" },
+  { nome: "Polícia", telefone: "190", destaque: "azul" },
 ];
 
 
@@ -36,7 +36,7 @@ function formatarTelefone(idoso) {
   const ddd = contato.ddd || idoso?.ddd;
   const telefone = contato.telefone || idoso?.telefone;
 
-  if (!telefone) return "Nao informado";
+  if (!telefone) return "Não informado";
 
   const numero = String(telefone).replace(/\D/g, "");
   const telefoneFormatado = numero.length > 8
@@ -104,7 +104,7 @@ function CartaoIdosoDashboard({ idoso }) {
       <span className="cuidador-patient-card__avatar">{gerarInicialNome}</span>
       <div className="cuidador-patient-card__content">
         <h3>{idoso.nome || "Idoso sem nome"}</h3>
-        <p>CPF: {formatarCpf(idoso.cpf) || "Nao informado"}</p>
+        <p>CPF: {formatarCpf(idoso.cpf) || "Não informado"}</p>
         <p>Tel: {formatarTelefone(idoso)}</p>
       </div>
     </article>
@@ -125,12 +125,12 @@ function CartaoEventoAgenda({ event, confirming, onConfirm }) {
       </span>
       <div className="cuidador-agenda-card__content">
         <div className="cuidador-agenda-card__badges">
-          <span>{medicacao ? "Remedio" : tipo === "CONSULTA" ? "Consulta" : tipo === "EXAME" ? "Exame" : "Agenda"}</span>
-          {proximo && <span className="cuidador-agenda-card__soon">Proximo</span>}
+          <span>{medicacao ? "Remédio" : tipo === "CONSULTA" ? "Consulta" : tipo === "EXAME" ? "Exame" : "Agenda"}</span>
+          {proximo && <span className="cuidador-agenda-card__soon">Próximo</span>}
         </div>
-        <h3>{event.idosoNome || "Idoso nao identificado"}</h3>
+        <h3>{event.idosoNome || "Idoso não identificado"}</h3>
         {event.descricao && <p>{event.descricao}</p>}
-        {medicacao && <p>Confirme quando o idoso tomar o remedio prescrito.</p>}
+        {medicacao && <p>Confirme quando o idoso tomar o remédio prescrito.</p>}
         <small>{formatarStatusAgenda(status)}</small>
       </div>
       <time className="cuidador-agenda-card__date" dateTime={event.dataAgendada}>
@@ -143,8 +143,8 @@ function CartaoEventoAgenda({ event, confirming, onConfirm }) {
           className="cuidador-agenda-card__confirm"
           onClick={() => onConfirm(event)}
           disabled={confirming}
-          title="Confirmar tomada do remedio"
-          aria-label={`Confirmar que ${event.idosoNome || "o idoso"} tomou o remedio`}
+          title="Confirmar tomada do remédio"
+          aria-label={`Confirmar que ${event.idosoNome || "o idoso"} tomou o remédio`}
         >
           <IconeCheck />
           <span>{confirming ? "Confirmando..." : "Confirmar tomada"}</span>
@@ -159,10 +159,10 @@ function ControlesPaginacao({ currentPage, totalPages, onPrevious, onNext }) {
 
   return (
     <div className="cuidador-pagination">
-      <p>Pagina {currentPage} de {totalPages}</p>
+      <p>Página {currentPage} de {totalPages}</p>
       <div>
         <button type="button" onClick={onPrevious} disabled={currentPage === 1}>Anterior</button>
-        <button type="button" onClick={onNext} disabled={currentPage === totalPages}>Proxima</button>
+        <button type="button" onClick={onNext} disabled={currentPage === totalPages}>Próxima</button>
       </div>
     </div>
   );
@@ -189,7 +189,7 @@ function ResumoDiario({ totalAgendas, totalIdosos }) {
 function ContatosEmergencia() {
   return (
     <section className="cuidador-card cuidador-emergency" aria-labelledby="contatos-emergencia">
-      <h2 id="contatos-emergencia">Contatos de Emergencia</h2>
+      <h2 id="contatos-emergencia">Contatos de Emergência</h2>
       <div className="cuidador-emergency__list">
         {CONTATOS_EMERGENCIA.map((contato) => (
           <div className="cuidador-emergency__item" key={contato.telefone}>
@@ -266,7 +266,7 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
       setIdosos(idososVinculados);
       setAgendaEvents(alertasPendentes);
     } catch (erro) {
-      setErroAgendas(erro.message || "Nao foi possivel carregar as agendas pendentes.");
+      setErroAgendas(erro.message || "Não foi possível carregar as agendas pendentes.");
       setAgendaEvents([]);
     } finally {
       setCarregandoAgendas(false);
@@ -279,7 +279,7 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
 
       const prescricaoId = buscarPrescricaoId(evento);
       if (!prescricaoId) {
-        throw new Error("Nao foi possivel identificar a prescricao deste alerta de remedio.");
+        throw new Error("Não foi possível identificar a prescrição deste alerta de remédio.");
       }
 
       await atualizarAlerta(evento.id, {
@@ -291,9 +291,9 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
       });
 
       setAgendaEvents((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(evento.id)));
-      mostrarToast("sucesso", "Medicacao confirmada", "A agenda foi marcada como realizada.");
+      mostrarToast("sucesso", "Medicação confirmada", "A agenda foi marcada como realizada.");
     } catch (erro) {
-      mostrarToast("erro", "Erro ao confirmar medicacao", erro.message || "Tente novamente.");
+      mostrarToast("erro", "Erro ao confirmar medicação", erro.message || "Tente novamente.");
     } finally {
       setConfirmandoAgendaId(null);
     }
@@ -315,15 +315,15 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
         <section className="cuidador-welcome">
           <div>
             <span className="cuidador-welcome__eyebrow">BomCuidado</span>
-            <h1>Ola, {nomeCuidador}!</h1>
+            <h1>Olá, {nomeCuidador}!</h1>
             <p>Bem-vindo ao seu painel de gerenciamento.</p>
           </div>
         </section>
 
-        <section className="cuidador-actions" aria-label="Acoes rapidas">
+        <section className="cuidador-actions" aria-label="Ações rápidas">
           <CartaoAcaoRapida
-            title="Medicacoes"
-            description="Gerenciar medicacoes dos pacientes"
+            title="Medicações"
+            description="Gerenciar medicações dos pacientes"
             icon={<IconeRemedio />}
             onClick={onOpenRemedios}
           />
@@ -357,7 +357,7 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
             <div className="cuidador-empty">
               <span><IconeIdosos /></span>
               <p>Nenhum idoso cadastrado ainda.</p>
-              <small>Os idosos cadastrados pela instituicao aparecerao aqui.</small>
+              <small>Os idosos cadastrados pela instituição aparecerão aqui.</small>
             </div>
           )}
         </section>
@@ -366,7 +366,7 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
           <div className="cuidador-section__header cuidador-section__header--compact">
             <div>
               <h2 id="agendas-titulo">Agendas Pendentes</h2>
-              <p>Compromissos e lembretes que precisam de atencao.</p>
+              <p>Compromissos e lembretes que precisam de atenção.</p>
             </div>
             {agendaEvents.length > 0 && <span className="cuidador-badge">{agendaEvents.length}</span>}
           </div>
@@ -378,7 +378,7 @@ export default function PainelCuidador({ onLogout, onOpenConsultas, onOpenRemedi
           ) : erroAgendas ? (
             <div className="cuidador-empty">
               <p>{erroAgendas}</p>
-              <small>Nao foi possivel buscar os alertas de remedio agora.</small>
+              <small>Não foi possível buscar os alertas de remédio agora.</small>
             </div>
           ) : agendaEvents.length > 0 ? (
             <>
