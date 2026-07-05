@@ -123,15 +123,6 @@ function IconeLixeira() {
   );
 }
 
-function IconeSino() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-
 function formatarCpf(valor = "") {
   const numeros = String(valor).replace(/\D/g, "").slice(0, 11);
   return numeros
@@ -201,7 +192,6 @@ function mapearAlertaParaConsulta(alerta, idosos, consultasSalvas) {
     status: STATUS_BACKEND_PARA_TELA[alerta.statusAlertas] || detalhesLocais?.status || "pendente",
     tipoAlerta,
     consultaId: alerta.consultaId || detalhesLocais?.consultaId,
-    lembreteEnviado: Boolean(detalhesLocais?.lembreteEnviado),
     criadoEm: alerta.dataCriacao || detalhesLocais?.criadoEm,
   };
 }
@@ -229,9 +219,8 @@ function CartaoEstatistica({ label, valor, tipo }) {
   );
 }
 
-function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir, onLembrete }) {
+function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir }) {
   const status = STATUS[consulta.status] || STATUS.pendente;
-  const futura = criarDataConsulta(consulta).getTime() > Date.now();
 
   return (
     <article className="cuidador-consultas-card">
@@ -256,18 +245,9 @@ function CartaoConsulta({ consulta, onVisualizar, onEditar, onExcluir, onLembret
           <span><IconeMedico /> {consulta.medico} - {consulta.especialidade}</span>
           <span><IconeLocal /> {consulta.local}</span>
         </div>
-
-        {consulta.lembreteEnviado ? (
-          <span className="cuidador-consultas-lembrete"><IconeSino /> Lembrete enviado</span>
-        ) : null}
       </div>
 
       <div className="cuidador-consultas-card__acoes">
-        {futura && !consulta.lembreteEnviado ? (
-          <BotaoIcone label="Enviar lembrete" tipo="lembrete" onClick={() => onLembrete(consulta)}>
-            <IconeSino />
-          </BotaoIcone>
-        ) : null}
         <BotaoIcone label="Visualizar agendamento" onClick={() => onVisualizar(consulta)}>
           <IconeVisualizar />
         </BotaoIcone>
@@ -512,7 +492,6 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             ...dados,
             alertaId: alertaSalvo?.id,
             consultaId: alertaSalvo?.consultaId,
-            lembreteEnviado: false,
             criadoEm: new Date().toISOString(),
           },
           ...anteriores,
@@ -545,22 +524,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
     }
   }
 
-  function aoEnviarLembreteConsulta(consultaSelecionada) {
-    setConsultas((anteriores) =>
-      anteriores.map((consulta) =>
-        consulta.id === consultaSelecionada.id ? { ...consulta, lembreteEnviado: true } : consulta
-      )
-    );
-    mostrarToast("sucesso", "Lembrete enviado", `Agendamento de ${consultaSelecionada.idosoNome}.`);
-  }
-
   return (
     <div className="cuidador-consultas-page">
       <BcNotificacao {...toastProps} />
 
       <BcBarraSuperior
         title="Agendamentos dos Idosos"
-        subtitle="Gerencie agendamentos médicos e lembretes"
+        subtitle="Gerencie agendamentos médicos"
         actionLabel="Sair"
         actionIcon={<IconeSair />}
         onAction={onLogout}
@@ -658,7 +628,6 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
                   onVisualizar={setConsultaEmVisualizacao}
                   onEditar={abrirEdicao}
                   onExcluir={setConsultaParaExcluir}
-                  onLembrete={aoEnviarLembreteConsulta}
                 />
               ))}
               {totalPaginas > 1 ? (
