@@ -474,7 +474,16 @@ export default function PainelInstituicao({ onLogout }) {
     { chave: "cpf", titulo: "CPF", className: "bc-listagem-tdMuted", render: (i) => formatarCpf(String(i.cpf || "")) },
     { chave: "contato", titulo: "Contato", className: "bc-listagem-tdMuted bc-listagem-tdContato",
       render: (i) => i.contato ? `(${i.contato.ddd}) ${formatarTelefone(String(i.contato.telefone || ""))}` : "-" },
-    { chave: "observacoes", titulo: "Observações", className: "bc-listagem-tdMuted", render: (i) => i.observacoes || "-" },
+    {
+      chave: "observacoes",
+      titulo: "Observações",
+      className: "bc-listagem-tdMuted iph-td-observacoes",
+      render: (i) => (
+        <div className="iph-observacoes-scroll">
+          {i.observacoes || "-"}
+        </div>
+      ),
+    },
     {
       chave: "_emergencia",
       titulo: "Emergência",
