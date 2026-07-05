@@ -56,10 +56,10 @@ function ControlesPaginacaoAgenda({ paginaAtual, totalPaginas, onAnterior, onPro
 
   return (
     <div className="cuidador-remedios-paginacao">
-      <p>Pagina {paginaAtual} de {totalPaginas}</p>
+      <p>Página {paginaAtual} de {totalPaginas}</p>
       <div>
         <button type="button" onClick={onAnterior} disabled={paginaAtual === 1}>Anterior</button>
-        <button type="button" onClick={onProxima} disabled={paginaAtual === totalPaginas}>Proxima</button>
+        <button type="button" onClick={onProxima} disabled={paginaAtual === totalPaginas}>Próxima</button>
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ function formatarTelefone(idoso) {
   const ddd = contato.ddd || idoso?.ddd;
   const telefone = contato.telefone || idoso?.telefone;
 
-  if (!telefone) return "Telefone nao informado";
+  if (!telefone) return "Telefone não informado";
 
   const numero = String(telefone).replace(/\D/g, "");
   const telefoneFormatado = numero.length > 8
@@ -125,6 +125,13 @@ function formatarValorInputData(valor) {
 function calcularFimDoDia(valor) {
   if (!valor) return null;
   return `${valor}T23:59:59`;
+}
+
+function ehAlertaRemedioPendente(alerta) {
+  const tipo = String(alerta?.tipoAlerta || alerta?.tipo || "").toUpperCase();
+  const status = String(alerta?.statusAlertas || alerta?.status || "").toUpperCase();
+
+  return tipo === "REMEDIO" && status !== "REALIZADO";
 }
 
 export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
@@ -252,7 +259,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setErroAlertasRemedio("");
       const lista = await listarAlertasPorIdoso(idosoSelecionadoId);
       const alertas = Array.isArray(lista) ? lista : [];
-      setAlertasRemedio(alertas.filter((alerta) => String(alerta.tipoAlerta || alerta.tipo || "").toUpperCase() === "REMEDIO"));
+      setAlertasRemedio(alertas.filter(ehAlertaRemedioPendente));
     } catch (erro) {
       setErroAlertasRemedio(erro.message);
       setAlertasRemedio([]);
@@ -385,12 +392,12 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     }
 
     if (!formAlertaRemedio.dataAgendada) {
-      setErroAlertaRemedio("Informe a data e horario do alerta.");
+      setErroAlertaRemedio("Informe a data e horário do alerta.");
       return;
     }
 
     if (!formAlertaRemedio.prescricaoId) {
-      setErroAlertaRemedio("Selecione a prescricao do remedio.");
+      setErroAlertaRemedio("Selecione a prescrição do remédio.");
       return;
     }
 
@@ -398,17 +405,19 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setSalvandoAlertaRemedio(true);
       setErroAlertaRemedio("");
 
-      await cadastrarAlerta({
+      const alertaCriado = await cadastrarAlerta({
         idosoId: Number(idosoSelecionado.id),
         prescricaoId: Number(formAlertaRemedio.prescricaoId),
         tipoAlerta: "REMEDIO",
         dataAgendada: formAlertaRemedio.dataAgendada,
       });
 
-      await carregarAlertasRemedioDoIdoso();
+      if (ehAlertaRemedioPendente(alertaCriado)) {
+        setAlertasRemedio((anteriores) => [alertaCriado, ...anteriores.filter((alerta) => Number(alerta.id) !== Number(alertaCriado.id))]);
+      }
       setPaginaAgendaAtual(1);
       fecharCadastroAlertaRemedio();
-      mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remedio foi cadastrado na agenda.");
+      mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remédio foi cadastrado na agenda.");
     } catch (erro) {
       setErroAlertaRemedio(erro.message || "Erro ao cadastrar alerta.");
       mostrarToast("erro", "Erro ao cadastrar alerta", erro.message || "Tente novamente.");
@@ -498,12 +507,12 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     evento.preventDefault();
 
     if (!idosoSelecionado) {
-      setErroPrescricao("Selecione um idoso para criar a prescricao.");
+      setErroPrescricao("Selecione um idoso para criar a prescrição.");
       return;
     }
 
     if (!formPrescricao.remedioId) {
-      setErroPrescricao("Selecione um remedio.");
+      setErroPrescricao("Selecione um remédio.");
       return;
     }
 
@@ -550,14 +559,14 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       fecharCadastroPrescricao();
       mostrarToast(
         "sucesso",
-        editandoPrescricao ? "Prescricao atualizada" : "Prescricao cadastrada",
+        editandoPrescricao ? "Prescrição atualizada" : "Prescrição cadastrada",
         editandoPrescricao
-          ? "As alteracoes da prescricao foram salvas."
-          : "A prescricao foi criada para o idoso selecionado."
+          ? "As alterações da prescrição foram salvas."
+          : "A prescrição foi criada para o idoso selecionado."
       );
     } catch (erro) {
       setErroPrescricao(erro.message);
-      mostrarToast("erro", "Erro ao salvar prescricao", erro.message);
+      mostrarToast("erro", "Erro ao salvar prescrição", erro.message);
     } finally {
       setSalvandoPrescricao(false);
     }
@@ -567,7 +576,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     evento.preventDefault();
 
     if (!formRemedio.nome.trim()) {
-      setErroCadastroRemedio("Informe o nome do remedio.");
+      setErroCadastroRemedio("Informe o nome do remédio.");
       return;
     }
 
@@ -601,14 +610,14 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       fecharCadastroRemedio();
       mostrarToast(
         "sucesso",
-        editandoRemedio ? "Remedio atualizado" : "Remedio cadastrado",
+        editandoRemedio ? "Remédio atualizado" : "Remédio cadastrado",
         editandoRemedio
-          ? "As alteracoes do remedio foram salvas."
-          : "O remedio foi adicionado a listagem."
+          ? "As alterações do remédio foram salvas."
+          : "O remédio foi adicionado à listagem."
       );
     } catch (erro) {
       setErroCadastroRemedio(erro.message);
-      mostrarToast("erro", "Erro ao salvar remedio", erro.message);
+      mostrarToast("erro", "Erro ao salvar remédio", erro.message);
     } finally {
       setSalvandoRemedio(false);
     }
@@ -621,10 +630,10 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       await inativarRemedio(remedio.id);
       setRemedios((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(remedio.id)));
       setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.remedioId) !== Number(remedio.id)));
-      mostrarToast("sucesso", "Remedio inativado", "As prescricoes vinculadas tambem foram removidas da listagem.");
+      mostrarToast("sucesso", "Remédio inativado", "As prescrições vinculadas também foram removidas da listagem.");
     } catch (erro) {
       setErroRemedios(erro.message);
-      mostrarToast("erro", "Erro ao inativar remedio", erro.message);
+      mostrarToast("erro", "Erro ao inativar remédio", erro.message);
     } finally {
       setInativandoRemedio(false);
     }
@@ -634,8 +643,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     setConfirmacao({
       tipo: "prescricao",
       item: prescricao,
-      titulo: "Remover prescricao?",
-      mensagem: "A prescricao sera removida da listagem deste idoso.",
+      titulo: "Remover prescrição?",
+      mensagem: "A prescrição será removida da listagem deste idoso.",
       textoConfirmar: "Remover",
       textoCarregando: "Removendo...",
     });
@@ -648,10 +657,10 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       await inativarPrescricao(prescricao.id);
       setPrescricoes((anteriores) => anteriores.filter((item) => Number(item.id) !== Number(prescricao.id)));
       setConfirmacao(null);
-      mostrarToast("sucesso", "Prescricao removida", "A prescricao foi removida da listagem deste idoso.");
+      mostrarToast("sucesso", "Prescrição removida", "A prescrição foi removida da listagem deste idoso.");
     } catch (erro) {
       setErroListagemPrescricao(erro.message);
-      mostrarToast("erro", "Erro ao remover prescricao", erro.message);
+      mostrarToast("erro", "Erro ao remover prescrição", erro.message);
     } finally {
       setInativandoPrescricao(false);
     }
@@ -667,8 +676,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       <BcNotificacao {...toastProps} />
 
       <BcBarraSuperior
-        title="Gerenciamento de Prescricoes"
-        subtitle="Remedios, prescricoes e agenda"
+        title="Gerenciamento de Prescrições"
+        subtitle="Remédios, prescrições e agenda"
         actionLabel="Sair"
         actionIcon={<IconeSair />}
         onAction={onLogout}
@@ -719,7 +728,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               ) : erroIdosos ? (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>{erroIdosos}</p>
-                  <small>Nao foi possivel carregar os idosos vinculados ao cuidador.</small>
+                  <small>Não foi possível carregar os idosos vinculados ao cuidador.</small>
                 </div>
               ) : idosos.length > 0 && idososFiltrados.length > 0 ? (
                 <div className="cuidador-remedios-idosos">
@@ -731,7 +740,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                       onClick={() => setIdosoSelecionadoId(idoso.id)}
                     >
                       <strong>{idoso.nome}</strong>
-                      <span>CPF: {formatarCpf(idoso.cpf) || "Nao informado"}</span>
+                      <span>CPF: {formatarCpf(idoso.cpf) || "Não informado"}</span>
                       <span>{formatarTelefone(idoso)}</span>
                     </button>
                   ))}
@@ -744,14 +753,14 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               ) : (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>Nenhum idoso vinculado.</p>
-                  <small>Quando houver idosos disponiveis, eles aparecerao aqui para selecao.</small>
+                  <small>Quando houver idosos disponíveis, eles aparecerão aqui para seleção.</small>
                 </div>
               )}
             </div>
 
             <div className="cuidador-remedios-card">
               <div className="cuidador-remedios-card__header">
-                <TituloSecao icone={<IconeRemedio />}>Prescricoes</TituloSecao>
+                <TituloSecao icone={<IconeRemedio />}>Prescrições</TituloSecao>
                 <button className="cuidador-remedios-prescrever" type="button" onClick={abrirCadastroPrescricao}>
                   <IconeMais />
                   Prescrever
@@ -761,20 +770,20 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               <div className="cuidador-remedios-lista cuidador-remedios-prescricoes-lista">
                 {carregandoPrescricoes ? (
                   <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
-                    <p>Carregando prescricoes...</p>
+                    <p>Carregando prescrições...</p>
                   </div>
                 ) : erroListagemPrescricao ? (
                   <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                     <p>{erroListagemPrescricao}</p>
-                    <small>Nao foi possivel carregar as prescricoes deste idoso.</small>
+                    <small>Não foi possível carregar as prescrições deste idoso.</small>
                   </div>
                 ) : prescricoes.length > 0 ? (
                   prescricoes.map((prescricao) => (
                     <article className="cuidador-remedios-prescricao" key={prescricao.id}>
                       <div>
                         <div className="cuidador-remedios-prescricao__topo">
-                          <h3>{prescricao.remedioNome || "Remedio nao identificado"}</h3>
-                          <span>{prescricao.necessarioJejum ? "Necessario jejum" : "Sem jejum"}</span>
+                          <h3>{prescricao.remedioNome || "Remédio não identificado"}</h3>
+                          <span>{prescricao.necessarioJejum ? "Necessário jejum" : "Sem jejum"}</span>
                         </div>
                         <dl>
                           <div>
@@ -792,16 +801,16 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                         </dl>
                       </div>
                       <div className="cuidador-remedios-item__acoes">
-                        <BotaoIcone label="Visualizar prescricao" onClick={() => abrirVisualizacaoPrescricao(prescricao)}><IconeVisualizar /></BotaoIcone>
-                        <BotaoIcone label="Editar prescricao" onClick={() => abrirEdicaoPrescricao(prescricao)}><IconeEditar /></BotaoIcone>
-                        <BotaoIcone tipo="perigo" label="Remover prescricao" onClick={() => solicitarInativacaoPrescricao(prescricao)}><IconeLixeira /></BotaoIcone>
+                        <BotaoIcone label="Visualizar prescrição" onClick={() => abrirVisualizacaoPrescricao(prescricao)}><IconeVisualizar /></BotaoIcone>
+                        <BotaoIcone label="Editar prescrição" onClick={() => abrirEdicaoPrescricao(prescricao)}><IconeEditar /></BotaoIcone>
+                        <BotaoIcone tipo="perigo" label="Remover prescrição" onClick={() => solicitarInativacaoPrescricao(prescricao)}><IconeLixeira /></BotaoIcone>
                       </div>
                     </article>
                   ))
                 ) : (
                   <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
-                    <p>Nenhuma prescricao registrada.</p>
-                    <small>Cadastre um remedio e selecione um idoso para iniciar uma prescricao.</small>
+                    <p>Nenhuma prescrição registrada.</p>
+                    <small>Cadastre um remédio e selecione um idoso para iniciar uma prescrição.</small>
                   </div>
                 )}
               </div>
@@ -810,8 +819,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
           <aside className="cuidador-remedios-card cuidador-remedios-card--fixo">
             <div className="cuidador-remedios-card__header">
-              <TituloSecao icone={<IconeCalendario />}>Agenda</TituloSecao>
-              <BotaoIcone label="Adicionar alerta de remedio" onClick={abrirCadastroAlertaRemedio}><IconeMais /></BotaoIcone>
+              <TituloSecao icone={<IconeCalendario />}>Alertas</TituloSecao>
+              <BotaoIcone label="Adicionar alerta de remédio" onClick={abrirCadastroAlertaRemedio}><IconeMais /></BotaoIcone>
             </div>
 
             <div className="cuidador-remedios-lista">
@@ -822,7 +831,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               ) : erroAlertasRemedio ? (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>{erroAlertasRemedio}</p>
-                  <small>Nao foi possivel carregar os alertas deste idoso.</small>
+                  <small>Não foi possível carregar os alertas deste idoso.</small>
                 </div>
               ) : alertasRemedio.length > 0 ? (
                 <>
@@ -830,11 +839,11 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                     <article className="cuidador-remedios-agenda" key={alerta.id}>
                       <div>
                         <div className="cuidador-remedios-agenda__badges">
-                          <span>Remedio</span>
+                          <span>Remédio</span>
                           <span>{alerta.statusAlertas || alerta.status || "AGENDADO"}</span>
                         </div>
                         <time>{formatarDataHora(alerta.dataAgendada)}</time>
-                        <p>{alerta.remedioNome || "Remedio prescrito"}</p>
+                        <p>{alerta.remedioNome || "Remédio prescrito"}</p>
                         <small>{alerta.idosoNome || idosoSelecionado?.nome || "Idoso selecionado"}</small>
                       </div>
                       <div className="cuidador-remedios-item__acoes">
@@ -852,7 +861,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               ) : (
                 <div className="cuidador-remedios-vazio cuidador-remedios-vazio--alto">
                   <p>Nenhum evento agendado.</p>
-                  <small>Os lembretes de medicacao aparecerao aqui depois das prescricoes.</small>
+                  <small>Os lembretes de medicação aparecerão aqui depois das prescrições.</small>
                 </div>
               )}
             </div>
@@ -862,7 +871,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
       <BcModal aberto={modalAlertaRemedioAberto} onFechar={fecharCadastroAlertaRemedio}>
         <BcFormularioModal
-          title="Novo Alerta de Remedio"
+          title="Novo Alerta de Remédio"
           subtitle="Informe quando o cuidador deve ser lembrado"
           error={erroAlertaRemedio}
           onSubmit={aoSalvarAlertaRemedio}
@@ -870,11 +879,11 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           <div className="cuidador-remedios-agenda-paciente">
             <span>Idoso selecionado</span>
             <strong>{idosoSelecionado?.nome || "Nenhum idoso selecionado"}</strong>
-            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Nao informado"}</small> : null}
+            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Não informado"}</small> : null}
           </div>
 
           <div className="cuidador-remedios-campo">
-            <label htmlFor="alerta-prescricao" className="bc-form-modal__label">Prescricao *</label>
+            <label htmlFor="alerta-prescricao" className="bc-form-modal__label">Prescrição *</label>
             <select
               id="alerta-prescricao"
               name="prescricaoId"
@@ -884,7 +893,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               disabled={prescricoes.length === 0}
             >
               <option value="">
-                {prescricoes.length === 0 ? "Nenhuma prescricao disponivel" : "Selecione uma prescricao"}
+                {prescricoes.length === 0 ? "Nenhuma prescrição disponível" : "Selecione uma prescrição"}
               </option>
               {prescricoes.map((prescricao) => (
                 <option key={prescricao.id} value={prescricao.id}>
@@ -895,7 +904,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           </div>
 
           <BcCampoTexto
-            label="Data e horario *"
+            label="Data e horário *"
             name="dataAgendada"
             type="datetime-local"
             value={formAlertaRemedio.dataAgendada}
@@ -910,7 +919,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
       <BcModal aberto={modalRemedioAberto} onFechar={fecharCadastroRemedio}>
         <BcFormularioModal
-          title={remedioEmEdicao ? "Editar Remedio" : "Novo Remedio"}
+          title={remedioEmEdicao ? "Editar Remédio" : "Novo Remédio"}
           subtitle={remedioEmEdicao ? "Atualize os dados abaixo" : "Preencha os dados para cadastrar"}
           error={erroCadastroRemedio}
           onSubmit={aoSalvarRemedio}
@@ -918,16 +927,16 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           <BcCampoTexto
             label="Nome *"
             name="nome"
-            placeholder="Insira o nome do remedio"
+            placeholder="Insira o nome do remédio"
             value={formRemedio.nome}
             onChange={aoAlterarFormularioRemedio}
           />
 
           <BcFormularioModalAreaTexto
             id="observacao"
-            label="Observacao"
+            label="Observação"
             name="observacao"
-            placeholder="Observacoes importantes sobre o remedio..."
+            placeholder="Observações importantes sobre o remédio..."
             value={formRemedio.observacao}
             onChange={aoAlterarFormularioRemedio}
           />
@@ -939,12 +948,12 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       </BcModal>
 
       <BcModal aberto={Boolean(remedioEmVisualizacao)} onFechar={fecharVisualizacaoRemedio}>
-        <section className="cuidador-remedios-detalhes" aria-label="Dados do remedio">
+        <section className="cuidador-remedios-detalhes" aria-label="Dados do remédio">
           <header className="cuidador-remedios-detalhes__header">
             <span className="cuidador-remedios-detalhes__icone"><IconeRemedio /></span>
             <div>
-              <h2>Dados do Remedio</h2>
-              <p>Informacoes cadastradas para consulta.</p>
+              <h2>Dados do Remédio</h2>
+              <p>Informações cadastradas para consulta.</p>
             </div>
           </header>
 
@@ -954,7 +963,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               <dd>{remedioEmVisualizacao?.nome || "-"}</dd>
             </div>
             <div>
-              <dt>Observacao</dt>
+              <dt>Observação</dt>
               <dd>{remedioEmVisualizacao?.observacao || "-"}</dd>
             </div>
           </dl>
@@ -966,12 +975,12 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       </BcModal>
 
       <BcModal aberto={Boolean(prescricaoEmVisualizacao)} onFechar={fecharVisualizacaoPrescricao}>
-        <section className="cuidador-remedios-detalhes" aria-label="Dados da prescricao">
+        <section className="cuidador-remedios-detalhes" aria-label="Dados da prescrição">
           <header className="cuidador-remedios-detalhes__header">
             <span className="cuidador-remedios-detalhes__icone"><IconeRemedio /></span>
             <div>
-              <h2>Dados da Prescricao</h2>
-              <p>Informacoes cadastradas para consulta.</p>
+              <h2>Dados da Prescrição</h2>
+              <p>Informações cadastradas para consulta.</p>
             </div>
           </header>
 
@@ -981,7 +990,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
               <dd>{prescricaoEmVisualizacao?.idosoNome || idosoSelecionado?.nome || "-"}</dd>
             </div>
             <div>
-              <dt>Remedio</dt>
+              <dt>Remédio</dt>
               <dd>{prescricaoEmVisualizacao?.remedioNome || "-"}</dd>
             </div>
             <div>
@@ -998,10 +1007,10 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             </div>
             <div>
               <dt>Jejum</dt>
-              <dd>{prescricaoEmVisualizacao?.necessarioJejum ? "Necessario" : "Nao necessario"}</dd>
+              <dd>{prescricaoEmVisualizacao?.necessarioJejum ? "Necessário" : "Não necessário"}</dd>
             </div>
             <div>
-              <dt>Instrucao</dt>
+              <dt>Instrução</dt>
               <dd>{prescricaoEmVisualizacao?.instrucao || "-"}</dd>
             </div>
           </dl>
@@ -1014,8 +1023,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
       <BcModal aberto={modalPrescricaoAberto} onFechar={fecharCadastroPrescricao}>
         <BcFormularioModal
-          title={prescricaoEmEdicao ? "Editar Prescricao" : "Nova Prescricao"}
-          subtitle={prescricaoEmEdicao ? "Atualize os dados da prescricao" : "Preencha os dados para criar uma prescricao para o idoso selecionado"}
+          title={prescricaoEmEdicao ? "Editar Prescrição" : "Nova Prescrição"}
+          subtitle={prescricaoEmEdicao ? "Atualize os dados da prescrição" : "Preencha os dados para criar uma prescrição para o idoso selecionado"}
           error={erroPrescricao}
           onSubmit={aoSalvarPrescricao}
           className="cuidador-remedios-prescricao-modal"
@@ -1023,11 +1032,11 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           <div className="cuidador-remedios-prescricao-paciente">
             <span>Idoso selecionado</span>
             <strong>{idosoSelecionado?.nome || "Nenhum idoso selecionado"}</strong>
-            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Nao informado"}</small> : null}
+            {idosoSelecionado ? <small>CPF: {formatarCpf(idosoSelecionado.cpf) || "Não informado"}</small> : null}
           </div>
 
           <div className="cuidador-remedios-campo">
-            <label htmlFor="prescricao-remedio" className="bc-form-modal__label">Remedio *</label>
+            <label htmlFor="prescricao-remedio" className="bc-form-modal__label">Remédio *</label>
             <div className="cuidador-remedios-combobox">
               <input
                 id="prescricao-remedio"
@@ -1037,7 +1046,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                 aria-autocomplete="list"
                 aria-expanded={sugestoesRemedioAbertas}
                 aria-controls="prescricao-remedio-opcoes"
-                placeholder="Digite o nome do remedio"
+                placeholder="Digite o nome do remédio"
                 value={buscaRemedioPrescricao}
                 onChange={aoAlterarBuscaRemedioPrescricao}
                 onFocus={() => setSugestoesRemedioAbertas(true)}
@@ -1061,7 +1070,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                       </button>
                     ))
                   ) : (
-                    <span className="cuidador-remedios-combobox__vazio">Nenhum remedio encontrado.</span>
+                    <span className="cuidador-remedios-combobox__vazio">Nenhum remédio encontrado.</span>
                   )}
                 </div>
               ) : null}
@@ -1071,7 +1080,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           <BcCampoTexto
             label="Dosagem *"
             name="dosagem"
-            placeholder="Ex: 1 comprimido"
+            placeholder="Ex: 1 comprimido de 25g, 1 cápsula de 500mg, 10ml"
             value={formPrescricao.dosagem}
             onChange={aoAlterarFormularioPrescricao}
           />
@@ -1095,7 +1104,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
           />
 
           <div className="cuidador-remedios-campo">
-            <label htmlFor="prescricao-jejum" className="bc-form-modal__label">Necessario jejum?</label>
+            <label htmlFor="prescricao-jejum" className="bc-form-modal__label">Necessário jejum?</label>
             <select
               id="prescricao-jejum"
               name="necessarioJejum"
@@ -1110,9 +1119,9 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
           <BcFormularioModalAreaTexto
             id="prescricao-instrucao"
-            label="Instrucao"
+            label="Instrução"
             name="instrucao"
-            placeholder="Orientacoes importantes sobre a administracao..."
+            placeholder="Orientações importantes sobre a administração..."
             value={formPrescricao.instrucao}
             onChange={aoAlterarFormularioPrescricao}
           />

@@ -55,6 +55,22 @@ function normalizarDadosAlerta(dados) {
     alerta.prescricaoId = Number(dados.prescricaoId);
   }
 
+  if (dados.medico) {
+    alerta.medico = dados.medico.trim();
+  }
+
+  if (dados.especialidade) {
+    alerta.especialidade = dados.especialidade.trim();
+  }
+
+  if (dados.local) {
+    alerta.local = dados.local.trim();
+  }
+
+  if (dados.observacoes) {
+    alerta.observacoes = dados.observacoes.trim();
+  }
+
   return alerta;
 }
 
@@ -66,18 +82,18 @@ export async function cadastrarAlerta(dados) {
   });
 }
 
-export async function listarAlertas() {
-  const data = await executarRequisicaoApi("/alertas/listar_todos", {
+export async function listarAlertas(page = 0, size = 100) {
+  const data = await executarRequisicaoApi(`/alertas/listar_todos?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar alertas.",
   });
 
   return extrairConteudoPaginado(data);
 }
 
-export async function listarAlertasPorIdoso(idosoId) {
+export async function listarAlertasPorIdoso(idosoId, page = 0, size = 100) {
   if (!idosoId) return [];
 
-  const data = await executarRequisicaoApi(`/alertas/idoso/${idosoId}`, {
+  const data = await executarRequisicaoApi(`/alertas/idoso/${idosoId}?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar alertas do idoso.",
   });
 
