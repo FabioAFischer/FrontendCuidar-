@@ -31,8 +31,25 @@ const ROUTE_PROFILE = {
   "area-instituicao": "INSTITUICAO",
 };
 
+const PROFILE_ROUTE = {
+  ADMINISTRADOR: ROUTES.administrador,
+  CUIDADOR: ROUTES.cuidador,
+  INSTITUICAO: ROUTES.instituicao,
+};
+
 function buscarPerfilArmazenado() {
   return localStorage.getItem("perfil") || sessionStorage.getItem("perfil");
+}
+
+function buscarRotaInicialAutenticada() {
+  const token = buscarTokenAutenticacao();
+  const perfil = buscarPerfilArmazenado();
+
+  if (!token || !PROFILE_ROUTE[perfil]) {
+    return ROUTES.login;
+  }
+
+  return PROFILE_ROUTE[perfil];
 }
 
 function buscarRotaPeloHash(hash) {
@@ -65,7 +82,7 @@ export default function App() {
 
   useEffect(() => {
     if (!window.location.hash) {
-      window.location.hash = ROUTES.login;
+      window.location.hash = buscarRotaInicialAutenticada();
     }
 
     function aoAlterarHashNavegacao() {
