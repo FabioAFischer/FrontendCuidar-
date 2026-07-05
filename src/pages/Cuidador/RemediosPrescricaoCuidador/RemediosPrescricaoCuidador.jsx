@@ -556,6 +556,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
         setPrescricoes((anteriores) => [prescricaoCriada, ...anteriores]);
       }
 
+      await carregarAlertasRemedioDoIdoso();
+      setPaginaAgendaAtual(1);
       fecharCadastroPrescricao();
       mostrarToast(
         "sucesso",
