@@ -39,31 +39,51 @@ export default function BcListagem({
   onVisualizar,
   onEditar,
   onExcluir,
+  tituloVisualizar = "Visualizar",
   tituloConfirmacao = "Inativar registro?",
-  mensagemConfirmacao = "O registro sera inativado na listagem.",
+  mensagemConfirmacao = "O registro será inativado na listagem.",
   textoConfirmar = "Sim, inativar",
   textoCarregandoExcluir = "Inativando...",
   excluindo = false,
   itensPorPagina = 10,
+  paginacaoServidor = false,
+  paginaAtual: paginaAtualServidor,
+  totalPaginas: totalPaginasServidor,
+  totalItens,
+  onMudarPagina,
 }) {
   const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [paginaAtualLocal, setPaginaAtualLocal] = useState(1);
 
   const temAcoes = Boolean(onVisualizar || onEditar || onExcluir);
-  const totalPaginas = Math.max(1, Math.ceil(itens.length / itensPorPagina));
+  const totalPaginas = paginacaoServidor
+    ? Math.max(1, totalPaginasServidor || 1)
+    : Math.max(1, Math.ceil(itens.length / itensPorPagina));
+  const paginaAtual = paginacaoServidor ? paginaAtualServidor || 1 : paginaAtualLocal;
 
   const itensPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
+    if (paginacaoServidor) return itens;
+    const inicio = (paginaAtualLocal - 1) * itensPorPagina;
     return itens.slice(inicio, inicio + itensPorPagina);
-  }, [itens, itensPorPagina, paginaAtual]);
+  }, [itens, itensPorPagina, paginaAtualLocal, paginacaoServidor]);
 
   useEffect(() => {
-    setPaginaAtual(1);
-  }, [busca, itensPorPagina]);
+    if (paginacaoServidor) return;
+    setPaginaAtualLocal(1);
+  }, [busca, itensPorPagina, paginacaoServidor]);
 
   useEffect(() => {
-    setPaginaAtual((pagina) => Math.min(pagina, totalPaginas));
-  }, [totalPaginas]);
+    if (paginacaoServidor) return;
+    setPaginaAtualLocal((pagina) => Math.min(pagina, totalPaginas));
+  }, [totalPaginas, paginacaoServidor]);
+
+  function irParaPagina(novaPagina) {
+    if (paginacaoServidor) {
+      onMudarPagina?.(novaPagina);
+    } else {
+      setPaginaAtualLocal(novaPagina);
+    }
+  }
 
   async function aoConfirmarExclusao() {
     if (!itemParaExcluir || !onExcluir) return;
@@ -99,7 +119,7 @@ export default function BcListagem({
           <span className="bc-listagem-titulo">
             {iconeTitulo}
             {titulo}
-            <span className="bc-listagem-badge">{itens.length}</span>
+            <span className="bc-listagem-badge">{paginacaoServidor ? totalItens ?? itens.length : itens.length}</span>
           </span>
         </div>
 
@@ -144,7 +164,7 @@ export default function BcListagem({
                           {onVisualizar ? (
                             <button
                               className="bc-listagem-btnIcone bc-listagem-btnVisualizar"
-                              title="Visualizar" type="button"
+                              title={tituloVisualizar} type="button"
                               onClick={() => onVisualizar(item)}
                             >
                               <IconeVisualizar />
@@ -181,27 +201,27 @@ export default function BcListagem({
               </tbody>
             </table>
 
-            {itens.length > itensPorPagina ? (
+            {(paginacaoServidor ? totalPaginas > 1 : itens.length > itensPorPagina) ? (
               <div className="bc-listagem-paginacao">
                 <span className="bc-listagem-paginacaoInfo">
-                  Pagina {paginaAtual} de {totalPaginas}
+                  Página {paginaAtual} de {totalPaginas}
                 </span>
                 <div className="bc-listagem-paginacaoAcoes">
                   <button
                     className="bc-listagem-btnPagina" type="button"
-                    onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
+                    onClick={() => irParaPagina(Math.max(1, paginaAtual - 1))}
                     disabled={paginaAtual === 1}
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                   >
                     <IconeSetaEsquerda /> Anterior
                   </button>
                   <button
                     className="bc-listagem-btnPagina" type="button"
-                    onClick={() => setPaginaAtual((p) => Math.min(totalPaginas, p + 1))}
+                    onClick={() => irParaPagina(Math.min(totalPaginas, paginaAtual + 1))}
                     disabled={paginaAtual === totalPaginas}
-                    aria-label="Proxima pagina"
+                    aria-label="Próxima página"
                   >
-                    Proxima <IconeSetaDireita />
+                    Próxima <IconeSetaDireita />
                   </button>
                 </div>
               </div>

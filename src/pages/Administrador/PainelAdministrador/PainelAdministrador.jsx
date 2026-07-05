@@ -18,6 +18,7 @@ import {
 import {
   cadastrarInstituicao,
   listarInstituicoes,
+  listarInstituicoesPaginado,
   atualizarInstituicao,
   excluirInstituicao,
   reativarInstituicao,
@@ -310,15 +311,15 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
 /* ── Colunas ── */
 const COLUNAS = [
   { chave: "nome",  titulo: "Nome",     className: "bc-listagem-tdNome" },
-  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted" },
-  { chave: "email", titulo: "Email",    className: "bc-listagem-tdMuted" },
+  { chave: "cnpj",  titulo: "CNPJ",     className: "bc-listagem-tdMuted bc-listagem-tdContato", render: (inst) => formatarCnpj(String(inst.cnpj || "")) },
+  { chave: "email", titulo: "Email",    className: "bc-listagem-tdMuted bc-listagem-tdContato" },
   {
     chave: "bairro",
     titulo: "Endereço",
     className: "bc-listagem-tdMuted",
     render: (inst) => `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
   },
-  { chave: "cep", titulo: "CEP", className: "bc-listagem-tdMuted" },
+  { chave: "cep", titulo: "CEP", className: "bc-listagem-tdMuted bc-listagem-tdContato", render: (inst) => formatarCep(String(inst.cep || "")) },
   {
     chave: "status",
     titulo: "Status",
@@ -336,6 +337,8 @@ const OPCOES_STATUS = [
   { value: "TODAS",   label: "Todas" },
 ];
 
+const TAMANHO_PAGINA = 5;
+
 const RELATORIO_INICIAL = {
   instituicoes: { total: 0, ativas: 0,  inativas: 0,  lista: [] },
   cuidadores:   { total: 0, ativos: 0,  inativos: 0,  lista: [] },
@@ -348,6 +351,9 @@ export default function PainelAdministrador({ onLogout }) {
   const [instituicoes, setInstituicoes]     = useState([]);
   const [busca, setBusca]                   = useState("");
   const [filtroStatus, setFiltroStatus]     = useState("ATIVO");
+  const [paginaAtual, setPaginaAtual]       = useState(1);
+  const [totalPaginas, setTotalPaginas]     = useState(1);
+  const [totalItens, setTotalItens]         = useState(0);
   const [carregando, setCarregando]         = useState(false);
   const [excluindo, setExcluindo]           = useState(false);
   const [modalCadastro, setModalCadastro]   = useState(false);
@@ -357,22 +363,34 @@ export default function PainelAdministrador({ onLogout }) {
   const [erroRel, setErroRel]               = useState("");
   const [baixando, setBaixando]             = useState(false);
 
-  const recarregarLista = useCallback(async () => {
+  const buscaAtiva = busca.trim() !== "";
+
+  const recarregarLista = useCallback(async (pagina, comBuscaAtiva) => {
     setCarregando(true);
     try {
-      const data = await listarInstituicoes();
-      const lista = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.content)
-        ? data.content
-        : [];
-      setInstituicoes(lista);
+      if (comBuscaAtiva) {
+        const data = await listarInstituicoes();
+        const lista = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+          ? data.content
+          : [];
+        setInstituicoes(lista);
+        setTotalPaginas(1);
+        setTotalItens(lista.length);
+      } else {
+        const resultado = await listarInstituicoesPaginado(pagina - 1, TAMANHO_PAGINA, filtroStatus);
+        setInstituicoes(resultado.itens);
+        setTotalPaginas(resultado.totalPaginas);
+        setTotalItens(resultado.totalItens);
+      }
+      setPaginaAtual(pagina);
     } catch (err) {
       mostrarToast("erro", "Erro ao carregar", err.message);
     } finally {
       setCarregando(false);
     }
-  }, [mostrarToast]);
+  }, [filtroStatus, mostrarToast]);
 
   // Carrega dados do relatório automaticamente ao montar
   const recarregarRelatorio = useCallback(async () => {
@@ -389,9 +407,12 @@ export default function PainelAdministrador({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    recarregarLista();
+    recarregarLista(1, buscaAtiva);
+  }, [buscaAtiva, recarregarLista]);
+
+  useEffect(() => {
     recarregarRelatorio();
-  }, [recarregarLista, recarregarRelatorio]);
+  }, [recarregarRelatorio]);
 
   const filtradas = instituicoes.filter(i => {
     const matchBusca =
@@ -412,7 +433,7 @@ export default function PainelAdministrador({ onLogout }) {
         await reativarInstituicao(inst.id);
         mostrarToast("sucesso", "Instituição reativada", `${inst.nome} foi reativada.`);
       }
-      await recarregarLista();
+      await recarregarLista(1, buscaAtiva);
       await recarregarRelatorio(); // atualiza os cards após toggle
     } catch (err) {
       mostrarToast("erro", "Erro ao atualizar status", err.message);
@@ -460,6 +481,11 @@ export default function PainelAdministrador({ onLogout }) {
           textoVazio={busca ? "Nenhuma instituição encontrada." : "Nenhuma instituição cadastrada ainda."}
           carregando={carregando}
           excluindo={excluindo}
+          paginacaoServidor={!buscaAtiva}
+          paginaAtual={paginaAtual}
+          totalPaginas={totalPaginas}
+          totalItens={totalItens}
+          onMudarPagina={(pagina) => recarregarLista(pagina, buscaAtiva)}
           onEditar={(inst) => setModalEditar(inst)}
           onExcluir={aoAlternarStatusInstituicao}
           tituloConfirmacao="Alterar status da instituição?"
@@ -510,7 +536,7 @@ export default function PainelAdministrador({ onLogout }) {
 
       <BcModal aberto={modalCadastro} onFechar={() => setModalCadastro(false)}>
         <ModalCadastro
-          onSucesso={() => { setModalCadastro(false); recarregarLista(); recarregarRelatorio(); }}
+          onSucesso={() => { setModalCadastro(false); recarregarLista(1, buscaAtiva); recarregarRelatorio(); }}
           onToast={mostrarToast}
         />
       </BcModal>
@@ -519,7 +545,7 @@ export default function PainelAdministrador({ onLogout }) {
         {modalEditar && (
           <ModalEditar
             instituicao={modalEditar}
-            onSucesso={() => { setModalEditar(null); recarregarLista(); recarregarRelatorio(); }}
+            onSucesso={() => { setModalEditar(null); recarregarLista(paginaAtual, buscaAtiva); recarregarRelatorio(); }}
             onToast={mostrarToast}
           />
         )}
