@@ -418,6 +418,50 @@
   font-weight: 700;
 }
 
+.cuidador-consultas-paginacao {
+  padding: 16px 20px;
+  border-top: 1px solid #edf1f2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cuidador-consultas-paginacao p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cuidador-consultas-paginacao div {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.cuidador-consultas-paginacao button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid #d9e3e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #0d9e8a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cuidador-consultas-paginacao button:hover:not(:disabled) {
+  background: #e6f7f5;
+  border-color: #0d9e8a;
+}
+
+.cuidador-consultas-paginacao button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .bcmodal-content:has(.cuidador-consultas-form) {
   max-width: 560px;
 }
@@ -545,6 +589,20 @@
 
   .cuidador-consultas-toolbar .bc-button {
     width: 100%;
+  }
+
+  .cuidador-consultas-paginacao,
+  .cuidador-consultas-paginacao div {
+    width: 100%;
+  }
+
+  .cuidador-consultas-paginacao {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cuidador-consultas-paginacao button {
+    flex: 1;
   }
 
   .cuidador-consultas-listagem__header {

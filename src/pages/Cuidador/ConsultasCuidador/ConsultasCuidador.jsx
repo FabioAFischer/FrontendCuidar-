@@ -8,10 +8,11 @@ import BcNotificacao, { useBcNotificacao } from "../../../components/BcNotificac
 import BcBarraSuperior from "../../../components/BcBarraSuperior/BcBarraSuperior";
 import { IconeSair, IconeVoltar } from "../../../components/icones/Icones";
 import { listarIdososDoCuidador } from "../../../api/instituicaoApi";
-import { atualizarAlerta, cadastrarAlerta, cancelarAlerta } from "../../../api/alertaApi";
+import { atualizarAlerta, cadastrarAlerta, cancelarAlerta, listarAlertas } from "../../../api/alertaApi";
 import "./ConsultasCuidador.css";
 
 const STORAGE_KEY = "bomcuidado_consultas_cuidador";
+const ITENS_POR_PAGINA = 5;
 
 const TIPOS_ALERTA = [
   { value: "CONSULTA", label: "Consulta" },
@@ -24,6 +25,19 @@ const STATUS = {
   confirmada: { label: "Confirmada", classe: "confirmada" },
   realizada: { label: "Realizada", classe: "realizada" },
   cancelada: { label: "Cancelada", classe: "cancelada" },
+};
+
+const STATUS_BACKEND_PARA_TELA = {
+  AGENDADO: "pendente",
+  REALIZADO: "realizada",
+  CANCELADO: "cancelada",
+};
+
+const STATUS_TELA_PARA_BACKEND = {
+  pendente: "AGENDADO",
+  confirmada: "AGENDADO",
+  realizada: "REALIZADO",
+  cancelada: "CANCELADO",
 };
 
 function IconeCalendario() {
@@ -137,6 +151,61 @@ function criarDataConsulta(consulta) {
   return new Date(`${consulta.data}T${consulta.hora || "00:00"}`);
 }
 
+function lerConsultasSalvas() {
+  try {
+    const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(salvas) ? salvas : [];
+  } catch {
+    return [];
+  }
+}
+
+function buscarDetalhesLocais(alerta, consultasSalvas) {
+  return consultasSalvas.find((consulta) =>
+    Number(consulta.alertaId || consulta.id) === Number(alerta.id)
+  );
+}
+
+function normalizarDataHoraAlerta(valor) {
+  if (!valor) return { data: "", hora: "" };
+
+  const [data = "", horario = ""] = String(valor).split("T");
+  return {
+    data,
+    hora: horario.slice(0, 5),
+  };
+}
+
+function obterLabelTipoAlerta(tipoAlerta) {
+  return TIPOS_ALERTA.find((tipo) => tipo.value === tipoAlerta)?.label || tipoAlerta || "Alerta";
+}
+
+function mapearAlertaParaConsulta(alerta, idosos, consultasSalvas) {
+  const detalhesLocais = buscarDetalhesLocais(alerta, consultasSalvas);
+  const idoso = idosos.find((item) => Number(item.id) === Number(alerta.idosoId));
+  const { data, hora } = normalizarDataHoraAlerta(alerta.dataAgendada);
+  const tipoAlerta = alerta.tipoAlerta || detalhesLocais?.tipoAlerta || "CONSULTA";
+
+  return {
+    id: String(alerta.id),
+    alertaId: alerta.id,
+    idosoId: alerta.idosoId,
+    idosoNome: alerta.idosoNome || idoso?.nome || detalhesLocais?.idosoNome || "Idoso sem nome",
+    idosoCpf: idoso?.cpf || detalhesLocais?.idosoCpf || "",
+    data,
+    hora,
+    medico: alerta.medico || detalhesLocais?.medico || "Não informado",
+    especialidade: alerta.especialidade || detalhesLocais?.especialidade || obterLabelTipoAlerta(tipoAlerta),
+    local: alerta.local || detalhesLocais?.local || "Não informado",
+    observacoes: alerta.observacoes || detalhesLocais?.observacoes || "",
+    status: STATUS_BACKEND_PARA_TELA[alerta.statusAlertas] || detalhesLocais?.status || "pendente",
+    tipoAlerta,
+    consultaId: alerta.consultaId || detalhesLocais?.consultaId,
+    lembreteEnviado: Boolean(detalhesLocais?.lembreteEnviado),
+    criadoEm: alerta.dataCriacao || detalhesLocais?.criadoEm,
+  };
+}
+
 function BotaoIcone({ children, label, tipo = "padrao", onClick }) {
   return (
     <button
@@ -228,19 +297,16 @@ const formInicial = {
 export default function ConsultasCuidador({ onBack, onLogout }) {
   const { toastProps, mostrarToast } = useBcNotificacao();
   const [idosos, setIdosos] = useState([]);
-  const [consultas, setConsultas] = useState(() => {
-    try {
-      const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      return Array.isArray(salvas) ? salvas : [];
-    } catch {
-      return [];
-    }
-  });
+  const [consultas, setConsultas] = useState([]);
   const [carregandoIdosos, setCarregandoIdosos] = useState(true);
   const [erroIdosos, setErroIdosos] = useState("");
+  const [carregandoConsultas, setCarregandoConsultas] = useState(true);
+  const [erroConsultas, setErroConsultas] = useState("");
+  const [consultasCarregadas, setConsultasCarregadas] = useState(false);
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("todos");
   const [idosoFiltro, setIdosoFiltro] = useState("todos");
+  const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
   const [consultaEmEdicao, setConsultaEmEdicao] = useState(null);
   const [consultaEmVisualizacao, setConsultaEmVisualizacao] = useState(null);
@@ -250,24 +316,45 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
   const [form, setForm] = useState(formInicial);
 
   useEffect(() => {
-    carregarIdosos();
+    carregarDadosTela();
   }, []);
 
   useEffect(() => {
+    if (!consultasCarregadas) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
-  }, [consultas]);
+  }, [consultas, consultasCarregadas]);
 
-  async function carregarIdosos() {
+  async function carregarDadosTela() {
     try {
       setCarregandoIdosos(true);
+      setCarregandoConsultas(true);
       setErroIdosos("");
-      const lista = await listarIdososDoCuidador();
-      setIdosos(Array.isArray(lista) ? lista : []);
+      setErroConsultas("");
+
+      const [listaIdosos, listaAlertas] = await Promise.all([
+        listarIdososDoCuidador(),
+        listarAlertas(),
+      ]);
+
+      const idososCarregados = Array.isArray(listaIdosos) ? listaIdosos : [];
+      const alertasCarregados = Array.isArray(listaAlertas) ? listaAlertas : [];
+      const consultasSalvas = lerConsultasSalvas();
+
+      setIdosos(idososCarregados);
+      setConsultas(
+        alertasCarregados
+          .filter((alerta) => alerta.tipoAlerta !== "REMEDIO")
+          .map((alerta) => mapearAlertaParaConsulta(alerta, idososCarregados, consultasSalvas))
+      );
+      setConsultasCarregadas(true);
     } catch (erro) {
-      setErroIdosos(erro.message);
+      setErroIdosos(erro.message || "Não foi possível carregar os dados da tela.");
+      setErroConsultas(erro.message || "Não foi possível carregar os alertas.");
       setIdosos([]);
+      setConsultas([]);
     } finally {
       setCarregandoIdosos(false);
+      setCarregandoConsultas(false);
     }
   }
 
@@ -291,6 +378,20 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
       })
       .sort((a, b) => criarDataConsulta(a).getTime() - criarDataConsulta(b).getTime());
   }, [busca, consultas, idosoFiltro, statusFiltro]);
+
+  const totalPaginas = Math.max(Math.ceil(consultasFiltradas.length / ITENS_POR_PAGINA), 1);
+  const consultasPaginadas = useMemo(() => {
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    return consultasFiltradas.slice(inicio, inicio + ITENS_POR_PAGINA);
+  }, [consultasFiltradas, paginaAtual]);
+
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, statusFiltro, idosoFiltro]);
+
+  useEffect(() => {
+    setPaginaAtual((pagina) => Math.min(Math.max(pagina, 1), totalPaginas));
+  }, [totalPaginas]);
 
   const proximas = consultas.filter((consulta) =>
     criarDataConsulta(consulta).getTime() > Date.now() && consulta.status !== "cancelada"
@@ -376,7 +477,11 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
       idosoId: Number(idoso.id),
       tipoAlerta: form.tipoAlerta,
       dataAgendada: form.data + "T" + form.hora + ":00",
-      ...(consultaEmEdicao ? { statusAlertas: "AGENDADO" } : {}),
+      statusAlertas: STATUS_TELA_PARA_BACKEND[form.status] || "AGENDADO",
+      medico: form.medico,
+      especialidade: form.especialidade,
+      local: form.local,
+      observacoes: form.observacoes,
     };
 
     try {
@@ -394,7 +499,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         setConsultas((anteriores) =>
           anteriores.map((consulta) =>
             consulta.id === consultaEmEdicao.id
-              ? { ...consulta, ...dados, alertaId: alertaSalvo?.id || consulta.alertaId }
+              ? { ...consulta, ...dados, alertaId: alertaSalvo?.id || consulta.alertaId, consultaId: alertaSalvo?.consultaId || consulta.consultaId }
               : consulta
           )
         );
@@ -403,8 +508,10 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         setConsultas((anteriores) => [
           {
             id: String(Date.now()),
+            ...(alertaSalvo?.id ? { id: String(alertaSalvo.id) } : {}),
             ...dados,
             alertaId: alertaSalvo?.id,
+            consultaId: alertaSalvo?.consultaId,
             lembreteEnviado: false,
             criadoEm: new Date().toISOString(),
           },
@@ -503,7 +610,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           <BcBotao
             onClick={abrirCadastro}
             fullWidth={false}
-            disabled={carregandoIdosos || idosos.length === 0}
+            disabled={carregandoIdosos || carregandoConsultas || idosos.length === 0}
           >
             <IconeMais />
             Novo Agendamento
@@ -514,6 +621,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           <div className="cuidador-consultas-alerta" role="alert">
             <strong>Não foi possível carregar os idosos.</strong>
             <span>{erroIdosos}</span>
+          </div>
+        ) : null}
+
+        {erroConsultas ? (
+          <div className="cuidador-consultas-alerta" role="alert">
+            <strong>Não foi possível carregar os alertas.</strong>
+            <span>{erroConsultas}</span>
           </div>
         ) : null}
 
@@ -530,9 +644,14 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             <span>{consultasFiltradas.length}</span>
           </div>
 
-          {consultasFiltradas.length > 0 ? (
+          {carregandoConsultas ? (
+            <div className="cuidador-consultas-vazio">
+              <span><IconeCalendario /></span>
+              <p>Carregando alertas...</p>
+            </div>
+          ) : consultasFiltradas.length > 0 ? (
             <div className="cuidador-consultas-lista">
-              {consultasFiltradas.map((consulta) => (
+              {consultasPaginadas.map((consulta) => (
                 <CartaoConsulta
                   key={consulta.id}
                   consulta={consulta}
@@ -542,6 +661,19 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
                   onLembrete={aoEnviarLembreteConsulta}
                 />
               ))}
+              {totalPaginas > 1 ? (
+                <div className="cuidador-consultas-paginacao">
+                  <p>Página {paginaAtual} de {totalPaginas}</p>
+                  <div>
+                    <button type="button" onClick={() => setPaginaAtual((pagina) => Math.max(pagina - 1, 1))} disabled={paginaAtual === 1}>
+                      Anterior
+                    </button>
+                    <button type="button" onClick={() => setPaginaAtual((pagina) => Math.min(pagina + 1, totalPaginas))} disabled={paginaAtual === totalPaginas}>
+                      Próxima
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="cuidador-consultas-vazio">
