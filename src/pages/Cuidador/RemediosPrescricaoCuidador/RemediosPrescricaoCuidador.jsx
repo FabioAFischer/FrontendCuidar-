@@ -405,16 +405,14 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setSalvandoAlertaRemedio(true);
       setErroAlertaRemedio("");
 
-      const alertaCriado = await cadastrarAlerta({
+      await cadastrarAlerta({
         idosoId: Number(idosoSelecionado.id),
         prescricaoId: Number(formAlertaRemedio.prescricaoId),
         tipoAlerta: "REMEDIO",
         dataAgendada: formAlertaRemedio.dataAgendada,
       });
 
-      if (ehAlertaRemedioPendente(alertaCriado)) {
-        setAlertasRemedio((anteriores) => [alertaCriado, ...anteriores.filter((alerta) => Number(alerta.id) !== Number(alertaCriado.id))]);
-      }
+      await carregarAlertasRemedioDoIdoso();
       setPaginaAgendaAtual(1);
       fecharCadastroAlertaRemedio();
       mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remédio foi cadastrado na agenda.");
