@@ -90,10 +90,10 @@ export async function listarAlertas(page = 0, size = 100) {
   return extrairConteudoPaginado(data);
 }
 
-export async function listarAlertasPorIdoso(idosoId) {
+export async function listarAlertasPorIdoso(idosoId, page = 0, size = 100) {
   if (!idosoId) return [];
 
-  const data = await executarRequisicaoApi(`/alertas/idoso/${idosoId}`, {
+  const data = await executarRequisicaoApi(`/alertas/idoso/${idosoId}?page=${page}&size=${size}`, {
     fallback: "Erro ao buscar alertas do idoso.",
   });
 

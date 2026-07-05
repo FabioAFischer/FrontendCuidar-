@@ -127,6 +127,13 @@ function calcularFimDoDia(valor) {
   return `${valor}T23:59:59`;
 }
 
+function ehAlertaRemedioPendente(alerta) {
+  const tipo = String(alerta?.tipoAlerta || alerta?.tipo || "").toUpperCase();
+  const status = String(alerta?.statusAlertas || alerta?.status || "").toUpperCase();
+
+  return tipo === "REMEDIO" && status !== "REALIZADO";
+}
+
 export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
   const { toastProps, mostrarToast } = useBcNotificacao();
   const [remedios, setRemedios] = useState([]);
@@ -252,7 +259,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setErroAlertasRemedio("");
       const lista = await listarAlertasPorIdoso(idosoSelecionadoId);
       const alertas = Array.isArray(lista) ? lista : [];
-      setAlertasRemedio(alertas.filter((alerta) => String(alerta.tipoAlerta || alerta.tipo || "").toUpperCase() === "REMEDIO"));
+      setAlertasRemedio(alertas.filter(ehAlertaRemedioPendente));
     } catch (erro) {
       setErroAlertasRemedio(erro.message);
       setAlertasRemedio([]);
@@ -398,14 +405,16 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
       setSalvandoAlertaRemedio(true);
       setErroAlertaRemedio("");
 
-      await cadastrarAlerta({
+      const alertaCriado = await cadastrarAlerta({
         idosoId: Number(idosoSelecionado.id),
         prescricaoId: Number(formAlertaRemedio.prescricaoId),
         tipoAlerta: "REMEDIO",
         dataAgendada: formAlertaRemedio.dataAgendada,
       });
 
-      await carregarAlertasRemedioDoIdoso();
+      if (ehAlertaRemedioPendente(alertaCriado)) {
+        setAlertasRemedio((anteriores) => [alertaCriado, ...anteriores.filter((alerta) => Number(alerta.id) !== Number(alertaCriado.id))]);
+      }
       setPaginaAgendaAtual(1);
       fecharCadastroAlertaRemedio();
       mostrarToast("sucesso", "Alerta cadastrado", "O alerta de remédio foi cadastrado na agenda.");
