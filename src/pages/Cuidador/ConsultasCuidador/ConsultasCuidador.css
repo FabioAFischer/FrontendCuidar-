@@ -290,8 +290,7 @@
   flex-shrink: 0;
 }
 
-.cuidador-consultas-status,
-.cuidador-consultas-lembrete {
+.cuidador-consultas-status {
   width: fit-content;
   display: inline-flex;
   align-items: center;
@@ -327,17 +326,6 @@
   color: #b91c1c;
 }
 
-.cuidador-consultas-lembrete {
-  background: #f5f3ff;
-  border-color: #ddd6fe;
-  color: #6d28d9;
-}
-
-.cuidador-consultas-lembrete svg {
-  width: 14px;
-  height: 14px;
-}
-
 .cuidador-consultas-card__acoes {
   display: flex;
   align-items: flex-start;
@@ -367,17 +355,6 @@
   background: #e6f7f5;
   border-color: #0d9e8a;
   color: #0d9e8a;
-}
-
-.cuidador-consultas-acao--lembrete {
-  color: #6d28d9;
-  border-color: #ddd6fe;
-}
-
-.cuidador-consultas-acao--lembrete:hover {
-  background: #f5f3ff;
-  border-color: #8b5cf6;
-  color: #6d28d9;
 }
 
 .cuidador-consultas-acao--perigo {
