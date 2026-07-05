@@ -19,7 +19,9 @@ import {
   excluirCuidador,
   excluirIdoso,
   listarCuidadores,
+  listarCuidadoresPaginado,
   listarIdosos,
+  listarIdososPaginado,
   reativarCuidador,
 } from "../../../api/instituicaoApi";
 import { buscarDadosRelatorioInstituicao } from "../../../api/relatorioinstituicaoapi";
@@ -63,6 +65,8 @@ const RELATORIO_INICIAL = {
   idosos:     { total: 0, ativos: 0, inativos: 0, lista: [] },
 };
 
+const TAMANHO_PAGINA = 5;
+
 export default function PainelInstituicao({ onLogout }) {
   const { toastProps, mostrarToast } = useBcNotificacao();
 
@@ -77,6 +81,12 @@ export default function PainelInstituicao({ onLogout }) {
   const [idosos, setIdosos]                             = useState([]);
   const [buscaCuidador, setBuscaCuidador]               = useState("");
   const [buscaIdoso, setBuscaIdoso]                     = useState("");
+  const [paginaCuidador, setPaginaCuidador]             = useState(1);
+  const [totalPaginasCuidador, setTotalPaginasCuidador] = useState(1);
+  const [totalCuidadores, setTotalCuidadores]           = useState(0);
+  const [paginaIdoso, setPaginaIdoso]                   = useState(1);
+  const [totalPaginasIdoso, setTotalPaginasIdoso]       = useState(1);
+  const [totalIdosos, setTotalIdosos]                   = useState(0);
   const [carregandoCuidadores, setCarregandoCuidadores] = useState(true);
   const [carregandoIdosos, setCarregandoIdosos]         = useState(true);
   const [salvandoCuidador, setSalvandoCuidador]         = useState(false);
@@ -107,20 +117,45 @@ export default function PainelInstituicao({ onLogout }) {
     nome: "", cpf: "", observacoes: "", ddd: "", telefone: "", contatoId: null,
   });
 
-  const carregarCuidadores = useCallback(async () => {
+  const buscaCuidadorAtiva = buscaCuidador.trim() !== "";
+  const buscaIdosoAtiva = buscaIdoso.trim() !== "";
+
+  const carregarCuidadores = useCallback(async (pagina, comBuscaAtiva) => {
     try {
       setCarregandoCuidadores(true); setErroCuidador("");
-      setCuidadores(await listarCuidadores());
+      if (comBuscaAtiva) {
+        const lista = await listarCuidadores();
+        setCuidadores(lista);
+        setTotalPaginasCuidador(1);
+        setTotalCuidadores(lista.length);
+      } else {
+        const resultado = await listarCuidadoresPaginado(pagina - 1, TAMANHO_PAGINA);
+        setCuidadores(resultado.itens);
+        setTotalPaginasCuidador(resultado.totalPaginas);
+        setTotalCuidadores(resultado.totalItens);
+      }
+      setPaginaCuidador(pagina);
     } catch (erro) {
       setErroCuidador(erro.message);
       mostrarToast("erro", "Erro ao carregar cuidadores", erro.message);
     } finally { setCarregandoCuidadores(false); }
   }, [mostrarToast]);
 
-  const carregarIdosos = useCallback(async () => {
+  const carregarIdosos = useCallback(async (pagina, comBuscaAtiva) => {
     try {
       setCarregandoIdosos(true); setErroIdoso("");
-      setIdosos(await listarIdosos());
+      if (comBuscaAtiva) {
+        const lista = await listarIdosos();
+        setIdosos(lista);
+        setTotalPaginasIdoso(1);
+        setTotalIdosos(lista.length);
+      } else {
+        const resultado = await listarIdososPaginado(pagina - 1, TAMANHO_PAGINA);
+        setIdosos(resultado.itens);
+        setTotalPaginasIdoso(resultado.totalPaginas);
+        setTotalIdosos(resultado.totalItens);
+      }
+      setPaginaIdoso(pagina);
     } catch (erro) {
       setErroIdoso(erro.message);
       mostrarToast("erro", "Erro ao carregar idosos", erro.message);
@@ -137,10 +172,16 @@ export default function PainelInstituicao({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    carregarCuidadores();
-    carregarIdosos();
+    carregarCuidadores(1, buscaCuidadorAtiva);
+  }, [buscaCuidadorAtiva, carregarCuidadores]);
+
+  useEffect(() => {
+    carregarIdosos(1, buscaIdosoAtiva);
+  }, [buscaIdosoAtiva, carregarIdosos]);
+
+  useEffect(() => {
     carregarRelatorio();
-  }, [carregarCuidadores, carregarIdosos, carregarRelatorio]);
+  }, [carregarRelatorio]);
 
   useEffect(() => {
     const instituicaoId = localStorage.getItem("usuarioId") || sessionStorage.getItem("usuarioId");
@@ -356,7 +397,7 @@ export default function PainelInstituicao({ onLogout }) {
         mostrarToast("sucesso", "Cuidador cadastrado", `${formCuidador.nome} foi cadastrado com sucesso.`);
       }
       fecharModalCuidador();
-      await carregarCuidadores();
+      await carregarCuidadores(1, buscaCuidadorAtiva);
       await carregarRelatorio();
     } catch (erro) {
       setErroCuidador(erro.message);
@@ -369,7 +410,7 @@ export default function PainelInstituicao({ onLogout }) {
       setExcluindoCuidador(true); setErroCuidador("");
       await excluirCuidador(cuidador.id);
       guardarCuidadorInativo(cuidador);
-      await carregarCuidadores();
+      await carregarCuidadores(1, buscaCuidadorAtiva);
       await carregarRelatorio();
       mostrarToast("sucesso", "Cuidador desativado", `${cuidador.nome} foi removido da listagem.`);
     } catch (erro) {
@@ -395,7 +436,7 @@ export default function PainelInstituicao({ onLogout }) {
           idosoParaReativar ? `${formIdoso.nome} foi reativado com sucesso.` : `${formIdoso.nome} foi cadastrado com sucesso.`);
       }
       fecharModalIdoso();
-      await carregarIdosos();
+      await carregarIdosos(1, buscaIdosoAtiva);
       await carregarRelatorio();
     } catch (erro) {
       setErroIdoso(erro.message);
@@ -407,7 +448,7 @@ export default function PainelInstituicao({ onLogout }) {
     try {
       setExcluindoIdoso(true); setErroIdoso("");
       await excluirIdoso(idoso.id);
-      await carregarIdosos();
+      await carregarIdosos(1, buscaIdosoAtiva);
       await carregarRelatorio();
       mostrarToast("sucesso", "Idoso desativado", `${idoso.nome} foi removido da listagem.`);
     } catch (erro) {
@@ -498,7 +539,12 @@ export default function PainelInstituicao({ onLogout }) {
               textoConfirmar="Sim, inativar"
               textoCarregandoExcluir="Inativando..."
               excluindo={excluindoCuidador}
-              itensPorPagina={10}
+              itensPorPagina={5}
+              paginacaoServidor={!buscaCuidadorAtiva}
+              paginaAtual={paginaCuidador}
+              totalPaginas={totalPaginasCuidador}
+              totalItens={totalCuidadores}
+              onMudarPagina={(pagina) => carregarCuidadores(pagina, buscaCuidadorAtiva)}
             />
           </div>
 
@@ -527,6 +573,12 @@ export default function PainelInstituicao({ onLogout }) {
               textoConfirmar="Sim, desativar"
               textoCarregandoExcluir="Desativando..."
               excluindo={excluindoIdoso}
+              itensPorPagina={5}
+              paginacaoServidor={!buscaIdosoAtiva}
+              paginaAtual={paginaIdoso}
+              totalPaginas={totalPaginasIdoso}
+              totalItens={totalIdosos}
+              onMudarPagina={(pagina) => carregarIdosos(pagina, buscaIdosoAtiva)}
             />
           </div>
         </div>
