@@ -50,6 +50,15 @@ function extrairConteudoPaginado(data) {
   return Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 }
 
+function extrairPaginacao(data) {
+  const itens = extrairConteudoPaginado(data);
+  return {
+    itens,
+    totalPaginas: Number.isFinite(data?.totalPages) ? data.totalPages : 1,
+    totalItens: Number.isFinite(data?.totalElements) ? data.totalElements : itens.length,
+  };
+}
+
 function normalizarDadosCuidador(dados) {
   const cuidador = {
     nome: dados.nome?.trim(),
@@ -97,6 +106,13 @@ export async function listarCuidadores(page = 0, size = 100) {
   return extrairConteudoPaginado(data).filter((c) => Number(c.instituicaoId) === instituicaoId);
 }
 
+export async function listarCuidadoresPaginado(page = 0, size = 5) {
+  const data = await executarRequisicaoApi(`/cuidador/listar_todos?page=${page}&size=${size}`, {
+    fallback: "Erro ao buscar cuidadores.",
+  });
+  return extrairPaginacao(data);
+}
+
 export async function cadastrarCuidador(dados) {
   return executarRequisicaoApi("/cuidador/cadastrar", {
     method: "POST",
@@ -135,6 +151,13 @@ export async function listarIdosos(page = 0, size = 100) {
     fallback: "Erro ao buscar idosos.",
   });
   return extrairConteudoPaginado(data);
+}
+
+export async function listarIdososPaginado(page = 0, size = 5) {
+  const data = await executarRequisicaoApi(`/idoso/listar_todos?page=${page}&size=${size}`, {
+    fallback: "Erro ao buscar idosos.",
+  });
+  return extrairPaginacao(data);
 }
 
 export async function listarIdososDoCuidador(cuidadorId = buscarUsuarioIdAtual(), page = 0, size = 100) {

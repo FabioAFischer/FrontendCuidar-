@@ -46,6 +46,31 @@ export async function listarInstituicoes(page = 0, size = 100) {
   return Array.isArray(data.content) ? data.content : [];
 }
 
+export async function listarInstituicoesPaginado(page = 0, size = 5, status) {
+  const query = new URLSearchParams({ page, size });
+  if (status && status !== "TODAS") query.set("status", status);
+
+  const response = await fetch(
+    `${API_BASE_URL}/instituicao/listar_todas?${query.toString()}`,
+    {
+      headers: montarCabecalhosAutenticacao(),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await extrairMensagemErro(response, "Erro ao buscar instituicoes."));
+  }
+
+  const data = await response.json();
+  const itens = Array.isArray(data.content) ? data.content : [];
+
+  return {
+    itens,
+    totalPaginas: Number.isFinite(data.totalPages) ? data.totalPages : 1,
+    totalItens: Number.isFinite(data.totalElements) ? data.totalElements : itens.length,
+  };
+}
+
 export async function buscarInstituicaoPorId(id) {
   const response = await fetch(`${API_BASE_URL}/instituicao/listar/${id}`, {
     headers: montarCabecalhosAutenticacao(),
