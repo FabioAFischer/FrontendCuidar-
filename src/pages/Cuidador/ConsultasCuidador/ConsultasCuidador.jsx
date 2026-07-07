@@ -142,6 +142,12 @@ function criarDataConsulta(consulta) {
   return new Date(`${consulta.data}T${consulta.hora || "00:00"}`);
 }
 
+function obterDataAtualParaInput() {
+  const agora = new Date();
+  const offsetMs = agora.getTimezoneOffset() * 60000;
+  return new Date(agora.getTime() - offsetMs).toISOString().slice(0, 10);
+}
+
 function lerConsultasSalvas() {
   try {
     const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -417,6 +423,11 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
     if (!form.idosoId) return "Selecione um idoso.";
     if (!form.data) return "Informe a data do agendamento.";
     if (!form.hora) return "Informe o horário do agendamento.";
+
+    if (!consultaEmEdicao && new Date(`${form.data}T${form.hora}`) < new Date()) {
+      return "Não é possível agendar no passado.";
+    }
+
     if (!form.tipoAlerta) return "Selecione o tipo do alerta.";
     if (!form.medico.trim()) return "Informe o nome do médico.";
     if (!form.especialidade.trim()) return "Informe a especialidade.";
@@ -685,7 +696,14 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           <BcCampoTexto label="Médico *" name="medico" placeholder="Dr. Nome do médico" value={form.medico} onChange={aoAlterarFormularioConsulta} />
 
           <div className="cuidador-consultas-form__linha">
-            <BcCampoTexto label="Data *" name="data" type="date" value={form.data} onChange={aoAlterarFormularioConsulta} />
+            <BcCampoTexto
+              label="Data *"
+              name="data"
+              type="date"
+              value={form.data}
+              onChange={aoAlterarFormularioConsulta}
+              min={consultaEmEdicao ? undefined : obterDataAtualParaInput()}
+            />
             <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
           </div>
 
