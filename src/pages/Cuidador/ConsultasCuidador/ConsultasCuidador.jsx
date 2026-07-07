@@ -22,7 +22,6 @@ const TIPOS_ALERTA = [
 
 const STATUS = {
   pendente: { label: "Pendente", classe: "pendente" },
-  confirmada: { label: "Confirmada", classe: "confirmada" },
   realizada: { label: "Realizada", classe: "realizada" },
   cancelada: { label: "Cancelada", classe: "cancelada" },
 };
@@ -35,7 +34,6 @@ const STATUS_BACKEND_PARA_TELA = {
 
 const STATUS_TELA_PARA_BACKEND = {
   pendente: "AGENDADO",
-  confirmada: "AGENDADO",
   realizada: "REALIZADO",
   cancelada: "CANCELADO",
 };
@@ -424,7 +422,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
     if (!form.data) return "Informe a data do agendamento.";
     if (!form.hora) return "Informe o horário do agendamento.";
 
-    if (!consultaEmEdicao && new Date(`${form.data}T${form.hora}`) < new Date()) {
+    if (new Date(`${form.data}T${form.hora}`) < new Date()) {
       return "Não é possível agendar no passado.";
     }
 
@@ -556,7 +554,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         <section className="cuidador-consultas-stats" aria-label="Resumo das consultas">
           <CartaoEstatistica label="Total de Agendamentos" valor={consultas.length} tipo="total" />
           <CartaoEstatistica label="Próximos Agendamentos" valor={proximas.length} tipo="proximas" />
-          <CartaoEstatistica label="Confirmadas" valor={consultas.filter((consulta) => consulta.status === "confirmada").length} tipo="confirmadas" />
+          <CartaoEstatistica label="Realizadas" valor={consultas.filter((consulta) => consulta.status === "realizada").length} tipo="realizadas" />
           <CartaoEstatistica label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
         </section>
 
@@ -583,7 +581,6 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
           <select value={statusFiltro} onChange={(evento) => setStatusFiltro(evento.target.value)}>
             <option value="todos">Todos os status</option>
             <option value="pendente">Pendente</option>
-            <option value="confirmada">Confirmada</option>
             <option value="realizada">Realizada</option>
             <option value="cancelada">Cancelada</option>
           </select>
@@ -702,7 +699,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               type="date"
               value={form.data}
               onChange={aoAlterarFormularioConsulta}
-              min={consultaEmEdicao ? undefined : obterDataAtualParaInput()}
+              min={obterDataAtualParaInput()}
             />
             <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
           </div>
@@ -714,7 +711,6 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
             <label htmlFor="consulta-status" className="bc-form-modal__label">Status</label>
             <select id="consulta-status" name="status" value={form.status} onChange={aoAlterarFormularioConsulta}>
               <option value="pendente">Pendente</option>
-              <option value="confirmada">Confirmada</option>
               <option value="realizada">Realizada</option>
               <option value="cancelada">Cancelada</option>
             </select>
