@@ -9,6 +9,7 @@
  *   value       : string
  *   onChange    : fn
  *   maxLength   : number
+ *   min         : string   — valor mínimo (ex: para type="date"/"datetime-local")
  *   autoComplete: string
  *   inputMode   : string   — modo do teclado virtual
  *   suffix      : ReactNode — elemento no canto direito (ex: botão de olho)
@@ -30,6 +31,7 @@ export default function BcCampoTexto({
   suffix,
   hint,
   error,
+  min,
 }) {
   return (
     <div className="bc-input-group">
@@ -45,6 +47,7 @@ export default function BcCampoTexto({
           maxLength={maxLength}
           autoComplete={autoComplete}
           inputMode={inputMode}
+          min={min}
           className="bc-input"
         />
         {suffix && <div className="bc-input-suffix">{suffix}</div>}
