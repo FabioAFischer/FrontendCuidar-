@@ -42,6 +42,8 @@ export default function BcListagem({
   tituloVisualizar = "Visualizar",
   tituloConfirmacao = "Inativar registro?",
   mensagemConfirmacao = "O registro será inativado na listagem.",
+  tituloExcluir = "Inativar",
+  tituloAtivar = "Ativar",
   textoConfirmar = "Sim, inativar",
   textoCarregandoExcluir = "Inativando...",
   excluindo = false,
@@ -186,7 +188,7 @@ export default function BcListagem({
                                   ? "bc-listagem-btnInativar"
                                   : "bc-listagem-btnAtivar"
                               }`}
-                              title={item.status === "ATIVO" ? "Inativar" : "Ativar"}
+                              title={item.status === "ATIVO" ? tituloExcluir : tituloAtivar}
                               type="button"
                               onClick={() => setItemParaExcluir(item)}
                             >
