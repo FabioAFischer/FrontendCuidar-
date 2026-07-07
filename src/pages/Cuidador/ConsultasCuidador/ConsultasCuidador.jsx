@@ -29,13 +29,14 @@ const STATUS = {
 
 const STATUS_BACKEND_PARA_TELA = {
   AGENDADO: "pendente",
+  CONFIRMADO: "confirmada",
   REALIZADO: "realizada",
   CANCELADO: "cancelada",
 };
 
 const STATUS_TELA_PARA_BACKEND = {
   pendente: "AGENDADO",
-  confirmada: "AGENDADO",
+  confirmada: "CONFIRMADO",
   realizada: "REALIZADO",
   cancelada: "CANCELADO",
 };
@@ -424,7 +425,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
     if (!form.data) return "Informe a data do agendamento.";
     if (!form.hora) return "Informe o horário do agendamento.";
 
-    if (!consultaEmEdicao && new Date(`${form.data}T${form.hora}`) < new Date()) {
+    if (new Date(`${form.data}T${form.hora}`) < new Date()) {
       return "Não é possível agendar no passado.";
     }
 
@@ -702,7 +703,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               type="date"
               value={form.data}
               onChange={aoAlterarFormularioConsulta}
-              min={consultaEmEdicao ? undefined : obterDataAtualParaInput()}
+              min={obterDataAtualParaInput()}
             />
             <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
           </div>
