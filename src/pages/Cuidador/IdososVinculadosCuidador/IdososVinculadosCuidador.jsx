@@ -58,6 +58,14 @@ function CartaoIdoso({ idoso, onSenhaClick }) {
             <dt>Telefone</dt>
             <dd>{formatarTelefone(idoso)}</dd>
           </div>
+          <div className="cuidador-idosos-card__observacoes">
+            <dt>Observações</dt>
+            <dd>
+              <div className="cuidador-idosos-observacoes-scroll">
+                {idoso.observacoes || "-"}
+              </div>
+            </dd>
+          </div>
         </dl>
         <button
           className="cuidador-idosos-card__senha"
