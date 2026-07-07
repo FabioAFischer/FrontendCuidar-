@@ -554,6 +554,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
         <section className="cuidador-consultas-stats" aria-label="Resumo das consultas">
           <CartaoEstatistica label="Total de Agendamentos" valor={consultas.length} tipo="total" />
           <CartaoEstatistica label="Próximos Agendamentos" valor={proximas.length} tipo="proximas" />
+          <CartaoEstatistica label="Realizadas" valor={consultas.filter((consulta) => consulta.status === "realizada").length} tipo="realizadas" />
           <CartaoEstatistica label="Pendentes" valor={consultas.filter((consulta) => consulta.status === "pendente").length} tipo="pendentes" />
         </section>
 

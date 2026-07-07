@@ -79,6 +79,10 @@
   background: linear-gradient(135deg, #2f80ed, #1f5fbf);
 }
 
+.cuidador-consultas-stat--realizadas {
+  background: linear-gradient(135deg, #16a36a, #087f52);
+}
+
 .cuidador-consultas-stat--pendentes {
   background: linear-gradient(135deg, #f2a35f, #d97706);
 }
