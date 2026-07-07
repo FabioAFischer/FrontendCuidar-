@@ -45,7 +45,7 @@
 
 .cuidador-consultas-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
 
@@ -77,10 +77,6 @@
 
 .cuidador-consultas-stat--proximas {
   background: linear-gradient(135deg, #2f80ed, #1f5fbf);
-}
-
-.cuidador-consultas-stat--confirmadas {
-  background: linear-gradient(135deg, #16a36a, #087f52);
 }
 
 .cuidador-consultas-stat--pendentes {
@@ -306,12 +302,6 @@
   background: #fff7ed;
   border-color: #fed7aa;
   color: #9a3412;
-}
-
-.cuidador-consultas-status--confirmada {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
 }
 
 .cuidador-consultas-status--realizada {

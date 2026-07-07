@@ -79,7 +79,6 @@ function buscarPrescricaoId(evento) {
 
 function formatarStatusAgenda(status) {
   if (status === "PENDENTE" || status === "AGENDADO") return "Pendente";
-  if (status === "CONFIRMADO") return "Confirmado";
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
