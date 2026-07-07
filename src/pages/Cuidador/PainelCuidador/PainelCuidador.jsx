@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import BcBotao from "../../../components/BcBotao/BcBotao";
 import BcNotificacao, { useBcNotificacao } from "../../../components/BcNotificacao/BcNotificacao";
 import BcBarraSuperior from "../../../components/BcBarraSuperior/BcBarraSuperior";
 import {
