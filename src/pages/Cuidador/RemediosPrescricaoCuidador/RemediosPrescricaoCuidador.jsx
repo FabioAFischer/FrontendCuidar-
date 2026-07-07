@@ -122,6 +122,12 @@ function formatarValorInputData(valor) {
   return new Date(data.getTime() - offsetMs).toISOString().slice(0, 10);
 }
 
+function obterDataHoraAtualParaInput() {
+  const agora = new Date();
+  const offsetMs = agora.getTimezoneOffset() * 60000;
+  return new Date(agora.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 function calcularFimDoDia(valor) {
   if (!valor) return null;
   return `${valor}T23:59:59`;
@@ -393,6 +399,11 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
 
     if (!formAlertaRemedio.dataAgendada) {
       setErroAlertaRemedio("Informe a data e horário do alerta.");
+      return;
+    }
+
+    if (new Date(formAlertaRemedio.dataAgendada) < new Date()) {
+      setErroAlertaRemedio("Não é possível agendar um alerta no passado.");
       return;
     }
 
@@ -909,6 +920,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             type="datetime-local"
             value={formAlertaRemedio.dataAgendada}
             onChange={aoAlterarFormularioAlertaRemedio}
+            min={obterDataHoraAtualParaInput()}
           />
 
           <BcBotao type="submit" loading={salvandoAlertaRemedio}>
