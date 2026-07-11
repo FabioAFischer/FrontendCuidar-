@@ -144,7 +144,7 @@ function validarFormularioInstituicao(form, exigirSenha = false) {
 }
 
 const FORM_INICIAL = {
-  nome: "", cnpj: "", email: "", rua: "", bairro: "", uf: "", numero: "", cep: "",
+  nome: "", cnpj: "", email: "", rua: "", bairro: "", complemento: "", uf: "", numero: "", cep: "",
   senha: "", confirmarSenha: "",
 };
 
@@ -199,6 +199,7 @@ function CamposEndereco({ form, onChange, buscandoCEP, feedbacks = {} }) {
         <BcCampoTexto label="Número *" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} error={feedbacks.numero?.error} hint={feedbacks.numero?.hint} />
         <BcCampoTexto label="UF *" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} error={feedbacks.uf?.error} hint={feedbacks.uf?.hint} />
       </BcFormularioModalLinha>
+      <BcCampoTexto label="Complemento" name="complemento" placeholder="Ex: sala, bloco, andar" value={form.complemento} onChange={onChange} />
       <BcCampoTexto label="Bairro *" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} error={feedbacks.bairro?.error} hint={feedbacks.bairro?.hint} />
     </>
   );
@@ -237,6 +238,7 @@ function ModalCadastro({ onSucesso, onToast }) {
         senha:  form.senha,
         rua:    form.rua,
         bairro: form.bairro,
+        complemento: form.complemento,
         uf:     form.uf,
         numero: form.numero,
         cep:    form.cep.replace(/\D/g, ""),
@@ -323,6 +325,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
     email:  instituicao.email  || "",
     rua:    instituicao.rua    || "",
     bairro: instituicao.bairro || "",
+    complemento: instituicao.complemento || "",
     uf:     instituicao.uf     || "",
     numero: String(instituicao.numero || ""),
     cep:    formatarCep(String(instituicao.cep || "")),
@@ -354,6 +357,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
         email:  form.email,
         rua:    form.rua,
         bairro: form.bairro,
+        complemento: form.complemento,
         uf:     form.uf,
         numero: form.numero,
         cep:    form.cep.replace(/\D/g, ""),
@@ -403,7 +407,7 @@ const COLUNAS = [
     chave: "bairro",
     titulo: "Endereço",
     className: "bc-listagem-tdMuted",
-    render: (inst) => `${inst.bairro}, ${inst.numero} — ${inst.uf}`,
+    render: (inst) => `${inst.bairro}, ${inst.numero}${inst.complemento ? ` - ${inst.complemento}` : ""} — ${inst.uf}`,
   },
   { chave: "cep", titulo: "CEP", className: "bc-listagem-tdMuted bc-listagem-tdContato", render: (inst) => formatarCep(String(inst.cep || "")) },
   {
