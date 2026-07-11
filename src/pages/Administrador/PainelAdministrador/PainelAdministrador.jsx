@@ -72,6 +72,12 @@ function feedbackValido(texto) {
   return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
 }
 
+function feedbackObrigatorio(valor, nomeCampo, ativo = true) {
+  if (!ativo) return {};
+  if (!String(valor || "").trim()) return { error: `${nomeCampo} obrigatório.` };
+  return { hint: feedbackValido(`${nomeCampo} preenchido.`) };
+}
+
 function feedbackCnpj(cnpj) {
   const numeros = cnpj.replace(/\D/g, "");
   if (!numeros) return {};
@@ -188,12 +194,12 @@ function CamposEndereco({ form, onChange, buscandoCEP, feedbacks = {} }) {
         error={feedbacks.cep?.error}
         hint={feedbacks.cep?.hint}
       />
-      <BcCampoTexto label="Rua *" name="rua" placeholder="Nome da rua" value={form.rua} onChange={onChange} />
+      <BcCampoTexto label="Rua *" name="rua" placeholder="Nome da rua" value={form.rua} onChange={onChange} error={feedbacks.rua?.error} hint={feedbacks.rua?.hint} />
       <BcFormularioModalLinha>
-        <BcCampoTexto label="Número *" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} />
+        <BcCampoTexto label="Número *" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} error={feedbacks.numero?.error} hint={feedbacks.numero?.hint} />
         <BcCampoTexto label="UF *" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} error={feedbacks.uf?.error} hint={feedbacks.uf?.hint} />
       </BcFormularioModalLinha>
-      <BcCampoTexto label="Bairro *" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} />
+      <BcCampoTexto label="Bairro *" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} error={feedbacks.bairro?.error} hint={feedbacks.bairro?.hint} />
     </>
   );
 }
@@ -249,9 +255,14 @@ function ModalCadastro({ onSucesso, onToast }) {
   const emailFeedback = feedbackEmail(form.email);
   const senhaFeedback = feedbackSenha(form.senha);
   const confirmarSenhaFeedback = feedbackConfirmarSenha(form.senha, form.confirmarSenha);
+  const formularioIniciado = Object.values(form).some((valor) => String(valor || "").trim());
+  const nomeFeedback = feedbackObrigatorio(form.nome, "Nome", formularioIniciado);
   const enderecoFeedbacks = {
     cep: feedbackCep(form.cep),
+    rua: feedbackObrigatorio(form.rua, "Rua", formularioIniciado),
+    numero: feedbackObrigatorio(form.numero, "Número", formularioIniciado),
     uf: feedbackUf(form.uf),
+    bairro: feedbackObrigatorio(form.bairro, "Bairro", formularioIniciado),
   };
 
   return (
@@ -261,7 +272,7 @@ function ModalCadastro({ onSucesso, onToast }) {
       error={erro}
       onSubmit={aoEnviarFormulario}
     >
-      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} error={nomeFeedback.error} hint={nomeFeedback.hint} />
       <BcCampoTexto label="CNPJ *" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} error={cnpjFeedback.error} hint={cnpjFeedback.hint} />
       <BcCampoTexto label="Email *" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} error={emailFeedback.error} hint={emailFeedback.hint} />
       <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} feedbacks={enderecoFeedbacks} />
@@ -358,9 +369,13 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
 
   const cnpjFeedback = feedbackCnpj(form.cnpj);
   const emailFeedback = feedbackEmail(form.email);
+  const nomeFeedback = feedbackObrigatorio(form.nome, "Nome");
   const enderecoFeedbacks = {
     cep: feedbackCep(form.cep),
+    rua: feedbackObrigatorio(form.rua, "Rua"),
+    numero: feedbackObrigatorio(form.numero, "Número"),
     uf: feedbackUf(form.uf),
+    bairro: feedbackObrigatorio(form.bairro, "Bairro"),
   };
 
   return (
@@ -370,7 +385,7 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
       error={erro}
       onSubmit={aoEnviarFormulario}
     >
-      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} error={nomeFeedback.error} hint={nomeFeedback.hint} />
       <BcCampoTexto label="CNPJ *" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} error={cnpjFeedback.error} hint={cnpjFeedback.hint} />
       <BcCampoTexto label="Email *" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} error={emailFeedback.error} hint={emailFeedback.hint} />
       <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} feedbacks={enderecoFeedbacks} />

@@ -137,20 +137,23 @@ function feedbackValido(texto) {
   return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
 }
 
-function feedbackTextoObrigatorio(valor, nomeCampo) {
-  if (!valor) return {};
+function feedbackTextoObrigatorio(valor, nomeCampo, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: `${nomeCampo} obrigatório.` };
   if (!String(valor).trim()) return { error: `${nomeCampo} obrigatório.` };
   return { hint: feedbackValido(`${nomeCampo} válido.`) };
 }
 
-function feedbackDataHoraFutura(valor) {
-  if (!valor) return {};
+function feedbackDataHoraFutura(valor, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: "Data e horário obrigatórios." };
   if (new Date(valor) < new Date()) return { error: "Não é possível agendar no passado." };
   return { hint: feedbackValido("Data e horário válidos.") };
 }
 
-function feedbackIntervalo(valor) {
-  if (!valor) return {};
+function feedbackIntervalo(valor, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: "Intervalo obrigatório." };
   if (Number(valor) <= 0) return { error: "Informe um intervalo maior que zero." };
   return { hint: feedbackValido("Intervalo válido.") };
 }
@@ -213,11 +216,22 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     prescricaoId: "",
     dataAgendada: "",
   });
-  const nomeRemedioFeedback = feedbackTextoObrigatorio(formRemedio.nome, "Nome");
-  const alertaDataFeedback = feedbackDataHoraFutura(formAlertaRemedio.dataAgendada);
-  const prescricaoDosagemFeedback = feedbackTextoObrigatorio(formPrescricao.dosagem, "Dosagem");
-  const prescricaoIntervaloFeedback = feedbackIntervalo(formPrescricao.intervalo);
-  const prescricaoRemedioErro = buscaRemedioPrescricao.trim() && !formPrescricao.remedioId ? "Selecione um remédio da lista." : "";
+  const formularioRemedioIniciado = Boolean(formRemedio.nome || formRemedio.observacao);
+  const formularioAlertaIniciado = Boolean(formAlertaRemedio.prescricaoId || formAlertaRemedio.dataAgendada);
+  const formularioPrescricaoIniciado = Boolean(
+    buscaRemedioPrescricao ||
+    formPrescricao.remedioId ||
+    formPrescricao.dosagem ||
+    formPrescricao.intervalo ||
+    formPrescricao.dataFim ||
+    formPrescricao.instrucao
+  );
+  const nomeRemedioFeedback = feedbackTextoObrigatorio(formRemedio.nome, "Nome", formularioRemedioIniciado);
+  const alertaDataFeedback = feedbackDataHoraFutura(formAlertaRemedio.dataAgendada, formularioAlertaIniciado);
+  const alertaPrescricaoErro = formularioAlertaIniciado && !formAlertaRemedio.prescricaoId ? "Selecione a prescrição do remédio." : "";
+  const prescricaoDosagemFeedback = feedbackTextoObrigatorio(formPrescricao.dosagem, "Dosagem", formularioPrescricaoIniciado);
+  const prescricaoIntervaloFeedback = feedbackIntervalo(formPrescricao.intervalo, formularioPrescricaoIniciado);
+  const prescricaoRemedioErro = formularioPrescricaoIniciado && !formPrescricao.remedioId ? "Selecione um remédio da lista." : "";
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
   const idososFiltrados = useMemo(() => {
@@ -939,6 +953,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                 </option>
               ))}
             </select>
+            {alertaPrescricaoErro ? <span className="bc-input-error">{alertaPrescricaoErro}</span> : null}
           </div>
 
           <BcCampoTexto
