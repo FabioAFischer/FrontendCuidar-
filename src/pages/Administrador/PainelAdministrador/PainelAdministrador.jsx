@@ -60,6 +60,58 @@ function formatarCep(v) {
   return n.replace(/(\d{5})(\d{0,3})/, "$1-$2").replace(/-$/, "");
 }
 
+function validarEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validarSenhaForte(senha) {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(senha);
+}
+
+function feedbackValido(texto) {
+  return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
+}
+
+function feedbackCnpj(cnpj) {
+  const numeros = cnpj.replace(/\D/g, "");
+  if (!numeros) return {};
+  if (numeros.length < 14) return { error: "CNPJ incompleto." };
+  if (!validarCnpj(cnpj)) return { error: "CNPJ inválido." };
+  return { hint: feedbackValido("CNPJ válido.") };
+}
+
+function feedbackEmail(email) {
+  const valor = email.trim();
+  if (!valor) return {};
+  if (!validarEmail(valor)) return { error: "E-mail inválido." };
+  return { hint: feedbackValido("E-mail válido.") };
+}
+
+function feedbackCep(cep) {
+  const numeros = cep.replace(/\D/g, "");
+  if (!numeros) return {};
+  if (numeros.length < 8) return { error: "CEP incompleto." };
+  return { hint: feedbackValido("CEP válido.") };
+}
+
+function feedbackUf(uf) {
+  if (!uf.trim()) return {};
+  if (uf.trim().length !== 2) return { error: "UF deve ter 2 letras." };
+  return { hint: feedbackValido("UF válida.") };
+}
+
+function feedbackSenha(senha) {
+  if (!senha) return {};
+  if (!validarSenhaForte(senha)) return { error: "Mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial." };
+  return {};
+}
+
+function feedbackConfirmarSenha(senha, confirmarSenha) {
+  if (!confirmarSenha) return {};
+  if (senha !== confirmarSenha) return { error: "As senhas não coincidem." };
+  return { hint: feedbackValido("Senhas coincidem.") };
+}
+
 async function buscarEnderecoPorCep(cep) {
   const n = cep.replace(/\D/g, "");
   if (n.length !== 8) return null;
@@ -72,13 +124,13 @@ async function buscarEnderecoPorCep(cep) {
 function validarFormularioInstituicao(form, exigirSenha = false) {
   if (!form.nome.trim())                          return "Informe o nome.";
   if (!validarCnpj(form.cnpj))                    return "CNPJ inválido.";
-  if (!form.email.trim())                         return "Informe o email.";
+  if (!validarEmail(form.email.trim()))           return "Informe um e-mail válido.";
   if (!form.rua.trim())                           return "Informe a rua.";
   if (!form.bairro.trim())                        return "Informe o bairro.";
   if (form.uf.trim().length !== 2)                return "UF deve ter 2 letras (ex: SC).";
   if (!form.numero.trim())                        return "Informe o número.";
   if (form.cep.replace(/\D/g, "").length < 8)    return "CEP inválido.";
-  if (exigirSenha && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(form.senha)) {
+  if (exigirSenha && !validarSenhaForte(form.senha)) {
     return "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.";
   }
   if (exigirSenha && form.senha !== form.confirmarSenha) return "As senhas não coincidem.";
@@ -126,20 +178,22 @@ function useBuscaEnderecoPorCep(cep, setForm, onToast) {
 }
 
 /* ── Campos de endereço ── */
-function CamposEndereco({ form, onChange, buscandoCEP }) {
+function CamposEndereco({ form, onChange, buscandoCEP, feedbacks = {} }) {
   return (
     <>
       <BcCampoTexto
-        label={buscandoCEP ? "CEP (buscando...)" : "CEP"}
+        label={buscandoCEP ? "CEP * (buscando...)" : "CEP *"}
         name="cep" placeholder="00000-000"
         value={form.cep} onChange={onChange} maxLength={9}
+        error={feedbacks.cep?.error}
+        hint={feedbacks.cep?.hint}
       />
-      <BcCampoTexto label="Rua" name="rua" placeholder="Nome da rua" value={form.rua} onChange={onChange} />
+      <BcCampoTexto label="Rua *" name="rua" placeholder="Nome da rua" value={form.rua} onChange={onChange} />
       <BcFormularioModalLinha>
-        <BcCampoTexto label="Número" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} />
-        <BcCampoTexto label="UF" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} />
+        <BcCampoTexto label="Número *" name="numero" placeholder="Ex: 123" value={form.numero} onChange={onChange} />
+        <BcCampoTexto label="UF *" name="uf" placeholder="SC" value={form.uf} onChange={onChange} maxLength={2} error={feedbacks.uf?.error} hint={feedbacks.uf?.hint} />
       </BcFormularioModalLinha>
-      <BcCampoTexto label="Bairro" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} />
+      <BcCampoTexto label="Bairro *" name="bairro" placeholder="Nome do bairro" value={form.bairro} onChange={onChange} />
     </>
   );
 }
@@ -191,6 +245,14 @@ function ModalCadastro({ onSucesso, onToast }) {
   }
 
   const senhasCoincidem = form.confirmarSenha.length > 0 && form.senha === form.confirmarSenha;
+  const cnpjFeedback = feedbackCnpj(form.cnpj);
+  const emailFeedback = feedbackEmail(form.email);
+  const senhaFeedback = feedbackSenha(form.senha);
+  const confirmarSenhaFeedback = feedbackConfirmarSenha(form.senha, form.confirmarSenha);
+  const enderecoFeedbacks = {
+    cep: feedbackCep(form.cep),
+    uf: feedbackUf(form.uf),
+  };
 
   return (
     <BcFormularioModal
@@ -199,12 +261,12 @@ function ModalCadastro({ onSucesso, onToast }) {
       error={erro}
       onSubmit={aoEnviarFormulario}
     >
-      <BcCampoTexto label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
-      <BcCampoTexto label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} />
-      <BcCampoTexto label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} />
-      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} />
+      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcCampoTexto label="CNPJ *" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} error={cnpjFeedback.error} hint={cnpjFeedback.hint} />
+      <BcCampoTexto label="Email *" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} error={emailFeedback.error} hint={emailFeedback.hint} />
+      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} feedbacks={enderecoFeedbacks} />
       <BcCampoTexto
-        label="Senha" name="senha"
+        label="Senha *" name="senha"
         type={showSenha ? "text" : "password"}
         placeholder="Crie uma senha"
         value={form.senha} onChange={aoAlterarCampoFormulario}
@@ -214,10 +276,11 @@ function ModalCadastro({ onSucesso, onToast }) {
             {showSenha ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
           </button>
         }
+        error={senhaFeedback.error}
         hint={<BcForcaSenha password={form.senha} />}
       />
       <BcCampoTexto
-        label="Confirmar Senha" name="confirmarSenha"
+        label="Confirmar Senha *" name="confirmarSenha"
         type={showConfirmar ? "text" : "password"}
         placeholder="Confirme sua senha"
         value={form.confirmarSenha} onChange={aoAlterarCampoFormulario}
@@ -227,6 +290,7 @@ function ModalCadastro({ onSucesso, onToast }) {
             {showConfirmar ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
           </button>
         }
+        error={confirmarSenhaFeedback.error}
         hint={
           form.confirmarSenha.length > 0 ? (
             <span className="bc-form-modal__match" style={{ color: senhasCoincidem ? "#0d9e8a" : "#e05252" }}>
@@ -292,6 +356,13 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
     }
   }
 
+  const cnpjFeedback = feedbackCnpj(form.cnpj);
+  const emailFeedback = feedbackEmail(form.email);
+  const enderecoFeedbacks = {
+    cep: feedbackCep(form.cep),
+    uf: feedbackUf(form.uf),
+  };
+
   return (
     <BcFormularioModal
       title="Editar Instituição"
@@ -299,10 +370,10 @@ function ModalEditar({ instituicao, onSucesso, onToast }) {
       error={erro}
       onSubmit={aoEnviarFormulario}
     >
-      <BcCampoTexto label="Nome" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
-      <BcCampoTexto label="CNPJ" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} />
-      <BcCampoTexto label="Email" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} />
-      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} />
+      <BcCampoTexto label="Nome *" name="nome" placeholder="Nome da instituição" value={form.nome} onChange={aoAlterarCampoFormulario} />
+      <BcCampoTexto label="CNPJ *" name="cnpj" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={aoAlterarCampoFormulario} maxLength={18} error={cnpjFeedback.error} hint={cnpjFeedback.hint} />
+      <BcCampoTexto label="Email *" name="email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={aoAlterarCampoFormulario} error={emailFeedback.error} hint={emailFeedback.hint} />
+      <CamposEndereco form={form} onChange={aoAlterarCampoFormulario} buscandoCEP={buscandoCEP} feedbacks={enderecoFeedbacks} />
       <BcBotao type="submit" loading={loading}>Salvar alterações</BcBotao>
     </BcFormularioModal>
   );
