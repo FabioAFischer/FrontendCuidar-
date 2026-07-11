@@ -175,6 +175,25 @@ function obterLabelTipoAlerta(tipoAlerta) {
   return TIPOS_ALERTA.find((tipo) => tipo.value === tipoAlerta)?.label || tipoAlerta || "Alerta";
 }
 
+function feedbackValido(texto) {
+  return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
+}
+
+function feedbackTextoObrigatorio(valor, nomeCampo, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: `${nomeCampo} obrigatório.` };
+  if (!String(valor).trim()) return { error: `${nomeCampo} obrigatório.` };
+  return { hint: feedbackValido(`${nomeCampo} válido.`) };
+}
+
+function feedbackDataHora(data, hora, ativo = true) {
+  if (!ativo) return {};
+  if (!data) return { error: "Informe a data do agendamento." };
+  if (!hora) return { error: "Informe o horário do agendamento." };
+  if (new Date(`${data}T${hora}`) < new Date()) return { error: "Não é possível agendar no passado." };
+  return { hint: feedbackValido("Data e horário válidos.") };
+}
+
 function mapearAlertaParaConsulta(alerta, idosos, consultasSalvas) {
   const detalhesLocais = buscarDetalhesLocais(alerta, consultasSalvas);
   const idoso = idosos.find((item) => Number(item.id) === Number(alerta.idosoId));
@@ -380,6 +399,13 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
   const proximas = consultas.filter((consulta) =>
     criarDataConsulta(consulta).getTime() > Date.now() && consulta.status !== "cancelada"
   );
+  const formularioIniciado = Boolean(form.data || form.hora || form.medico || form.especialidade || form.local || form.observacoes);
+  const medicoFeedback = feedbackTextoObrigatorio(form.medico, "Médico", formularioIniciado);
+  const especialidadeFeedback = feedbackTextoObrigatorio(form.especialidade, "Especialidade", formularioIniciado);
+  const localFeedback = feedbackTextoObrigatorio(form.local, "Local", formularioIniciado);
+  const dataHoraFeedback = feedbackDataHora(form.data, form.hora, formularioIniciado);
+  const idosoFeedback = formularioIniciado && !form.idosoId ? "Selecione um idoso." : "";
+  const tipoAlertaFeedback = formularioIniciado && !form.tipoAlerta ? "Selecione o tipo do alerta." : "";
 
   function abrirCadastro() {
     setConsultaEmEdicao(null);
@@ -679,6 +705,7 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
                 </option>
               ))}
             </select>
+            {idosoFeedback ? <span className="bc-input-error">{idosoFeedback}</span> : null}
           </div>
 
           <div className="cuidador-consultas-campo">
@@ -688,9 +715,10 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
                 <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
               ))}
             </select>
+            {tipoAlertaFeedback ? <span className="bc-input-error">{tipoAlertaFeedback}</span> : null}
           </div>
 
-          <BcCampoTexto label="Médico *" name="medico" placeholder="Dr. Nome do médico" value={form.medico} onChange={aoAlterarFormularioConsulta} />
+          <BcCampoTexto label="Médico *" name="medico" placeholder="Dr. Nome do médico" value={form.medico} onChange={aoAlterarFormularioConsulta} error={medicoFeedback.error} hint={medicoFeedback.hint} />
 
           <div className="cuidador-consultas-form__linha">
             <BcCampoTexto
@@ -700,12 +728,14 @@ export default function ConsultasCuidador({ onBack, onLogout }) {
               value={form.data}
               onChange={aoAlterarFormularioConsulta}
               min={obterDataAtualParaInput()}
+              error={dataHoraFeedback.error}
+              hint={dataHoraFeedback.hint}
             />
-            <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} />
+            <BcCampoTexto label="Horário *" name="hora" type="time" value={form.hora} onChange={aoAlterarFormularioConsulta} error={dataHoraFeedback.error} />
           </div>
 
-          <BcCampoTexto label="Especialidade *" name="especialidade" placeholder="Ex: Cardiologia" value={form.especialidade} onChange={aoAlterarFormularioConsulta} />
-          <BcCampoTexto label="Local *" name="local" placeholder="Hospital, clínica ou endereço" value={form.local} onChange={aoAlterarFormularioConsulta} />
+          <BcCampoTexto label="Especialidade *" name="especialidade" placeholder="Ex: Cardiologia" value={form.especialidade} onChange={aoAlterarFormularioConsulta} error={especialidadeFeedback.error} hint={especialidadeFeedback.hint} />
+          <BcCampoTexto label="Local *" name="local" placeholder="Hospital, clínica ou endereço" value={form.local} onChange={aoAlterarFormularioConsulta} error={localFeedback.error} hint={localFeedback.hint} />
 
           <div className="cuidador-consultas-campo">
             <label htmlFor="consulta-status" className="bc-form-modal__label">Status</label>
