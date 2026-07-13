@@ -329,6 +329,51 @@ export default function PainelInstituicao({ onLogout }) {
   function fecharModalCuidador() { setErroCuidador(""); setModalCuidadorAberto(false); setCuidadorEmEdicao(null); limparFormularioCuidador(); }
 
   function validarEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+  function validarSenhaForte(senha) { return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(senha); }
+
+  function feedbackValido(texto) {
+    return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
+  }
+
+  function feedbackObrigatorio(valor, nomeCampo, ativo = true) {
+    if (!ativo) return {};
+    if (!String(valor || "").trim()) return { error: `${nomeCampo} obrigatório.` };
+    return { hint: feedbackValido(`${nomeCampo} preenchido.`) };
+  }
+
+  function feedbackCpf(valor, colecoes = [], ignorarUso = false) {
+    const cpfLimpo = extrairSomenteNumeros(valor);
+    if (!cpfLimpo) return {};
+    if (cpfLimpo.length < 11) return { error: "CPF incompleto." };
+    if (!validarCpf(valor)) return { error: "CPF inválido." };
+    if (!ignorarUso && !verificarCpfDisponivel(valor, ...colecoes)) return { error: "CPF já está em uso." };
+    return { hint: feedbackValido("CPF válido.") };
+  }
+
+  function feedbackEmail(valor) {
+    const email = valor.trim();
+    if (!email) return {};
+    if (!validarEmail(email)) return { error: "E-mail inválido." };
+    return { hint: feedbackValido("E-mail válido.") };
+  }
+
+  function feedbackTelefone(ddd, telefone) {
+    if (!ddd && !telefone) return {};
+    if (!validarCelular(ddd, telefone)) return { error: "Telefone celular inválido. Use (XX) 9XXXX-XXXX." };
+    return { hint: feedbackValido("Telefone válido.") };
+  }
+
+  function feedbackSenha(senha) {
+    if (!senha) return {};
+    if (!validarSenhaForte(senha)) return { error: "Mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial." };
+    return {};
+  }
+
+  function feedbackConfirmarSenha(senha, confirmar) {
+    if (!confirmar) return {};
+    if (senha !== confirmar) return { error: "As senhas não coincidem." };
+    return { hint: feedbackValido("Senhas coincidem.") };
+  }
 
   function validarIdoso() {
     const s = String(consultaCpfIdoso.idoso?.status || "").toUpperCase();
@@ -346,7 +391,7 @@ export default function PainelInstituicao({ onLogout }) {
     if (!formCuidador.nome.trim()) return "Informe o nome do cuidador.";
     if (!validarEmail(formCuidador.email.trim())) return "Informe um e-mail válido.";
     if (!cuidadorEmEdicao && !cuidadorParaReativar && !formCuidador.senha.trim()) return "Informe a senha do cuidador.";
-    if (formCuidador.senha.trim() && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(formCuidador.senha)) {
+    if (formCuidador.senha.trim() && !validarSenhaForte(formCuidador.senha)) {
       return "A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial.";
     }
     if (formCuidador.senha.trim() && !formCuidador.confirmarSenha.trim()) return "Confirme a senha do cuidador.";
@@ -503,6 +548,17 @@ export default function PainelInstituicao({ onLogout }) {
   ];
 
   const senhasCuidadorCoincidem = formCuidador.confirmarSenha.length > 0 && formCuidador.senha === formCuidador.confirmarSenha;
+  const formularioCuidadorIniciado = Object.values(formCuidador).some((valor) => String(valor || "").trim());
+  const formularioIdosoIniciado = Object.values(formIdoso).some((valor) => String(valor || "").trim());
+  const cpfCuidadorFeedback = feedbackCpf(formCuidador.cpf, [cuidadores, idosos], Boolean(cuidadorEmEdicao || cuidadorParaReativar));
+  const nomeCuidadorFeedback = feedbackObrigatorio(formCuidador.nome, "Nome", formularioCuidadorIniciado);
+  const emailCuidadorFeedback = feedbackEmail(formCuidador.email);
+  const senhaCuidadorFeedback = feedbackSenha(formCuidador.senha);
+  const confirmarSenhaCuidadorFeedback = feedbackConfirmarSenha(formCuidador.senha, formCuidador.confirmarSenha);
+  const telefoneCuidadorFeedback = feedbackTelefone(formCuidador.ddd, formCuidador.telefone);
+  const cpfIdosoFeedback = feedbackCpf(formIdoso.cpf, [cuidadores], Boolean(idosoEmEdicao || idosoParaReativar));
+  const nomeIdosoFeedback = feedbackObrigatorio(formIdoso.nome, "Nome", formularioIdosoIniciado);
+  const telefoneIdosoFeedback = feedbackTelefone(formIdoso.ddd, formIdoso.telefone);
 
   return (
     <div className="instituicao-home">
@@ -630,9 +686,9 @@ export default function PainelInstituicao({ onLogout }) {
           error={erroCuidador}
           onSubmit={aoEnviarFormularioCuidador}
         >
-          <BcCampoTexto label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} />
-          <BcCampoTexto label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} />
-          <BcCampoTexto label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} />
+          <BcCampoTexto label="CPF *" name="cpf" placeholder="000.000.000-00" value={formCuidador.cpf} onChange={atualizarCuidador} maxLength={14} error={cpfCuidadorFeedback.error} hint={cpfCuidadorFeedback.hint} />
+          <BcCampoTexto label="Nome *" name="nome" placeholder="Insira um nome" value={formCuidador.nome} onChange={atualizarCuidador} error={nomeCuidadorFeedback.error} hint={nomeCuidadorFeedback.hint} />
+          <BcCampoTexto label="E-mail *" name="email" type="email" placeholder="nome@email.com" value={formCuidador.email} onChange={atualizarCuidador} error={emailCuidadorFeedback.error} hint={emailCuidadorFeedback.hint} />
           <BcCampoTexto
             label={cuidadorEmEdicao || cuidadorParaReativar ? "Senha" : "Senha *"}
             name="senha"
@@ -646,6 +702,7 @@ export default function PainelInstituicao({ onLogout }) {
                 {mostrarSenhaCuidador ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
               </button>
             }
+            error={senhaCuidadorFeedback.error}
             hint={<BcForcaSenha password={formCuidador.senha} />}
           />
           <BcCampoTexto
@@ -661,6 +718,7 @@ export default function PainelInstituicao({ onLogout }) {
                 {mostrarConfirmarSenhaCuidador ? <IconeOlhoFechado /> : <IconeOlhoAberto />}
               </button>
             }
+            error={confirmarSenhaCuidadorFeedback.error}
             hint={
               formCuidador.confirmarSenha.length > 0 ? (
                 <span className="bc-form-modal__match" style={{ color: senhasCuidadorCoincidem ? "#0d9e8a" : "#e05252" }}>
@@ -671,7 +729,7 @@ export default function PainelInstituicao({ onLogout }) {
           />
           <BcFormularioModalLinha>
             <BcCampoTexto label="DDD *" name="ddd" placeholder="11" value={formCuidador.ddd} onChange={atualizarCuidador} maxLength={2} />
-            <BcCampoTexto label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} />
+            <BcCampoTexto label="Telefone *" name="telefone" placeholder="99000-0000" value={formCuidador.telefone} onChange={atualizarCuidador} maxLength={10} error={telefoneCuidadorFeedback.error} hint={telefoneCuidadorFeedback.hint} />
           </BcFormularioModalLinha>
           <BcBotao type="submit" loading={salvandoCuidador}>
             {cuidadorEmEdicao ? "Salvar alterações" : cuidadorParaReativar ? "Reativar" : "Cadastrar"}
@@ -687,12 +745,12 @@ export default function PainelInstituicao({ onLogout }) {
           error={erroIdoso}
           onSubmit={aoEnviarFormularioIdoso}
         >
-          <BcCampoTexto label="CPF *" name="cpf" placeholder="000.000.000-00" value={formIdoso.cpf} onChange={atualizarIdoso} inputMode="numeric" maxLength={14} />
-          <BcCampoTexto label="Nome *" name="nome" placeholder="Insira um nome" value={formIdoso.nome} onChange={atualizarIdoso} />
+          <BcCampoTexto label="CPF *" name="cpf" placeholder="000.000.000-00" value={formIdoso.cpf} onChange={atualizarIdoso} inputMode="numeric" maxLength={14} error={cpfIdosoFeedback.error} hint={cpfIdosoFeedback.hint} />
+          <BcCampoTexto label="Nome *" name="nome" placeholder="Insira um nome" value={formIdoso.nome} onChange={atualizarIdoso} error={nomeIdosoFeedback.error} hint={nomeIdosoFeedback.hint} />
           <BcFormularioModalAreaTexto id="observacoes" label="Observações" name="observacoes" placeholder="Observações importantes sobre o idoso..." value={formIdoso.observacoes} onChange={atualizarIdoso} />
           <BcFormularioModalLinha>
             <BcCampoTexto label="DDD *" name="ddd" placeholder="11" value={formIdoso.ddd} onChange={atualizarIdoso} maxLength={2} />
-            <BcCampoTexto label="Telefone *" name="telefone" placeholder="99000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} />
+            <BcCampoTexto label="Telefone *" name="telefone" placeholder="99000-0000" value={formIdoso.telefone} onChange={atualizarIdoso} maxLength={10} error={telefoneIdosoFeedback.error} hint={telefoneIdosoFeedback.hint} />
           </BcFormularioModalLinha>
           <BcBotao type="submit" loading={salvandoIdoso}>
             {idosoEmEdicao ? "Salvar alterações" : idosoParaReativar ? "Reativar" : "Cadastrar"}

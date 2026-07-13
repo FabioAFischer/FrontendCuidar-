@@ -292,6 +292,8 @@ export default function BcPerfilModal({ aberto, onFechar }) {
                 <>
                   <CampoInfo label="CNPJ"   valor={formatarCnpj(dados.cnpj)} />
                   <CampoInfo label="Rua"    valor={dados.rua} />
+                  <CampoInfo label="Número" valor={dados.numero} />
+                  <CampoInfo label="Complemento" valor={dados.complemento} />
                   <CampoInfo label="Bairro" valor={dados.bairro} />
                   <CampoInfo label="UF"     valor={dados.uf} />
                   <CampoInfo label="CEP"    valor={formatarCep(dados.cep)} />
