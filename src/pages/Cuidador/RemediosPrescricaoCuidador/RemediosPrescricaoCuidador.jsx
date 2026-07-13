@@ -133,6 +133,31 @@ function calcularFimDoDia(valor) {
   return `${valor}T23:59:59`;
 }
 
+function feedbackValido(texto) {
+  return <span className="bc-form-modal__match" style={{ color: "#0d9e8a" }}>{texto}</span>;
+}
+
+function feedbackTextoObrigatorio(valor, nomeCampo, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: `${nomeCampo} obrigatório.` };
+  if (!String(valor).trim()) return { error: `${nomeCampo} obrigatório.` };
+  return { hint: feedbackValido(`${nomeCampo} válido.`) };
+}
+
+function feedbackDataHoraFutura(valor, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: "Data e horário obrigatórios." };
+  if (new Date(valor) < new Date()) return { error: "Não é possível agendar no passado." };
+  return { hint: feedbackValido("Data e horário válidos.") };
+}
+
+function feedbackIntervalo(valor, ativo = true) {
+  if (!ativo) return {};
+  if (!valor) return { error: "Intervalo obrigatório." };
+  if (Number(valor) <= 0) return { error: "Informe um intervalo maior que zero." };
+  return { hint: feedbackValido("Intervalo válido.") };
+}
+
 function ehAlertaRemedioPendente(alerta) {
   const tipo = String(alerta?.tipoAlerta || alerta?.tipo || "").toUpperCase();
   const status = String(alerta?.statusAlertas || alerta?.status || "").toUpperCase();
@@ -191,6 +216,22 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
     prescricaoId: "",
     dataAgendada: "",
   });
+  const formularioRemedioIniciado = Boolean(formRemedio.nome || formRemedio.observacao);
+  const formularioAlertaIniciado = Boolean(formAlertaRemedio.prescricaoId || formAlertaRemedio.dataAgendada);
+  const formularioPrescricaoIniciado = Boolean(
+    buscaRemedioPrescricao ||
+    formPrescricao.remedioId ||
+    formPrescricao.dosagem ||
+    formPrescricao.intervalo ||
+    formPrescricao.dataFim ||
+    formPrescricao.instrucao
+  );
+  const nomeRemedioFeedback = feedbackTextoObrigatorio(formRemedio.nome, "Nome", formularioRemedioIniciado);
+  const alertaDataFeedback = feedbackDataHoraFutura(formAlertaRemedio.dataAgendada, formularioAlertaIniciado);
+  const alertaPrescricaoErro = formularioAlertaIniciado && !formAlertaRemedio.prescricaoId ? "Selecione a prescrição do remédio." : "";
+  const prescricaoDosagemFeedback = feedbackTextoObrigatorio(formPrescricao.dosagem, "Dosagem", formularioPrescricaoIniciado);
+  const prescricaoIntervaloFeedback = feedbackIntervalo(formPrescricao.intervalo, formularioPrescricaoIniciado);
+  const prescricaoRemedioErro = formularioPrescricaoIniciado && !formPrescricao.remedioId ? "Selecione um remédio da lista." : "";
 
   const idosoSelecionado = idosos.find((idoso) => Number(idoso.id) === Number(idosoSelecionadoId));
   const idososFiltrados = useMemo(() => {
@@ -912,6 +953,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                 </option>
               ))}
             </select>
+            {alertaPrescricaoErro ? <span className="bc-input-error">{alertaPrescricaoErro}</span> : null}
           </div>
 
           <BcCampoTexto
@@ -921,6 +963,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             value={formAlertaRemedio.dataAgendada}
             onChange={aoAlterarFormularioAlertaRemedio}
             min={obterDataHoraAtualParaInput()}
+            error={alertaDataFeedback.error}
+            hint={alertaDataFeedback.hint}
           />
 
           <BcBotao type="submit" loading={salvandoAlertaRemedio}>
@@ -942,6 +986,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             placeholder="Insira o nome do remédio"
             value={formRemedio.nome}
             onChange={aoAlterarFormularioRemedio}
+            error={nomeRemedioFeedback.error}
+            hint={nomeRemedioFeedback.hint}
           />
 
           <BcFormularioModalAreaTexto
@@ -1087,6 +1133,7 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
                 </div>
               ) : null}
             </div>
+            {prescricaoRemedioErro ? <span className="bc-input-error">{prescricaoRemedioErro}</span> : null}
           </div>
 
           <BcCampoTexto
@@ -1095,6 +1142,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             placeholder="Ex: 1 comprimido de 25g, 1 cápsula de 500mg, 10ml"
             value={formPrescricao.dosagem}
             onChange={aoAlterarFormularioPrescricao}
+            error={prescricaoDosagemFeedback.error}
+            hint={prescricaoDosagemFeedback.hint}
           />
 
           <BcCampoTexto
@@ -1105,6 +1154,8 @@ export default function RemediosPrescricaoCuidador({ onBack, onLogout }) {
             value={formPrescricao.intervalo}
             onChange={aoAlterarFormularioPrescricao}
             inputMode="decimal"
+            error={prescricaoIntervaloFeedback.error}
+            hint={prescricaoIntervaloFeedback.hint}
           />
 
           <BcCampoTexto
